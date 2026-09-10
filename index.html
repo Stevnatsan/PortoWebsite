@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Steven Nathaniel Santoso — Portfolio</title>
+	<meta name="description" content="Steven Nathaniel Santoso — data and web development portfolio. Tableau dashboards, Python data analysis, and full-stack web projects." />
+
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+
+	<link rel="stylesheet" href="assets/css/portfolio.css" />
+</head>
+<body id="top">
+
+	<!-- grain texture overlay -->
+	<svg class="grain" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+		<filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" /></filter>
+		<rect width="100%" height="100%" filter="url(#noise)" />
+	</svg>
+
+	<!-- preloader -->
+	<div class="preloader" aria-hidden="true">
+		<span class="preloader__mark">Steven N. Santoso</span>
+		<span class="preloader__count">0%</span>
+	</div>
+
+	<!-- custom cursor -->
+	<div class="cursor"></div>
+	<div class="cursor-ring"></div>
+
+	<!-- header -->
+	<header class="site-header">
+		<a class="logo" href="#top" data-magnetic>S.N.S.</a>
+		<nav class="site-nav" id="site-nav">
+			<ul>
+				<li><a href="#intro">Intro</a></li>
+				<li><a href="#work">Work</a></li>
+				<li><a href="#activity">Activity</a></li>
+				<li><a href="#about">About</a></li>
+				<li><a href="#contact">Contact</a></li>
+			</ul>
+		</nav>
+		<button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">
+			<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+		</button>
+	</header>
+
+	<main>
+
+		<!-- hero — dark -->
+		<section class="hero tone-dark" id="hero">
+			<div class="hero__glow" aria-hidden="true"></div>
+			<div class="container">
+				<p class="hero__eyebrow">Steven Nathaniel Santoso — Jakarta, Indonesia</p>
+				<h1>
+					<span class="line"><span>Computer science grad,</span></span>
+					<span class="line"><span><em>data</em> &amp; web builder.</span></span>
+				</h1>
+				<p class="hero__sub">Previously a Data Engineering intern at Samsung Research Indonesia. These days I split my time between data analysis and web development.</p>
+			</div>
+			<div class="hero__scroll">
+				<span class="hero__scroll-line"></span>
+				Scroll
+			</div>
+		</section>
+
+		<!-- marquee — dark -->
+		<div class="marquee tone-dark" aria-hidden="true">
+			<div class="marquee__track">
+				<span><b>Python</b> · SQL · <b>Tableau</b> · React.js · JavaScript · <b>Data Visualization</b> · Pandas · Git</span>
+				<span><b>Python</b> · SQL · <b>Tableau</b> · React.js · JavaScript · <b>Data Visualization</b> · Pandas · Git</span>
+			</div>
+		</div>
+
+		<!-- intro — light -->
+		<section class="tone-light" id="intro">
+			<div class="container">
+				<div class="section-head">
+					<span class="num">01</span>
+					<h2>Intro</h2>
+					<span class="rule"></span>
+				</div>
+				<div class="intro__grid">
+					<div class="intro__portrait reveal">
+						<img src="images/Profilepicture.jpeg" alt="Portrait of Steven Nathaniel Santoso" loading="lazy" />
+					</div>
+					<div class="intro__text">
+						<p class="reveal"><b>I'm Steven</b> — a computer science graduate from Binus University, with a minor in database technology. I spent time at Samsung Research Indonesia as a Data Engineering intern, building frontend features for an internal application in React, alongside regular bug fixing and testing.</p>
+						<p class="reveal" data-delay="100">Most of what I do sits between two things: making sense of data, and building the interfaces people use to see it. My work covers both sides — Tableau dashboards, Python notebooks, and full web applications.</p>
+						<div class="intro__tags reveal" data-delay="200">
+							<span>Python</span><span>SQL</span><span>Tableau</span><span>React</span><span>JavaScript</span><span>Git</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- work — dark -->
+		<section class="tone-dark" id="work">
+			<div class="container">
+				<div class="section-head">
+					<span class="num">02</span>
+					<h2>Work</h2>
+					<span class="rule"></span>
+				</div>
+
+				<div class="project reveal">
+					<div class="project__media"><img src="images/Tableau.jpeg" alt="Tableau dashboard preview" loading="lazy" /></div>
+					<div class="project__body">
+						<span class="project__index">01</span>
+						<h3 class="project__title">Tableau Visualizations</h3>
+						<p class="project__desc">Dashboards built around COVID case trends, game sales, and department store performance — designed to make comparisons easy to scan without hiding the data behind decoration.</p>
+						<div class="project__tags"><span>Tableau</span><span>Data Visualization</span><span>Dashboards</span></div>
+						<a class="project__link" href="https://public.tableau.com/app/profile/steven.nathaniel.santoso/vizzes" target="_blank" rel="noopener">
+							View on Tableau Public
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="8 6 18 6 18 16"/></svg>
+						</a>
+					</div>
+				</div>
+
+				<div class="project reveal">
+					<div class="project__media"><img src="images/Collab.png" alt="Python data analysis notebook preview" loading="lazy" /></div>
+					<div class="project__body">
+						<span class="project__index">02</span>
+						<h3 class="project__title">Python Data Analysis</h3>
+						<p class="project__desc">Notebooks focused on cleaning raw datasets and comparing variables to produce predictive results, charted out as clear, readable graphs.</p>
+						<div class="project__tags"><span>Python</span><span>Pandas</span><span>Predictive Analysis</span></div>
+						<a class="project__link" href="https://github.com/Stevnatsan/Python-Collab" target="_blank" rel="noopener">
+							View on GitHub
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="8 6 18 6 18 16"/></svg>
+						</a>
+					</div>
+				</div>
+
+				<div class="project reveal">
+					<div class="project__media"><img src="images/WebDev.png" alt="Web development project preview" loading="lazy" /></div>
+					<div class="project__body">
+						<span class="project__index">03</span>
+						<h3 class="project__title">Web Development</h3>
+						<p class="project__desc">Full-stack projects with a working database behind them, built with usability in mind — following the eight golden rules of interface design rather than just chasing a look.</p>
+						<div class="project__tags"><span>JavaScript</span><span>Full-Stack</span><span>Database</span></div>
+						<a class="project__link" href="https://github.com/Stevnatsan/Web-Development" target="_blank" rel="noopener">
+							View on GitHub
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="8 6 18 6 18 16"/></svg>
+						</a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- activity — light -->
+		<section class="tone-light" id="activity">
+			<div class="container">
+				<div class="section-head">
+					<span class="num">03</span>
+					<h2>Activity</h2>
+					<span class="rule"></span>
+				</div>
+				<div class="activity__grid">
+					<div class="activity__stats reveal">
+						<div class="stat"><strong data-stat="repos">—</strong><span>Public repositories</span></div>
+						<div class="stat"><strong data-stat="followers">—</strong><span>Followers on GitHub</span></div>
+						<div class="stat"><strong data-stat="since">—</strong><span>On GitHub since</span></div>
+						<a class="project__link" href="https://github.com/Stevnatsan" target="_blank" rel="noopener">
+							View GitHub profile
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"/><polyline points="8 6 18 6 18 16"/></svg>
+						</a>
+					</div>
+					<div class="activity__heatmap reveal" data-delay="120">
+						<div class="heatmap" id="heatmap" role="img" aria-label="GitHub contribution activity over the last year">
+							<p class="heatmap__loading">Loading contribution activity…</p>
+						</div>
+						<span class="heatmap__total" id="heatmap-total"></span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- about — dark -->
+		<section class="tone-dark" id="about">
+			<div class="container">
+				<div class="section-head">
+					<span class="num">04</span>
+					<h2>About</h2>
+					<span class="rule"></span>
+				</div>
+				<div class="about__grid">
+					<div class="about">
+						<p class="reveal">I graduated in Computer Science from Binus University, with a minor in database technology. That's where most of my interest in data comes from — <b>analytics, data engineering</b>, anything that involves turning raw information into something useful.</p>
+						<p class="reveal" data-delay="100">Outside of coursework, I've taken Tableau and SQL training and worked through coding challenges to back it up with certificates. I also spent time in a student organization, which is where a lot of my <b>Java practice and team leadership</b> experience actually came from.</p>
+					</div>
+					<div class="about__stats reveal" data-delay="150">
+						<div><strong>S1</strong><span>Computer Science, Binus University</span></div>
+						<div><strong>01</strong><span>Data Engineering internship, Samsung Research Indonesia</span></div>
+						<div><strong>02</strong><span>Certifications — Tableau &amp; SQL</span></div>
+						<div><strong>03</strong><span>Focus areas — data, analytics, web</span></div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- contact — light -->
+		<section class="tone-light" id="contact">
+			<div class="container contact">
+				<div class="section-head">
+					<span class="num">05</span>
+					<h2>Contact</h2>
+					<span class="rule"></span>
+				</div>
+				<h2 class="big reveal">Got a project in mind? <a href="mailto:stevnatsan@gmail.com" data-magnetic>Let's talk.</a></h2>
+				<div class="contact__meta reveal" data-delay="100">
+					<div class="contact__col">
+						<span class="label">Email</span>
+						<a href="mailto:stevnatsan@gmail.com">stevnatsan@gmail.com</a>
+					</div>
+					<div class="contact__col">
+						<span class="label">Location</span>
+						<p>Jakarta, Indonesia</p>
+					</div>
+					<div class="contact__col">
+						<span class="label">Prefer to chat?</span>
+						<button class="btn-accent" data-cal-link="steven-santoso-wkjxfx" data-cal-config='{"layout":"month_view"}' data-magnetic>
+							Book a 15-min chat
+						</button>
+					</div>
+					<div class="contact__col">
+						<span class="label">Elsewhere</span>
+						<div class="contact__socials">
+							<a href="https://www.instagram.com/steven.ns/" target="_blank" rel="noopener" aria-label="Instagram" data-magnetic>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+							</a>
+							<a href="https://github.com/Stevnatsan" target="_blank" rel="noopener" aria-label="GitHub" data-magnetic>
+								<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.78-.25.78-.55 0-.27-.01-1.15-.02-2.09-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a10.9 10.9 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.2.66.79.55A10.99 10.99 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+	</main>
+
+	<footer class="site-footer tone-dark">
+		<p>&copy; <span data-year>2026</span> Steven Nathaniel Santoso</p>
+		<p class="live-clock"><span class="live-dot" aria-hidden="true"></span><span data-clock>Jakarta — --:-- WIB</span></p>
+		<a class="back-to-top" href="#top">Back to top</a>
+	</footer>
+
+	<!-- Cal.com embed (official snippet) -->
+	<script type="text/javascript">
+		(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+		Cal("init", { origin: "https://cal.com" });
+		Cal("ui", { styles: { branding: { brandColor: "#d7ff3f" } }, hideEventTypeDetails: false, layout: "month_view" });
+	</script>
+
+	<script src="assets/js/portfolio.js"></script>
+</body>
+</html>
