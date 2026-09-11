@@ -65,6 +65,26 @@ button{ font: inherit; background: none; border: none; }
   padding-inline: var(--gutter);
 }
 
+/* ---------- skip link ---------- */
+.skip-link{
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: 1000;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: .75rem 1.25rem;
+  border-radius: 999px;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: top .2s var(--ease);
+}
+.skip-link:focus{ top: 1rem; }
+/* tabindex="-1" makes #main a valid focus target for the skip link above;
+   it's not itself interactive, so it doesn't need a ring drawn around
+   the entire page content. */
+main:focus{ outline: none; }
+
 /* ---------- grain overlay ---------- */
 .grain{
   position: fixed;
@@ -182,8 +202,14 @@ button{ font: inherit; background: none; border: none; }
 
 .nav-toggle{
   display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -11px; /* offsets the larger hit target so the icon stays visually aligned with the edge */
   color: #fff;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 @media (max-width: 760px){
@@ -203,7 +229,7 @@ button{ font: inherit; background: none; border: none; }
   .site-nav.is-open{ transform: translateY(0); }
   .site-nav ul{ flex-direction: column; text-align: center; gap: 1.25rem; }
   .site-nav a{ font-size: 1.25rem; font-family: var(--font-display); color: #f5f1e6; mix-blend-mode: normal; }
-  .nav-toggle{ display: block; z-index: 260; }
+  .nav-toggle{ display: flex; z-index: 260; }
 }
 
 /* ---------- section shell ---------- */
@@ -548,6 +574,7 @@ section:not(.hero)::before{
   line-height: 1.05;
   letter-spacing: -.01em;
   max-width: 16ch;
+  text-wrap: balance;
 }
 .contact h2.big a{
   color: var(--ink);
