@@ -146,7 +146,7 @@ button{ font: inherit; background: none; border: none; }
   justify-content: space-between;
   padding: 1.5rem var(--gutter);
   color: #fff;
-  transition: transform .4s var(--ease);
+  transition: top .4s var(--ease);
 }
 .site-header .logo{
   font-family: var(--font-display);

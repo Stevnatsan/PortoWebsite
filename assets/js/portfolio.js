@@ -113,12 +113,15 @@
     revealEls.forEach(function (el) { el.style.opacity = 1; el.style.transform = "none"; });
   }
 
-  /* ---------- header contrast on scroll (mix-blend already handles most) ---------- */
+  /* ---------- header hide-on-scroll ----------
+     Uses `top`, not `transform`: a transform on .site-header would make it
+     the containing block for its position:fixed .site-nav child, breaking
+     the full-screen mobile menu's viewport-relative sizing. */
   var header = document.querySelector(".site-header");
   var lastY = window.scrollY;
   window.addEventListener("scroll", function () {
     var y = window.scrollY;
-    if (header) header.style.transform = (y > lastY && y > 200) ? "translateY(-110%)" : "translateY(0)";
+    if (header) header.style.top = (y > lastY && y > 200) ? (-header.offsetHeight - 20) + "px" : "0";
     lastY = y;
   }, { passive: true });
 
