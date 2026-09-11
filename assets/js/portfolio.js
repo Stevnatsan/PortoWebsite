@@ -78,6 +78,58 @@
     });
   }
 
+  /* ---------- touch: enable :active states on iOS ----------
+     iOS Safari only applies :active to elements below a listener
+     registered somewhere in the ancestor chain — without this, taps
+     never trigger the touch-feedback CSS at all. */
+  if (isTouch) {
+    document.addEventListener("touchstart", function () {}, { passive: true });
+  }
+
+  /* ---------- hero glow motion: scroll parallax + device tilt ----------
+     Desktop's ambient motion (custom cursor, magnetic hover) has no
+     touch equivalent since there's no pointer to track. Scroll speed
+     and device tilt are the touch-native substitutes: the glow drifts
+     with scroll on every device, and on touch devices with a
+     gyroscope it also nudges with how the phone is held. */
+  var heroGlow = document.querySelector(".hero__glow");
+  if (heroGlow && !reduceMotion) {
+    var glowTargetX = 0, glowTargetY = 0, glowX = 0, glowY = 0;
+
+    window.addEventListener("scroll", function () {
+      glowTargetY = window.scrollY * 0.15;
+    }, { passive: true });
+
+    if (isTouch && window.DeviceOrientationEvent) {
+      var onTilt = function (e) {
+        if (e.gamma === null) return;
+        glowTargetX = Math.max(-1, Math.min(1, e.gamma / 30)) * 20;
+      };
+      var enableTilt = function () {
+        window.addEventListener("deviceorientation", onTilt);
+      };
+      if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        // iOS 13+ only grants motion access from within a user gesture,
+        // so ask on the visitor's first tap rather than on page load.
+        document.addEventListener("touchstart", function requestOnce() {
+          document.removeEventListener("touchstart", requestOnce);
+          DeviceOrientationEvent.requestPermission()
+            .then(function (state) { if (state === "granted") enableTilt(); })
+            .catch(function () {});
+        }, { once: true, passive: true });
+      } else {
+        enableTilt();
+      }
+    }
+
+    (function glowLoop() {
+      glowX += (glowTargetX - glowX) * 0.08;
+      glowY += (glowTargetY - glowY) * 0.08;
+      heroGlow.style.transform = "translate(calc(-50% + " + glowX.toFixed(1) + "px), calc(-50% + " + glowY.toFixed(1) + "px))";
+      requestAnimationFrame(glowLoop);
+    })();
+  }
+
   /* ---------- hero headline split-reveal ---------- */
   document.querySelectorAll(".hero h1 .line span").forEach(function (span, i) {
     span.style.transform = "translateY(110%)";

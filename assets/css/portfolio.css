@@ -617,6 +617,30 @@ section{
 /* ---------- magnetic elements ---------- */
 [data-magnetic]{ display: inline-block; will-change: transform; }
 
+/* ---------- touch feedback ----------
+   Desktop gets hover states via the mouse; touch devices get none of
+   that, so tap the same visual reveals on :active instead of leaving
+   taps feeling inert. Scoped to (hover:none) so it never doubles up
+   with the existing :hover rules on devices that have both. */
+@media (hover: none){
+  .btn-accent:active{ transform: scale(.95); }
+  .project__link:active{ opacity: .6; }
+  .contact__socials a:active{
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+    transform: scale(.94);
+  }
+  .project:active .project__media img{
+    filter: grayscale(0) brightness(1);
+    transform: scale(1);
+  }
+  .intro__portrait:active img{
+    filter: grayscale(0) contrast(1.05);
+    transform: scale(1);
+  }
+}
+
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior: auto; }
