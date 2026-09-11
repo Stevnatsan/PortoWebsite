@@ -480,6 +480,7 @@ section{
 .activity__stats .stat span{ font-size: .8rem; color: var(--muted); letter-spacing: .04em; }
 .activity__stats .project__link{ margin-top: .5rem; }
 
+.activity__heatmap{ min-width: 0; }
 .heatmap__loading{ color: var(--muted); font-size: .9rem; }
 .heatmap{
   display: grid;
