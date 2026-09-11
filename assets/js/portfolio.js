@@ -78,6 +78,26 @@
     });
   }
 
+  /* ---------- project card tilt ----------
+     Extends the existing grayscale-to-color hover with a subtle 3D
+     tilt that follows the cursor, desktop-only (no pointer to track
+     on touch, which already gets its own :active reveal instead). */
+  if (!isTouch && !reduceMotion) {
+    document.querySelectorAll(".project__media").forEach(function (media) {
+      media.addEventListener("mousemove", function (e) {
+        var r = media.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        var rotX = (-py * 8).toFixed(2);
+        var rotY = (px * 8).toFixed(2);
+        media.style.transform = "perspective(900px) rotateX(" + rotX + "deg) rotateY(" + rotY + "deg)";
+      });
+      media.addEventListener("mouseleave", function () {
+        media.style.transform = "";
+      });
+    });
+  }
+
   /* ---------- touch: enable :active states on iOS ----------
      iOS Safari only applies :active to elements below a listener
      registered somewhere in the ancestor chain — without this, taps
@@ -165,6 +185,41 @@
     revealEls.forEach(function (el) { el.style.opacity = 1; el.style.transform = "none"; });
   }
 
+  /* ---------- section heading scramble-in ---------- */
+  var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  function scrambleIn(el) {
+    var finalText = el.textContent;
+    var len = finalText.length;
+    var duration = 400 + len * 35;
+    var start = null;
+    function frame(now) {
+      if (start === null) start = now;
+      var p = Math.min((now - start) / duration, 1);
+      var revealCount = Math.floor(p * len);
+      var out = "";
+      for (var i = 0; i < len; i++) {
+        if (i < revealCount || finalText[i] === " ") out += finalText[i];
+        else out += SCRAMBLE_CHARS[(Math.random() * SCRAMBLE_CHARS.length) | 0];
+      }
+      el.textContent = out;
+      if (p < 1) requestAnimationFrame(frame);
+      else el.textContent = finalText;
+    }
+    requestAnimationFrame(frame);
+  }
+  var headingEls = document.querySelectorAll(".section-head h2");
+  if (headingEls.length && "IntersectionObserver" in window && !reduceMotion) {
+    var headingIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          scrambleIn(entry.target);
+          headingIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.6 });
+    headingEls.forEach(function (el) { headingIO.observe(el); });
+  }
+
   /* ---------- header hide-on-scroll ----------
      Uses `top`, not `transform`: a transform on .site-header would make it
      the containing block for its position:fixed .site-nav child, breaking
@@ -194,10 +249,44 @@
 
   /* ---------- live GitHub stats ---------- */
   var GH_USER = "Stevnatsan";
+  var statTargets = {};
+  var statsRevealed = reduceMotion; // skip the count-up animation entirely when reduced
+
+  function animateCount(el, target) {
+    var duration = 1100;
+    var start = null;
+    function frame(now) {
+      if (start === null) start = now;
+      var p = Math.min((now - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased);
+      if (p < 1) requestAnimationFrame(frame);
+      else el.textContent = target;
+    }
+    requestAnimationFrame(frame);
+  }
 
   function setStat(key, value) {
     var el = document.querySelector('[data-stat="' + key + '"]');
-    if (el) el.textContent = value;
+    if (!el) return;
+    if (statsRevealed) animateCount(el, value);
+    else statTargets[key] = { el: el, value: value };
+  }
+
+  var statsEl = document.querySelector(".activity__stats");
+  if (statsEl && !reduceMotion && "IntersectionObserver" in window) {
+    var statsIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          statsRevealed = true;
+          Object.keys(statTargets).forEach(function (key) {
+            animateCount(statTargets[key].el, statTargets[key].value);
+          });
+          statsIO.unobserve(statsEl);
+        }
+      });
+    }, { threshold: 0.4 });
+    statsIO.observe(statsEl);
   }
 
   fetch("https://api.github.com/users/" + GH_USER)
@@ -224,18 +313,34 @@
   function renderHeatmap(calendar) {
     heatmap.innerHTML = "";
     heatmap.classList.remove("heatmap--fallback");
+    var cells = [];
     calendar.weeks.forEach(function (week) {
       week.contributionDays.forEach(function (day) {
         var cell = document.createElement("div");
         cell.className = "heatmap__day";
         cell.dataset.level = level(day.contributionCount);
         cell.title = day.date + " — " + day.contributionCount + " contributions";
+        if (!reduceMotion) cell.style.opacity = "0";
         heatmap.appendChild(cell);
+        cells.push(cell);
       });
     });
     if (heatmapTotal) {
       heatmapTotal.textContent = calendar.totalContributions.toLocaleString() + " contributions in the last year";
     }
+    if (reduceMotion || !("IntersectionObserver" in window)) return;
+    var cellsIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          cells.forEach(function (cell, i) {
+            cell.style.transition = "opacity .4s ease " + Math.min(i * 2, 500) + "ms";
+            cell.style.opacity = "1";
+          });
+          cellsIO.unobserve(heatmap);
+        }
+      });
+    }, { threshold: 0.2 });
+    cellsIO.observe(heatmap);
   }
 
   // Falls back to a third-party activity graph when the serverless
