@@ -78,27 +78,48 @@
     });
   }
 
-  /* ---------- project fan: select a tile to show its details ----------
-     Hover selects on desktop; focus and click/tap work everywhere. */
-  var fanCards = document.querySelectorAll(".project-fan__card");
-  var fanDetails = document.querySelectorAll(".project-fan__detail");
-  if (fanCards.length) {
-    var activateFanCard = function (id) {
-      fanCards.forEach(function (card) {
-        var on = card.dataset.target === id;
-        card.classList.toggle("is-active", on);
-        card.setAttribute("aria-pressed", on ? "true" : "false");
+  /* ---------- project card tilt ----------
+     Extends the existing grayscale-to-color hover with a subtle 3D
+     tilt that follows the cursor, desktop-only (no pointer to track
+     on touch, which already gets its own :active reveal instead). */
+  if (!isTouch && !reduceMotion) {
+    document.querySelectorAll(".project__media").forEach(function (media) {
+      media.addEventListener("mousemove", function (e) {
+        var r = media.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        var rotX = (-py * 8).toFixed(2);
+        var rotY = (px * 8).toFixed(2);
+        media.style.transform = "perspective(900px) rotateX(" + rotX + "deg) rotateY(" + rotY + "deg)";
       });
-      fanDetails.forEach(function (detail) {
-        detail.classList.toggle("is-active", detail.id === id);
+      media.addEventListener("mouseleave", function () {
+        media.style.transform = "";
+      });
+    });
+  }
+
+  /* ---------- project index list: hover/focus to select ----------
+     Desktop-only (the CSS collapses this back to plain stacked cards
+     below 800px, where the nav is hidden entirely). Mouse hover and
+     keyboard focus both select a row so tabbing through stays usable. */
+  var projectNav = document.querySelector(".project-list__nav");
+  if (projectNav) {
+    var projectRows = projectNav.querySelectorAll(".project-row");
+    var projectPreviews = document.querySelectorAll(".project-preview-stack .project");
+    var activateProject = function (id) {
+      projectRows.forEach(function (row) {
+        row.classList.toggle("is-active", row.dataset.target === id);
+      });
+      projectPreviews.forEach(function (preview) {
+        preview.classList.toggle("is-active", preview.id === id);
       });
     };
-    fanCards.forEach(function (card) {
-      var select = function () { activateFanCard(card.dataset.target); };
-      if (!isTouch) card.addEventListener("mouseenter", select);
-      card.addEventListener("focus", select);
-      card.addEventListener("click", select);
+    projectRows.forEach(function (row) {
+      row.addEventListener("mouseenter", function () { activateProject(row.dataset.target); });
+      row.addEventListener("focus", function () { activateProject(row.dataset.target); });
     });
+    projectNav.addEventListener("mouseenter", function () { projectNav.classList.add("is-hovering"); });
+    projectNav.addEventListener("mouseleave", function () { projectNav.classList.remove("is-hovering"); });
   }
 
   /* ---------- touch: enable :active states on iOS ----------
