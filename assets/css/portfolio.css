@@ -453,68 +453,109 @@ section:not(.hero)::before{
   border-radius: 999px;
 }
 
-/* ---------- work ---------- */
-.project-list{
-  display: grid;
-  grid-template-columns: minmax(240px, 340px) 1fr;
-  column-gap: clamp(2rem, 5vw, 4rem);
-}
-.project-list__nav{ display: flex; flex-direction: column; grid-column: 1; }
-.project-row{
-  display: flex;
-  align-items: baseline;
-  gap: 1.1rem;
+/* ---------- work: 3D fan/carousel selector ----------
+   Cards are arranged on an arc: each rotates by its --i slot around a
+   pivot 430px behind the plane, so the middle card sits at its natural
+   size and the side ones swing back. The active card slides further out
+   along its own ray, so it comes forward without sweeping into the centre.
+   Collapses to plain stacked cards below 800px. */
+.project-fan{ margin: 1rem 0; }
+.project-fan__ring{
+  position: relative;
   width: 100%;
-  padding: 1.5rem 0;
-  border-top: 1px solid var(--line);
-  background: none;
-  border-left: none;
-  border-right: none;
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  opacity: 1;
-  transition: opacity .35s var(--ease), padding-left .35s var(--ease);
-}
-.project-list__nav .project-row:last-child{ border-bottom: 1px solid var(--line); }
-.project-list__nav.is-hovering .project-row:not(.is-active){ opacity: .4; }
-.project-row.is-active{ padding-left: .75rem; }
-.project-row__index{ font-family: var(--font-display); font-style: italic; color: var(--muted); font-size: .95rem; flex-shrink: 0; transition: color .35s var(--ease); }
-.project-row.is-active .project-row__index{ color: var(--accent); }
-.project-row__title{ font-family: var(--font-display); font-weight: 500; font-size: clamp(1.3rem, 2.2vw, 1.8rem); letter-spacing: -.01em; transition: transform .35s var(--ease); }
-.project-row.is-active .project-row__title{ transform: translateX(.35rem); }
-.project-row__arrow{ margin-left: auto; width: 14px; height: 14px; flex-shrink: 0; opacity: 0; transform: translate(-6px,6px); transition: opacity .3s var(--ease), transform .3s var(--ease); }
-.project-row.is-active .project-row__arrow{ opacity: 1; transform: translate(0,0); }
-
-.project-preview-stack{ display: grid; grid-column: 2; align-self: start; position: sticky; top: 6rem; }
-.project-preview-stack .project{
-  grid-area: 1 / 1;
-  opacity: 0;
+  height: 34rem;
+  perspective: 1700px;
+  perspective-origin: 50% 30%;
+  transform-style: preserve-3d;
+  /* side cards swing behind this element's plane; without this it
+     would swallow clicks on the parts of them that sit behind it */
   pointer-events: none;
-  transition: opacity .5s var(--ease);
 }
-.project-preview-stack .project.is-active{ opacity: 1; pointer-events: auto; z-index: 1; }
-
-.project__media{
-  aspect-ratio: 16/9;
+.project-fan__card{
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  width: 260px;
+  margin-left: -130px;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  /* radius >= half-width / tan(half the 34deg step), so neighbours meet
+     edge to edge instead of slicing through each other */
+  transform: translateZ(-430px) rotateY(calc(var(--i) * 34deg)) translateZ(430px);
+  transition: transform .55s var(--ease), filter .5s var(--ease);
+  /* dimmed with brightness, not opacity — translucent cards would show
+     each other through where they overlap */
+  filter: grayscale(.7) brightness(.45);
+  pointer-events: none;
+}
+.project-fan__card.is-active{
+  transform: translateZ(-430px) rotateY(calc(var(--i) * 34deg)) translateZ(480px) scale(1.04);
+  filter: none;
+  pointer-events: auto;
+}
+/* Selection is driven by this flat tab row rather than by hovering the
+   rotated cards themselves: overlapping 3D planes make hit-testing pick
+   whichever card is nearest the viewer, so a neighbour could never be
+   reached once the front card grew over it. */
+.project-fan__nav{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .5rem 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 3;
+}
+.project-fan__tab{
+  display: inline-flex;
+  align-items: baseline;
+  gap: .6rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: .4rem 0;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  cursor: pointer;
+  transition: color .3s var(--ease), border-color .3s var(--ease);
+}
+.project-fan__tab .project-fan__index{ margin: 0; }
+.project-fan__tab:hover,
+.project-fan__tab.is-active{ color: var(--ink); border-bottom-color: var(--accent); }
+.project-fan__tab.is-active .project-fan__index{ color: var(--accent); }
+.project-fan__tab:focus-visible{ outline: 2px solid var(--accent); outline-offset: 4px; }
+.project-fan__media{
+  aspect-ratio: 16/10;
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--panel);
-  margin-bottom: 1.75rem;
-  transition: transform .15s ease-out;
-  will-change: transform;
+  margin-bottom: .85rem;
 }
-.project__media img{
+.project-fan__media img{
   width: 100%; height: 100%; object-fit: cover;
   filter: grayscale(1) brightness(.85);
   transform: scale(1.08);
   transition: filter .7s var(--ease), transform .7s var(--ease);
 }
-.project.is-active .project__media img,
-.project:hover .project__media img{ filter: grayscale(0) brightness(1); transform: scale(1); }
-.project__index{ font-family: var(--font-display); font-style: italic; color: var(--muted); font-size: .95rem; margin-bottom: .75rem; display: block; }
-.project__title{ font-family: var(--font-display); font-weight: 500; font-size: clamp(1.8rem, 3.4vw, 2.6rem); margin-bottom: 1rem; letter-spacing: -.01em; }
+.project-fan__card.is-active .project-fan__media img{ filter: grayscale(0) brightness(1); transform: scale(1); }
+.project-fan__index{ font-family: var(--font-display); font-style: italic; color: var(--muted); font-size: .85rem; display: block; margin-bottom: .35rem; transition: color .35s var(--ease); }
+.project-fan__card.is-active .project-fan__index{ color: var(--accent); }
+.project-fan__title{ font-family: var(--font-display); font-weight: 500; font-size: 1.25rem; letter-spacing: -.01em; }
+.project-fan__detail{
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  visibility: hidden;
+  transition: max-height .45s var(--ease), opacity .3s var(--ease);
+}
+.project-fan__card.is-active .project-fan__detail{ max-height: 18rem; opacity: 1; visibility: visible; margin-top: .7rem; }
+.project-fan__detail .project__desc{ font-size: .85rem; line-height: 1.5; max-width: none; margin-bottom: .8rem; }
+.project-fan__detail .project__tags{ gap: .35rem; margin-bottom: .9rem; }
+.project-fan__detail .project__tags span{ font-size: .62rem; padding: .25rem .5rem; }
+.project-fan__detail .project__link{ font-size: .85rem; }
+
 .project__desc{ color: var(--muted); font-size: clamp(1rem, 1.3vw, 1.1rem); max-width: 52ch; margin-bottom: 1.5rem; }
 .project__tags{ display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.75rem; }
 .project__tags span{
@@ -538,19 +579,28 @@ section:not(.hero)::before{
 .project__link:hover svg{ transform: translate(3px,-3px); }
 
 @media (max-width: 800px){
-  .project-list{ display: block; }
-  .project-list__nav{ display: none; }
-  .project-preview-stack{ display: block; position: static; top: auto; }
-  .project-preview-stack .project{
-    grid-area: auto;
+  .project-fan{ margin: 0; }
+  .project-fan__nav{ display: none; }
+  .project-fan__ring{ display: block; height: auto; perspective: none; transform-style: flat; }
+  .project-fan__card{
     position: static;
-    opacity: 1;
+    width: auto; height: auto; margin: 0;
+    display: block;
+    background: none;
+    border: none;
+    transform: none !important;
+    opacity: 1; filter: none;
     pointer-events: auto;
     padding: clamp(2.5rem, 5vw, 4rem) 0;
     border-top: 1px solid var(--line);
   }
-  .project-preview-stack .project:last-child{ border-bottom: 1px solid var(--line); }
-  .project__media{ aspect-ratio: 16/10; }
+  .project-fan__card:last-child{ border-bottom: 1px solid var(--line); }
+  .project-fan__media{ aspect-ratio: 16/10; margin-bottom: 1.5rem; }
+  .project-fan__media img{ filter: grayscale(0) brightness(1); transform: scale(1); }
+  .project-fan__index{ font-size: .95rem; margin-bottom: .75rem; }
+  .project-fan__title{ font-size: clamp(1.8rem, 3.4vw, 2.4rem); margin-bottom: 1rem; }
+  .project-fan__detail{ max-height: none; opacity: 1; visibility: visible; overflow: visible; margin-top: .5rem; }
+  .project-fan__detail .project__desc{ font-size: clamp(1rem, 1.3vw, 1.1rem); max-width: 52ch; }
   .intro__grid{ grid-template-columns: 1fr; }
 }
 
