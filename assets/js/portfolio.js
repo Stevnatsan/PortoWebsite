@@ -98,6 +98,30 @@
     });
   }
 
+  /* ---------- project index list: hover/focus to select ----------
+     Desktop-only (the CSS collapses this back to plain stacked cards
+     below 800px, where the nav is hidden entirely). Mouse hover and
+     keyboard focus both select a row so tabbing through stays usable. */
+  var projectNav = document.querySelector(".project-list__nav");
+  if (projectNav) {
+    var projectRows = projectNav.querySelectorAll(".project-row");
+    var projectPreviews = document.querySelectorAll(".project-preview-stack .project");
+    var activateProject = function (id) {
+      projectRows.forEach(function (row) {
+        row.classList.toggle("is-active", row.dataset.target === id);
+      });
+      projectPreviews.forEach(function (preview) {
+        preview.classList.toggle("is-active", preview.id === id);
+      });
+    };
+    projectRows.forEach(function (row) {
+      row.addEventListener("mouseenter", function () { activateProject(row.dataset.target); });
+      row.addEventListener("focus", function () { activateProject(row.dataset.target); });
+    });
+    projectNav.addEventListener("mouseenter", function () { projectNav.classList.add("is-hovering"); });
+    projectNav.addEventListener("mouseleave", function () { projectNav.classList.remove("is-hovering"); });
+  }
+
   /* ---------- touch: enable :active states on iOS ----------
      iOS Safari only applies :active to elements below a listener
      registered somewhere in the ancestor chain — without this, taps
