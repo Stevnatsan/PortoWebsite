@@ -462,8 +462,9 @@ section:not(.hero)::before{
    panel underneath so the text is never skewed. */
 .project-fan{ margin: 1rem 0; }
 .project-fan__ring{
-  --step: 30deg;
-  --radius: 400px;
+  --step: 24deg;
+  --radius: 450px;
+  --tile: 190px;
   position: relative;
   height: 17rem;
   perspective: 1500px;
@@ -477,8 +478,8 @@ section:not(.hero)::before{
   position: absolute;
   top: 1rem;
   left: 50%;
-  width: 210px;
-  margin-left: -105px;
+  width: var(--tile);
+  margin-left: calc(var(--tile) / -2);
   padding: .75rem;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -558,10 +559,13 @@ section:not(.hero)::before{
 .project__link svg{ width: 14px; height: 14px; transition: transform .3s var(--ease); }
 .project__link:hover svg{ transform: translate(3px,-3px); }
 
+@media (max-width: 960px){
+  .project-fan__ring{ --radius: 380px; --tile: 160px; }
+}
 @media (max-width: 800px){
   .project-fan__ring{
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: .6rem;
     height: auto;
     perspective: none;
