@@ -78,25 +78,26 @@
     });
   }
 
-  /* ---------- project fan: tab hover/focus/click brings a card forward ----------
-     The tab row is hidden below 800px, where the CSS collapses the fan
-     into plain stacked cards with everything visible. */
-  var fanTabs = document.querySelectorAll(".project-fan__tab");
+  /* ---------- project fan: select a tile to show its details ----------
+     Hover selects on desktop; focus and click/tap work everywhere. */
   var fanCards = document.querySelectorAll(".project-fan__card");
-  if (fanTabs.length && fanCards.length) {
+  var fanDetails = document.querySelectorAll(".project-fan__detail");
+  if (fanCards.length) {
     var activateFanCard = function (id) {
-      fanTabs.forEach(function (tab) {
-        tab.classList.toggle("is-active", tab.dataset.target === id);
-      });
       fanCards.forEach(function (card) {
-        card.classList.toggle("is-active", card.dataset.target === id);
+        var on = card.dataset.target === id;
+        card.classList.toggle("is-active", on);
+        card.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      fanDetails.forEach(function (detail) {
+        detail.classList.toggle("is-active", detail.id === id);
       });
     };
-    fanTabs.forEach(function (tab) {
-      var select = function () { activateFanCard(tab.dataset.target); };
-      tab.addEventListener("mouseenter", select);
-      tab.addEventListener("focus", select);
-      tab.addEventListener("click", select);
+    fanCards.forEach(function (card) {
+      var select = function () { activateFanCard(card.dataset.target); };
+      if (!isTouch) card.addEventListener("mouseenter", select);
+      card.addEventListener("focus", select);
+      card.addEventListener("click", select);
     });
   }
 
