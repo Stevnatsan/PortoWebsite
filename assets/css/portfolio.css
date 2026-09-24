@@ -516,15 +516,20 @@ section:not(.hero)::before{
 .project-fan__detail .project-fan__index{ color: var(--accent); }
 .project-fan__title{ display: block; font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; letter-spacing: -.01em; }
 
-.project-fan__details{ display: grid; max-width: 44rem; margin: 1rem auto 0; }
+.project-fan__details{ display: grid; max-width: 68rem; margin: 1rem auto 0; }
 .project-fan__detail{
   grid-area: 1 / 1;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
   opacity: 0;
   visibility: hidden;
   transform: translateY(12px);
   transition: opacity .4s var(--ease), transform .4s var(--ease);
 }
 .project-fan__detail.is-active{ opacity: 1; visibility: visible; transform: none; }
+.project-fan__cover{ display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; border: 1px solid var(--line); }
 .project-fan__detail-title{ font-family: var(--font-display); font-weight: 500; font-size: clamp(1.7rem, 3vw, 2.3rem); letter-spacing: -.01em; margin-bottom: .9rem; }
 
 .project__desc{ color: var(--muted); font-size: clamp(1rem, 1.3vw, 1.1rem); max-width: 52ch; margin-bottom: 1.5rem; }
@@ -568,6 +573,7 @@ section:not(.hero)::before{
   .project-fan__card .project-fan__index{ font-size: .75rem; margin-bottom: .15rem; }
   .project-fan__title{ font-size: .85rem; line-height: 1.25; }
   .project-fan__details{ margin-top: 1.75rem; }
+  .project-fan__detail{ grid-template-columns: 1fr; gap: 1.25rem; }
   .intro__grid{ grid-template-columns: 1fr; }
 }
 
