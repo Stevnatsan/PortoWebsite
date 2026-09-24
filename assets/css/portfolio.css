@@ -454,13 +454,16 @@ section:not(.hero)::before{
 }
 
 /* ---------- work: 3D fan of project tiles ----------
-   Tiles sit on an arc, each rotated by its --i slot around a pivot
-   380px behind the plane (radius >= half-width / tan(17deg), so
-   neighbours meet edge to edge instead of slicing through each other).
-   The selected tile slides further out along its own ray; its details
-   show in a flat panel underneath so the text is never skewed. */
+   Tiles sit on an arc, each rotated by its --i slot (centred on 0, e.g.
+   -1.5 .. 1.5 for four tiles) around a pivot --radius behind the plane.
+   Keep --radius >= half the tile width / tan(--step / 2) so neighbours
+   meet edge to edge instead of slicing through each other. The selected
+   tile slides further out along its own ray; its details show in a flat
+   panel underneath so the text is never skewed. */
 .project-fan{ margin: 1rem 0; }
 .project-fan__ring{
+  --step: 30deg;
+  --radius: 400px;
   position: relative;
   height: 17rem;
   perspective: 1500px;
@@ -474,8 +477,8 @@ section:not(.hero)::before{
   position: absolute;
   top: 1rem;
   left: 50%;
-  width: 230px;
-  margin-left: -115px;
+  width: 210px;
+  margin-left: -105px;
   padding: .75rem;
   background: var(--panel);
   border: 1px solid var(--line);
@@ -484,7 +487,7 @@ section:not(.hero)::before{
   text-align: left;
   cursor: pointer;
   pointer-events: auto;
-  transform: translateZ(-380px) rotateY(calc(var(--i) * 34deg)) translateZ(380px);
+  transform: translateZ(calc(var(--radius) * -1)) rotateY(calc(var(--i) * var(--step))) translateZ(var(--radius));
   transition: transform .55s var(--ease), filter .5s var(--ease), border-color .4s var(--ease);
   /* dimmed with brightness, not opacity: translucent tiles would show
      each other through where they overlap */
@@ -492,7 +495,7 @@ section:not(.hero)::before{
 }
 .project-fan__card:hover{ filter: grayscale(.4) brightness(.7); }
 .project-fan__card.is-active{
-  transform: translateZ(-380px) rotateY(calc(var(--i) * 34deg)) translateZ(430px) scale(1.05);
+  transform: translateZ(calc(var(--radius) * -1)) rotateY(calc(var(--i) * var(--step))) translateZ(calc(var(--radius) + 50px)) scale(1.05);
   filter: none;
   border-color: var(--accent);
 }
@@ -514,7 +517,7 @@ section:not(.hero)::before{
 .project-fan__index{ font-family: var(--font-display); font-style: italic; color: var(--muted); font-size: .85rem; display: block; margin-bottom: .3rem; transition: color .35s var(--ease); }
 .project-fan__card.is-active .project-fan__index,
 .project-fan__detail .project-fan__index{ color: var(--accent); }
-.project-fan__title{ display: block; font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; letter-spacing: -.01em; }
+.project-fan__title{ display: block; font-family: var(--font-display); font-weight: 500; font-size: 1rem; line-height: 1.25; letter-spacing: -.01em; }
 
 .project-fan__details{ display: grid; max-width: 68rem; margin: 1rem auto 0; }
 .project-fan__detail{
@@ -551,13 +554,14 @@ section:not(.hero)::before{
   border-bottom: 1px solid var(--ink);
   padding-bottom: 3px;
 }
+.project__links{ display: flex; flex-wrap: wrap; gap: .75rem 1.75rem; }
 .project__link svg{ width: 14px; height: 14px; transition: transform .3s var(--ease); }
 .project__link:hover svg{ transform: translate(3px,-3px); }
 
 @media (max-width: 800px){
   .project-fan__ring{
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: .6rem;
     height: auto;
     perspective: none;
