@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Element Specimens — Steven Nathaniel Santoso</title>
-<meta name="description" content="An interactive periodic table: put any of the 118 elements on a specimen bench and run the experiments it is known for, from melting and flame tests to glow tubes, magnets and radioactive decay.">
+<meta name="description" content="An interactive 3D periodic table: put any of the 118 elements on a specimen bench, pick it up, drop it in water, and run the experiments it is known for, from melting and flame tests to glow tubes, magnets and radioactive decay.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -104,12 +104,23 @@ select{font:500 12px var(--body);padding:6px;border:1px solid var(--line);border
 .cell:hover{filter:brightness(1.06) saturate(1.2)}
 .cell.rad::after{content:"";position:absolute;right:4px;top:4px;width:5px;height:5px;border-radius:50%;background:var(--warn)}
 .gap{grid-column:1/-1;height:6px}
+.toast{position:absolute;right:16px;top:56px;display:grid;justify-items:end;gap:6px;max-width:min(300px,48%);pointer-events:none}
+.hint,.status{font:500 11.5px var(--body);padding:5px 9px;border-radius:99px;background:color-mix(in srgb,var(--panel) 82%,transparent);border:1px solid var(--line);color:var(--ink);text-align:right;text-wrap:balance}
+.status{font-family:var(--mono);font-size:11px;border-radius:5px}
+.hint[hidden],.status[hidden],.nogl[hidden]{display:none}
+.nogl{position:absolute;inset:auto 24px 45% 24px;text-align:center;color:var(--muted);font-size:13px}
+.stage.lightsoff{--ink:#e9eaea;--muted:#9aa0a6;--panel:#1f2328;--line:#30353b}
+.stage .title,.stage .readings,.stage .nav button,.stage .toast{transition:color .4s}
+.spec{width:100%;height:30px;display:block;border-radius:3px;background:#0b0c0e}
+.speclab{display:flex;justify-content:space-between;font:10px var(--mono);color:var(--muted)}
 @media (max-width:980px){
   .bench{grid-template-columns:1fr}
   .stage{min-height:0;aspect-ratio:4/5;max-height:76vh}
   .panel{position:static}
   .title{left:16px;top:14px}
   .readings{left:16px;right:16px;bottom:12px}
+  .toast{left:12px;right:12px;top:auto;bottom:calc(var(--rh,90px) + 20px);max-width:none;justify-items:center}
+  .hint,.status{text-align:center}
   .caption{font-size:12px}
   .cell .nm{display:none}
 }
@@ -129,7 +140,7 @@ select{font:500 12px var(--body);padding:6px;border:1px solid var(--line);border
   <a class="back" href="../">← Steven N. Santoso · Portfolio</a>
   <section class="bench">
     <div class="stage" id="stage">
-      <canvas id="cv" aria-label="Specimen view"></canvas>
+      <canvas id="cv" aria-label="3D specimen bench. Drag to turn it; drag the specimen to pick it up."></canvas>
       <div class="title">
         <div class="eyebrow" id="eyebrow">Element specimens · No. 011</div>
         <h1 id="h1">Sodium<em>.</em></h1>
@@ -139,6 +150,8 @@ select{font:500 12px var(--body);padding:6px;border:1px solid var(--line);border
         <button id="prev" aria-label="Previous element">←</button>
         <button id="next" aria-label="Next element">→</button>
       </div>
+      <div class="toast"><div class="hint" id="hint">Drag to turn the bench · grab the specimen to pick it up</div><div class="status" id="status" hidden></div></div>
+      <p class="nogl" id="nogl" hidden>This view needs WebGL, which this browser has turned off.</p>
       <div class="readings">
         <div class="caption" id="caption"></div>
         <div class="stats" id="stats"></div>
@@ -160,9 +173,16 @@ select{font:500 12px var(--body);padding:6px;border:1px solid var(--line);border
 <script>
 const EL=[{"z":1,"s":"H","n":"Hydrogen","m":1.008,"p":1,"g":1,"b":"s","ser":"Nonmetals","mp":13.99,"bp":20.271,"d":8.2e-05,"en":2.2,"rad":25.0,"ab":1400.0,"yr":1766,"cfg":"1s","nat":[[1,100.0],[2,0.0145]],"desc":"Colourless, odourless gaseous chemical element","uses":"Most hydrogen is used in the production of ammonia. Also used in balloons and in metal refining. Also used as fuel in rockets. Its two heavier isotopes are: deu"},{"z":2,"s":"He","n":"Helium","m":4.0026,"p":1,"g":18,"b":"s","ser":"Noble gases","bp":4.222,"d":0.000164,"rad":120.0,"ab":0.008,"yr":1895,"cfg":"1s2","nat":[[4,100.0],[3,0.0002]],"desc":"Colourless, odourless gaseous nonmetallic element","uses":"Used in balloons, deep sea diving & welding. Also used in very low temperature research."},{"z":3,"s":"Li","n":"Lithium","m":6.94,"p":2,"g":1,"b":"s","ser":"Alkali metals","mp":453.65,"bp":1615.2,"d":0.534,"en":0.98,"rad":145.0,"ab":20.0,"yr":1817,"cfg":"[He] 2s","nat":[[7,95.2],[6,4.85]],"desc":"Socket silvery metal","uses":"Used in batteries. Also for certain kinds of glass and ceramics.  Some is used in lubricants."},{"z":4,"s":"Be","n":"Beryllium","m":9.01218,"p":2,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1560.2,"bp":2741.2,"d":1.85,"en":1.57,"rad":105.0,"ab":2.8,"yr":1798,"cfg":"[He] 2s2","nat":[[9,100.0]],"desc":"Grey metallic element of group 2 of the periodic table","uses":"Its ability to absorb large amounts of heat makes it useful in spacecraft, missiles, aircraft, etc. Emeralds are beryl crystals with chromium traces giving them"},{"z":5,"s":"B","n":"Boron","m":10.81,"p":2,"g":13,"b":"p","ser":"Metalloids","mp":2350.2,"bp":4273.1,"d":2.34,"en":2.04,"rad":85.0,"ab":10.0,"yr":1808,"cfg":"[He] 2s2 2p","nat":[[11,80.3],[10,19.6]],"desc":"An element of group 13 of the periodic table","uses":"Used with titanium & tungsten to make heat resistant alloys for jets & rockets."},{"z":6,"s":"C","n":"Carbon","m":12.011,"p":2,"g":14,"b":"p","ser":"Nonmetals","bp":4098.1,"sub":true,"d":2.2,"en":2.55,"rad":70.0,"ab":200.0,"cfg":"[He] 2s2 2p2","nat":[[12,98.9],[13,1.06]],"desc":"Carbon is a member of group 14 of the periodic table","uses":"For making steel, in filters, and many more uses. Radiocarbon dating uses the carbon-14 isotope to date old objects."},{"z":7,"s":"N","n":"Nitrogen","m":14.007,"p":2,"g":15,"b":"p","ser":"Nonmetals","mp":63.15,"bp":77.355,"d":0.001145,"en":3.04,"rad":65.0,"ab":19.0,"yr":1772,"cfg":"[He] 2s2 2p3","nat":[[14,99.6],[15,0.38]],"desc":"Colourless, gaseous element which belongs to group 15 of the periodic table","uses":"Primarily to produce ammonia and other fertilizers. Also used in making nitric acid, which is used in explosives. Also used in welding and enhanced oil recovery"},{"z":8,"s":"O","n":"Oxygen","m":15.999,"p":2,"g":16,"b":"p","ser":"Nonmetals","mp":54.36,"bp":90.188,"d":0.001308,"en":3.44,"rad":60.0,"ab":461000.0,"yr":1774,"cfg":"[He] 2s2 2p4","nat":[[16,99.8],[18,0.204],[17,0.0384]],"desc":"A colourless, odourless gaseous element belonging to group 16 of the periodic table","uses":"Used in steel making, welding, and supporting life. Naturally occuring ozone (O3) in the upper atmosphere shields the earth from ultraviolet radiation."},{"z":9,"s":"F","n":"Fluorine","m":18.9984,"p":2,"g":17,"b":"p","ser":"Halogens","mp":53.48,"bp":85.04,"d":0.001553,"en":3.98,"rad":50.0,"ab":585.0,"yr":1886,"cfg":"[He] 2s2 2p5","nat":[[19,100.0]],"desc":"A poisonous pale yellow gaseous element belonging to group 17 of the periodic table (The halogens)","uses":"Used in refrigerants and other fluorocarbons. Also in toothpaste as sodium fluoride (NaF) and stannous fluoride (SnF2); also in Teflon."},{"z":10,"s":"Ne","n":"Neon","m":20.1797,"p":2,"g":18,"b":"p","ser":"Noble gases","mp":24.56,"bp":27.104,"d":0.000825,"rad":160.0,"ab":0.005,"yr":1898,"cfg":"[He] 2s2 2p6","nat":[[20,90.5],[22,9.25],[21,0.27]],"desc":"Colourless gaseous element of group 18 on the periodic table (noble gases)","uses":"Primarily for lighting."},{"z":11,"s":"Na","n":"Sodium","m":22.9898,"p":3,"g":1,"b":"s","ser":"Alkali metals","mp":370.94,"bp":1156.1,"d":0.97,"en":0.93,"rad":180.0,"ab":23600.0,"yr":1807,"cfg":"[Ne] 3s","nat":[[23,100.0]],"desc":"Soft silvery reactive element belonging to group 1 of the periodic table (alkali metals)","uses":"There are few uses for the pure metal, however its compounds are used in medicine, agriculture and photography. Sodium chloride (NaCl) is table salt. Liquid sod"},{"z":12,"s":"Mg","n":"Magnesium","m":24.305,"p":3,"g":2,"b":"s","ser":"Alkaline earth metals","mp":923.15,"bp":1363.2,"d":1.74,"en":1.31,"rad":150.0,"ab":23300.0,"yr":1808,"cfg":"[Ne] 3s2","nat":[[24,79.0],[26,11.0],[25,10.0]],"desc":"Silvery metallic element belonging to group 2 of the periodic table (alkaline-earth metals)","uses":"Used in alloys to make airplanes, missiles and other uses for light metals. Has structural properties similar to aluminium. But since it is flammable at tempera"},{"z":13,"s":"Al","n":"Aluminum","m":26.9815,"p":3,"g":13,"b":"p","ser":"Poor metals","mp":933.47,"bp":2792.2,"d":2.7,"en":1.61,"rad":125.0,"ab":82300.0,"yr":1825,"cfg":"[Ne] 3s2 3p","nat":[[27,100.0]],"desc":"Silvery-white lustrous metallic element of group 3 of the periodic table","uses":"Used for many purposes from airplanes to beverage cans. Too soft in its pure form so less than 1% of silicon or iron is added, which hardens and strengthens it."},{"z":14,"s":"Si","n":"Silicon","m":28.085,"p":3,"g":14,"b":"p","ser":"Metalloids","mp":1687.2,"bp":3538.2,"d":2.33,"en":1.9,"rad":110.0,"ab":282000.0,"yr":1824,"cfg":"[Ne] 3s2 3p2","nat":[[28,92.3],[29,4.67],[30,3.07]],"desc":"Metalloid element belonging to group 14 of the periodic table","uses":"Used in glass as silicon dioxide (SiO2). Silicon carbide (SiC) is one of the hardest substances known and used in polishing. Also the crystalline form is used i"},{"z":15,"s":"P","n":"Phosphorus","m":30.9738,"p":3,"g":15,"b":"p","ser":"Nonmetals","mp":317.3,"bp":553.65,"d":1.823,"en":2.19,"rad":100.0,"ab":1050.0,"yr":1669,"cfg":"[Ne] 3s2 3p3","nat":[[31,100.0]],"desc":"Non-metallic element belonging to group 15 of the periodic table","uses":"Used in the production of fertilizers and detergents. Some is used in fireworks, safety matches, and incendiary weapons. Also some applications for it and some "},{"z":16,"s":"S","n":"Sulfur","m":32.06,"p":3,"g":16,"b":"p","ser":"Nonmetals","mp":368.35,"bp":717.76,"d":2.07,"en":2.58,"rad":100.0,"ab":350.0,"cfg":"[Ne] 3s2 3p4","nat":[[32,94.8],[34,4.37],[33,0.763],[36,0.0158]],"desc":"Yellow, nonmetallic element belonging to group 16 of the periodic table","uses":"Used in matches, gunpowder, medicines, rubber and pesticides, dyes and insecticides. Also for making sulfuric acid (H2SO4)."},{"z":17,"s":"Cl","n":"Chlorine","m":35.45,"p":3,"g":17,"b":"p","ser":"Halogens","mp":171.65,"bp":239.11,"d":0.002898,"en":3.16,"rad":100.0,"ab":145.0,"yr":1774,"cfg":"[Ne] 3s2 3p5","nat":[[35,75.8],[37,24.2]],"desc":"Halogen element","uses":"Used in water purification, bleaches, acids and many, many other compounds such as chlorofluorocarbons (CFC)."},{"z":18,"s":"Ar","n":"Argon","m":39.948,"p":3,"g":18,"b":"p","ser":"Noble gases","mp":83.81,"bp":87.302,"d":0.001633,"rad":71.0,"ab":3.5,"yr":1894,"cfg":"[Ne] 3s2 3p6","nat":[[40,99.6],[36,0.334],[38,0.0629]],"desc":"Monatomic noble gas","uses":"Used in lighting products. It is often used in filling incandescent light bulbs. Some is mixed with krypton in fluorescent lamps. Crystals in the semiconductor "},{"z":19,"s":"K","n":"Potassium","m":39.0983,"p":4,"g":1,"b":"s","ser":"Alkali metals","mp":336.65,"bp":1032.2,"d":0.89,"en":0.82,"rad":220.0,"ab":20900.0,"yr":1807,"cfg":"[Ar] 4s","nat":[[39,93.3],[41,6.73],[40,0.0117]],"desc":"Soft silvery metallic element belonging to group 1 of the periodic table (alkali metals)","uses":"Used as potash in making glass & soap. Also as saltpeter, potassium nitrate (KNO3) to make explosives and to color fireworks in mauve. Formerly called kalium (K"},{"z":20,"s":"Ca","n":"Calcium","m":40.078,"p":4,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1115.2,"bp":1757.2,"d":1.54,"en":1.0,"rad":180.0,"ab":41500.0,"yr":1808,"cfg":"[Ar] 4s2","nat":[[40,96.9],[44,2.09],[42,0.647],[48,0.187]],"desc":"Soft grey metallic element belonging to group 2 of the periodic table","uses":"Used by many forms of life to make shells and bones. Virtually no use for the pure metal, however two of its compounds are, lime (CaO) and gypsum (CaSO4), are i"},{"z":21,"s":"Sc","n":"Scandium","m":44.9559,"p":4,"g":3,"b":"d","ser":"Transition metals","mp":1814.2,"bp":3109.2,"d":2.99,"en":1.36,"rad":160.0,"ab":22.0,"yr":1879,"cfg":"[Ar] 3d 4s2","nat":[[45,100.0]],"desc":"Rare soft silvery metallic element belonging to group 3 of the periodic table","uses":"Scandium metal is used in some aerospace applications. Scandum oxide (Sc2O3) is used in the manufacture of high-intensity electric lamps. Scandium iodide (ScI3)"},{"z":22,"s":"Ti","n":"Titanium","m":47.867,"p":4,"g":4,"b":"d","ser":"Transition metals","mp":1943.2,"bp":3560.2,"d":4.506,"en":1.54,"rad":140.0,"ab":5650.0,"yr":1791,"cfg":"[Ar] 3d2 4s2","nat":[[48,73.7],[46,8.25],[47,7.44],[49,5.41]],"desc":"White metallic transition element","uses":"Since it is strong and resists acids it is used in many alloys. Titanium dioxide (TiO2), a white pigment that covers surfaces very well, is used in paint, rubbe"},{"z":23,"s":"V","n":"Vanadium","m":50.9415,"p":4,"g":5,"b":"d","ser":"Transition metals","mp":2183.2,"bp":3680.2,"d":6.0,"en":1.63,"rad":135.0,"ab":120.0,"yr":1830,"cfg":"[Ar] 3d3 4s2","nat":[[51,99.8],[50,0.25]],"desc":"Soft and ductile, bright white metal","uses":"It is mixed with other metals to make very strong and durable alloys. Vanadium pentoxide (V2O5) is used as a catalyst, dye and color-fixer."},{"z":24,"s":"Cr","n":"Chromium","m":51.9961,"p":4,"g":6,"b":"d","ser":"Transition metals","mp":2180.2,"bp":2944.2,"d":7.15,"en":1.66,"rad":140.0,"ab":102.0,"yr":1797,"cfg":"[Ar] 3d5 4s","nat":[[52,83.8],[53,9.5],[50,4.34],[54,2.37]],"desc":"Hard silvery transition element","uses":"Used to make stainless steel. It gives the color to rubies and emeralds. Iron-nickel-chromium alloys in various percentages yield an incredible variety of the m"},{"z":25,"s":"Mn","n":"Manganese","m":54.938,"p":4,"g":7,"b":"d","ser":"Transition metals","mp":1519.2,"bp":2334.2,"d":7.3,"en":1.55,"rad":140.0,"ab":950.0,"yr":1774,"cfg":"[Ar] 3d5 4s2","nat":[[55,100.0]],"desc":"Grey brittle metallic transition element","uses":"Used in steel, batteries and ceramics. The steel in railroad tracks can contain as much as 1.2% manganese. It is crucial to the effectiveness of vitamin B1."},{"z":26,"s":"Fe","n":"Iron","m":55.845,"p":4,"g":8,"b":"d","ser":"Transition metals","mp":1811.2,"bp":3134.2,"d":7.87,"en":1.83,"rad":140.0,"ab":56300.0,"cfg":"[Ar] 3d6 4s2","nat":[[56,91.8],[54,5.84],[57,2.12],[58,0.282]],"desc":"Silvery malleable and ductile metallic transition element","uses":"Used in steel and other alloys. Essential for humans. It is the chief constituent of hemoglobin which carries oxygen in blood vessels. Its oxides are used in ma"},{"z":27,"s":"Co","n":"Cobalt","m":58.9332,"p":4,"g":9,"b":"d","ser":"Transition metals","mp":1768.2,"bp":3200.2,"d":8.86,"en":1.88,"rad":135.0,"ab":25.0,"yr":1739,"cfg":"[Ar] 3d7 4s2","nat":[[59,100.0]],"desc":"Light grey transition element","uses":"Used in many hard alloys; for magnets, ceramics and special glasses. Remains hard up to 982°C. Radioactive cobalt-60 is used in cancer therapy."},{"z":28,"s":"Ni","n":"Nickel","m":58.6934,"p":4,"g":10,"b":"d","ser":"Transition metals","mp":1728.2,"bp":3186.2,"d":8.9,"en":1.91,"rad":135.0,"ab":84.0,"yr":1751,"cfg":"[Ar] 3d8 4s2","nat":[[58,68.1],[60,26.2],[62,3.63],[61,1.14]],"desc":"Malleable ductile silvery metallic transition element","uses":"Used in electroplating and metal alloys because of its resistance to corrosion. Also in nickel-cadmium batteries; as a catalyst and for coins."},{"z":29,"s":"Cu","n":"Copper","m":63.546,"p":4,"g":11,"b":"d","ser":"Transition metals","mp":1357.8,"bp":2833.2,"d":8.96,"en":1.9,"rad":135.0,"ab":60.0,"cfg":"[Ar] 3d10 4s","nat":[[63,69.2],[65,30.9]],"desc":"Red-brown transition element","uses":"Most often used as an electrical conductor. Also used in the manufacture of water pipes. Its alloys are used in jewelry and for coins."},{"z":30,"s":"Zn","n":"Zinc","m":65.38,"p":4,"g":12,"b":"d","ser":"Transition metals","mp":692.68,"bp":1180.2,"d":7.134,"en":1.65,"rad":135.0,"ab":70.0,"cfg":"[Ar] 3d10 4s2","nat":[[64,49.2],[66,27.7],[68,18.4],[67,4.04]],"desc":"Blue-white metallic element","uses":"Used to coat other metal (galvanizing) to protect them from rusting. Also used in alloys such as brass, bronze, nickel. Also in solder, cosmetics and pigments."},{"z":31,"s":"Ga","n":"Gallium","m":69.723,"p":4,"g":13,"b":"p","ser":"Poor metals","mp":302.91,"bp":2502.2,"d":5.91,"en":1.81,"rad":130.0,"ab":19.0,"yr":1875,"cfg":"[Ar] 3d10 4s2 4p","nat":[[69,60.1],[71,39.9]],"desc":"Soft silvery metallic element, belongs to group 13 of the periodic table","uses":"Used in semiconductor production. It us used in making LEDs (light-emitting diodes) and GaAs laser diodes."},{"z":32,"s":"Ge","n":"Germanium","m":72.63,"p":4,"g":14,"b":"p","ser":"Metalloids","mp":1211.4,"bp":3106.2,"d":5.323,"en":2.01,"rad":125.0,"ab":1.5,"yr":1886,"cfg":"[Ar] 3d10 4s2 4p2","nat":[[74,36.5],[72,27.4],[70,20.5],[73,7.76]],"desc":"Lustrous hard metalloid element, belongs to group 14 of the periodic table","uses":"Widely used in semiconductors. It is a good semiconductor when combined with tiny amounts of phosphorus, arsenic, gallium, and antimony."},{"z":33,"s":"As","n":"Arsenic","m":74.9216,"p":4,"g":15,"b":"p","ser":"Metalloids","mp":1090.2,"bp":889.15,"sub":true,"d":5.75,"en":2.18,"rad":115.0,"ab":1.8,"cfg":"[Ar] 3d10 4s2 4p3","nat":[[75,100.0]],"desc":"Metalloid element of group 15","uses":"Many of its compounds are deadly poison and used as weed killer and rat poison. Conducts electricity. Used in semiconductors. Some compounds, called arsenides, "},{"z":34,"s":"Se","n":"Selenium","m":78.971,"p":4,"g":16,"b":"p","ser":"Nonmetals","mp":453.15,"bp":958.15,"d":4.809,"en":2.55,"rad":115.0,"ab":0.05,"yr":1818,"cfg":"[Ar] 3d10 4s2 4p4","nat":[[80,49.8],[78,23.7],[76,9.23],[82,8.82]],"desc":"Metalloid element, belongs to group 16 of the periodic table","uses":"Light causes it to conduct electricity more easily. It is used in photoelectric cells, TV cameras, xerography machines and as a semiconductor in solar batteries"},{"z":35,"s":"Br","n":"Bromine","m":79.904,"p":4,"g":17,"b":"p","ser":"Halogens","mp":265.95,"bp":331.95,"d":3.103,"en":2.96,"rad":115.0,"ab":2.4,"yr":1826,"cfg":"[Ar] 3d10 4s2 4p5","nat":[[79,50.6],[81,49.4]],"desc":"Halogen element","uses":"It was once used in large quantities to make a compound that removed lead compound build up in engines burning leaded gasoline. Now it is primarily used in dyes"},{"z":36,"s":"Kr","n":"Krypton","m":83.798,"p":4,"g":18,"b":"p","ser":"Noble gases","mp":115.78,"bp":119.73,"d":0.003425,"ab":0.0001,"yr":1898,"cfg":"[Ar] 3d10 4s2 4p6","nat":[[84,57.0],[86,17.3],[82,11.6],[83,11.5]],"desc":"Colorless gaseous element, belongs to the noble gases","uses":"Used in lighting products. Some is used as inert filler-gas in incandescent bulbs. Some is mixed with argon in fluorescent lamps. The most important use is in f"},{"z":37,"s":"Rb","n":"Rubidium","m":85.4678,"p":5,"g":1,"b":"s","ser":"Alkali metals","mp":312.45,"bp":961.15,"d":1.53,"en":0.82,"rad":235.0,"ab":90.0,"yr":1861,"cfg":"[Kr] 5s","nat":[[85,72.2],[87,27.8]],"desc":"Soft silvery metallic element, belongs to group 1 of the periodic table","uses":"Used as a catalyst, photocells, and vacuum and cathode-ray tubes."},{"z":38,"s":"Sr","n":"Strontium","m":87.62,"p":5,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1050.2,"bp":1650.2,"d":2.64,"en":0.95,"rad":200.0,"ab":370.0,"yr":1790,"cfg":"[Kr] 5s2","nat":[[88,82.6],[86,9.86],[87,7.0],[84,0.56]],"desc":"Soft yellowish metallic element, belongs to group 2 of the periodic table","uses":"Used in flares and fireworks for crimson color. Strontium-90 is a long lived highly radioactive fallout product of atomic-bomb explosions."},{"z":39,"s":"Y","n":"Yttrium","m":88.9058,"p":5,"g":3,"b":"d","ser":"Transition metals","mp":1795.2,"bp":3618.2,"d":4.47,"en":1.22,"rad":180.0,"ab":33.0,"yr":1789,"cfg":"[Kr] 4d 5s2","nat":[[89,100.0]],"desc":"Silvery-grey metallic element of group 3 on the periodic table","uses":"Combined with europium to make red phosphors for color TV's. Yttrium oxide and iron oxide combine to form a crystal garnet used in radar."},{"z":40,"s":"Zr","n":"Zirconium","m":91.224,"p":5,"g":4,"b":"d","ser":"Transition metals","mp":2127.2,"bp":4679.1,"d":6.52,"en":1.33,"rad":155.0,"ab":165.0,"yr":1789,"cfg":"[Kr] 4d2 5s2","nat":[[90,51.5],[94,17.4],[92,17.1],[91,11.2]],"desc":"Grey-white metallic transition element","uses":"Used in alloys such as zircaloy which is used in nuclear applications since it does not readily absorb neutrons. Also baddeleyite is used in lab crucibles. Used"},{"z":41,"s":"Nb","n":"Niobium","m":92.9064,"p":5,"g":5,"b":"d","ser":"Transition metals","mp":2750.2,"bp":5014.1,"d":8.57,"en":1.6,"rad":145.0,"ab":20.0,"yr":1801,"cfg":"[Kr] 4d4 5s","nat":[[93,100.0]],"desc":"Soft, ductile grey-blue metallic transition element","uses":"Used as an alloy with iron and nickel. It can be used in nuclear reactors and is known to be superconductive when alloyed with tin, aluminum or zirconium."},{"z":42,"s":"Mo","n":"Molybdenum","m":95.95,"p":5,"g":6,"b":"d","ser":"Transition metals","mp":2895.2,"bp":4912.1,"d":10.2,"en":2.16,"rad":145.0,"ab":1.2,"yr":1778,"cfg":"[Kr] 4d5 5s","nat":[[98,24.3],[96,16.7],[95,15.9],[92,14.6]],"desc":"Silvery-white, hard metallic transition element","uses":"Its alloys are used in aircraft, missiles, and protective coatings in boiler plate."},{"z":43,"s":"Tc","n":"Technetium","m":97.9072,"p":5,"g":7,"b":"d","ser":"Transition metals","mp":2430.2,"bp":4535.1,"d":11.0,"en":2.1,"rad":135.0,"yr":1937,"cfg":"[Kr] 4d5 5s2","rad_":true,"hl":132900000000000.0,"hlm":97,"mode":"EC","desc":"Radioactive metallic transition element","uses":"Added to iron in quantities as low as 55 part-per-million transforms the iron into a corrosion-resistant alloy."},{"z":44,"s":"Ru","n":"Ruthenium","m":101.07,"p":5,"g":8,"b":"d","ser":"Transition metals","mp":2606.2,"bp":4420.1,"d":12.1,"en":2.2,"rad":130.0,"ab":0.001,"yr":1844,"cfg":"[Kr] 4d7 5s","nat":[[102,31.6],[104,18.6],[101,17.1],[99,12.8]],"desc":"Hard white metallic transition element","uses":"Used to harden platinum and palladium. Aircraft magnetos use platinum alloy with 10% ruthenium."},{"z":45,"s":"Rh","n":"Rhodium","m":102.906,"p":5,"g":9,"b":"d","ser":"Transition metals","mp":2236.2,"bp":3968.2,"d":12.4,"en":2.28,"rad":135.0,"ab":0.001,"yr":1803,"cfg":"[Kr] 4d8 5s","nat":[[103,100.0]],"desc":"Silvery white metallic transition element","uses":"Used as a coating to prevent wear on high quality science equipment and with platinum to make thermocouples."},{"z":46,"s":"Pd","n":"Palladium","m":106.42,"p":5,"g":10,"b":"d","ser":"Transition metals","mp":1827.9,"bp":3236.2,"d":12.0,"en":2.2,"rad":140.0,"ab":0.015,"yr":1803,"cfg":"[Kr] 4d10","nat":[[106,27.3],[108,26.5],[105,22.3],[110,11.7]],"desc":"Soft white ductile transition element","uses":"Used as a substitue for silver in dental items and jewelry. The pure metal is used as the delicate mainsprings in analog wristwatches. Also used in surgical ins"},{"z":47,"s":"Ag","n":"Silver","m":107.868,"p":5,"g":11,"b":"d","ser":"Transition metals","mp":1234.9,"bp":2435.2,"d":10.5,"en":1.93,"rad":160.0,"ab":0.075,"cfg":"[Kr] 4d10 5s","nat":[[107,51.8],[109,48.2]],"desc":"White lustrous soft metallic transition element","uses":"Used in alloys for jewelry and in other compounds for photography. It is also a good conductor, but expensive."},{"z":48,"s":"Cd","n":"Cadmium","m":112.414,"p":5,"g":12,"b":"d","ser":"Transition metals","mp":594.22,"bp":1040.2,"d":8.69,"en":1.69,"rad":155.0,"ab":0.15,"yr":1817,"cfg":"[Kr] 4d10 5s2","nat":[[114,28.8],[112,24.1],[111,12.8],[110,12.5]],"desc":"Soft bluish metal belonging to group 12 of the periodic table","uses":"Used in nickel-cadmium batteries. Also in electroplating steel and in the manufacture of berings. Its compounds are found in paint pigments and a wide variety o"},{"z":49,"s":"In","n":"Indium","m":114.818,"p":5,"g":13,"b":"p","ser":"Poor metals","mp":429.75,"bp":2300.2,"d":7.31,"en":1.78,"rad":155.0,"ab":0.25,"yr":1863,"cfg":"[Kr] 4d10 5s2 5p","nat":[[115,95.7],[113,4.28]],"desc":"Soft silvery element belonging to group 13 of the periodic table","uses":"Used to coat high speed bearings and as an alloy that lowers the melting point of other metals. Relativly small amounts are used in dental items and in electron"},{"z":50,"s":"Sn","n":"Tin","m":118.71,"p":5,"g":14,"b":"p","ser":"Poor metals","mp":286.35,"bp":2859.2,"d":7.287,"en":1.96,"rad":145.0,"ab":2.3,"cfg":"[Kr] 4d10 5s2 5p2","nat":[[120,32.6],[118,24.2],[116,14.5],[119,8.59]],"desc":"Silvery malleable metallic element belonging to group 14 of the periodic table","uses":"Used as a coating for steel cans since it is nontoxic and noncorrosive. Also in solder (33%Sn:67%Pb), bronze (20%Sn:80%Cu), and pewter. Stannous fluoride (SnF2)"},{"z":51,"s":"Sb","n":"Antimony","m":121.76,"p":5,"g":15,"b":"p","ser":"Metalloids","mp":903.78,"bp":1860.2,"d":6.68,"en":2.05,"rad":145.0,"ab":0.2,"cfg":"[Kr] 4d10 5s2 5p3","nat":[[121,57.2],[123,42.8]],"desc":"Element of group 15","uses":"It is alloyed with other metals to increase their hardness. Also in the manufacture of a few special types of semiconductor devices. Also in plastics and chemic"},{"z":52,"s":"Te","n":"Tellurium","m":127.6,"p":5,"g":16,"b":"p","ser":"Metalloids","mp":722.66,"bp":1261.2,"d":6.232,"en":2.1,"rad":140.0,"ab":0.001,"yr":1782,"cfg":"[Kr] 4d10 5s2 5p4","nat":[[130,34.1],[128,31.7],[126,18.8],[125,7.07]],"desc":"Silvery metalloid element of group 16","uses":"Used to improve the machining quality of copper and stainless steel products and to color glass and ceramics. Also in thermoelectric devices. Some is used in th"},{"z":53,"s":"I","n":"Iodine","m":126.904,"p":5,"g":17,"b":"p","ser":"Halogens","mp":386.85,"bp":457.55,"d":4.933,"en":2.66,"rad":140.0,"ab":0.45,"yr":1811,"cfg":"[Kr] 4d10 5s2 5p5","nat":[[127,100.0]],"desc":"Dark violet nonmetallic element, belongs to group 17 of the periodic table","uses":"Required in small amounts by humans. Once used as an antiseptic, but no longer due to its poisonous nature."},{"z":54,"s":"Xe","n":"Xenon","m":131.293,"p":5,"g":18,"b":"p","ser":"Noble gases","mp":161.4,"bp":165.05,"d":0.005366,"en":2.6,"ab":3e-05,"yr":1898,"cfg":"[Kr] 4d10 5s2 5p6","nat":[[132,26.9],[129,26.4],[131,21.2],[134,10.4]],"desc":"Colourless, odourless gas belonging to group 18 on the periodic table (the noble gases.) Nine natural isotopes and seven radioactive isotopes are known","uses":"Used for filling flash lamps and other powerful lamps. Electrical excitation of xenon produces a burst of brilliant whtie light. Also used in bubble chambers an"},{"z":55,"s":"Cs","n":"Cesium","m":132.905,"p":6,"g":1,"b":"s","ser":"Alkali metals","mp":301.65,"bp":944.15,"d":1.873,"en":0.79,"rad":260.0,"ab":3.0,"yr":1860,"cfg":"[Xe] 6s","nat":[[133,100.0]],"desc":"Soft silvery-white metallic element belonging to group 1 of the periodic table","uses":"Used as a 'getter' to remove air traces in vacuum and cathode-ray tubes. Also used in producing photoelectric devices and atomic clocks. Since it ionizes readil"},{"z":56,"s":"Ba","n":"Barium","m":137.327,"p":6,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1000.1,"bp":2118.2,"d":3.62,"en":0.89,"rad":215.0,"ab":425.0,"yr":1808,"cfg":"[Xe] 6s2","nat":[[138,71.7],[137,11.2],[136,7.85],[135,6.59]],"desc":"Silvery-white reactive element, belonging to group 2 of the periodic table","uses":"Barite, or barium sulfate (BaSO4), when ground is used as a filter for rubber, plastics, and resins. It is insoluable in water and so is used in X-rays of the d"},{"z":57,"s":"La","n":"Lanthanum","m":138.905,"p":6,"g":3,"b":"d","ser":"Lanthanides","mp":1193.2,"bp":3737.2,"d":6.15,"en":1.1,"rad":195.0,"ab":39.0,"yr":1839,"cfg":"[Xe] 5d 6s2","nat":[[139,99.9],[138,0.0888]],"desc":"(From the Greek word lanthanein, to line hidden) Silvery metallic element belonging to group 3 of the periodic table and oft considered to be one of the lanthanoids","uses":"It is used in the electodes of high-intensity, carbon-arc lights. Also used in the production of high-grade europium metal. Because it gives glass refractive pr"},{"z":58,"s":"Ce","n":"Cerium","m":140.116,"p":6,"b":"f","ser":"Lanthanides","mp":1072.2,"bp":3716.2,"d":6.77,"en":1.12,"rad":185.0,"ab":66.5,"yr":1803,"cfg":"[Xe] 4f 5d 6s2","nat":[[140,88.4],[142,11.1],[138,0.251],[136,0.186]],"desc":"Silvery metallic element, belongs to the lanthanoids","uses":"Its oxides are used in the optics and glass-making industries. Its salts are used in the photography and textile industry. Used in high-intensity carbon lamps a"},{"z":59,"s":"Pr","n":"Praseodymium","m":140.908,"p":6,"b":"f","ser":"Lanthanides","mp":1204.2,"bp":3793.2,"d":6.773,"en":1.13,"rad":185.0,"ab":9.2,"yr":1885,"cfg":"[Xe] 4f3 6s2","nat":[[141,100.0]],"desc":"Soft silvery metallic element, belongs to the lanthanoids","uses":"Used with neodymium to make lenses for glass maker's goggles since it filters out the yellow light present in glass blowing. Alloyed with magnesium creates a hi"},{"z":60,"s":"Nd","n":"Neodymium","m":144.242,"p":6,"b":"f","ser":"Lanthanides","mp":1289.2,"bp":3347.2,"d":7.01,"en":1.14,"rad":185.0,"ab":41.5,"yr":1925,"cfg":"[Xe] 4f4 6s2","nat":[[142,27.2],[144,23.8],[146,17.2],[143,12.2]],"desc":"Soft bright silvery metallic element, belongs to the lanthanoids","uses":"Used in making artificial ruby for lasers. Also in ceramics and for a special lens with praseodymium. Also to produce bright purple glass and special glass that"},{"z":61,"s":"Pm","n":"Promethium","m":144.913,"p":6,"b":"f","ser":"Lanthanides","mp":1315.2,"bp":3273,"d":7.26,"rad":185.0,"yr":1945,"cfg":"[Xe] 4f5 6s2","rad_":true,"hl":558600000.0,"hlm":145,"mode":"EC","desc":"Soft silvery metallic element, belongs to the lanthanoids","uses":"It has been used as a source of radioactivity for thickness-measuring gages."},{"z":62,"s":"Sm","n":"Samarium","m":150.36,"p":6,"b":"f","ser":"Lanthanides","mp":1345.2,"bp":2067.2,"d":7.52,"en":1.17,"rad":185.0,"ab":7.05,"yr":1879,"cfg":"[Xe] 4f6 6s2","nat":[[152,26.7],[154,22.7],[147,15.0],[149,13.8]],"desc":"Soft silvery metallic element, belongs to the lanthanoids","uses":"It is used in the electronics and ceramics industries.  It is easily magnetized and very difficult to demagnetize. This suggests important future applications i"},{"z":63,"s":"Eu","n":"Europium","m":151.964,"p":6,"b":"f","ser":"Lanthanides","mp":1095.2,"bp":1802.2,"d":5.24,"rad":185.0,"ab":2.0,"yr":1901,"cfg":"[Xe] 4f7 6s2","nat":[[153,52.2],[151,47.8]],"desc":"Soft silvery metallic element belonging to the lanthanoids","uses":"Used with yttrium oxide to make red phosphors for color televisions."},{"z":64,"s":"Gd","n":"Gadolinium","m":157.25,"p":6,"b":"f","ser":"Lanthanides","mp":1586.2,"bp":3546.2,"d":7.9,"en":1.2,"rad":180.0,"ab":6.2,"yr":1880,"cfg":"[Xe] 4f7 5d 6s2","nat":[[158,24.8],[160,21.9],[156,20.5],[157,15.7]],"desc":"Soft silvery metallic element belonging to the lanthanoids","uses":"Used in steel alloying agents and the manufacture of electronic components."},{"z":65,"s":"Tb","n":"Terbium","m":158.925,"p":6,"b":"f","ser":"Lanthanides","mp":1632.2,"bp":3503.2,"d":8.23,"rad":175.0,"ab":1.2,"yr":1843,"cfg":"[Xe] 4f9 6s2","nat":[[159,100.0]],"desc":"Silvery metallic element belonging to the lanthanoids","uses":"It is used in modest amounts in special lasers and solid-state devices."},{"z":66,"s":"Dy","n":"Dysprosium","m":162.5,"p":6,"b":"f","ser":"Lanthanides","mp":1685.2,"bp":2840.2,"d":8.55,"en":1.22,"rad":175.0,"ab":5.2,"yr":1886,"cfg":"[Xe] 4f10 6s2","nat":[[164,28.3],[162,25.5],[163,24.9],[161,18.9]],"desc":"Metallic with a bright silvery-white lustre","uses":"Its uses are limited to the experimental and esoteric."},{"z":67,"s":"Ho","n":"Holmium","m":164.93,"p":6,"b":"f","ser":"Lanthanides","mp":1745.2,"bp":2973.2,"d":8.8,"en":1.23,"rad":175.0,"ab":1.3,"yr":1878,"cfg":"[Xe] 4f11 6s2","nat":[[165,100.0]],"desc":"Relatively soft and malleable silvery-white metallic element, which is stable in dry air at room temperature","uses":"It has very few practical applications; however, it has some unusual magnetic properties that offer some hope for future applications."},{"z":68,"s":"Er","n":"Erbium","m":167.259,"p":6,"b":"f","ser":"Lanthanides","mp":1802.2,"bp":3141.2,"d":9.07,"en":1.24,"rad":175.0,"ab":3.5,"yr":1843,"cfg":"[Xe] 4f12 6s2","nat":[[166,33.5],[168,27.0],[167,22.9],[170,14.9]],"desc":"Soft silvery metallic element which belongs to the lanthanoids","uses":"Erbium oxide is used in ceramics to obtain a pink glaze. Also a few uses in the nuclear industry and as an alloying agent for other exotic metals. For example, "},{"z":69,"s":"Tm","n":"Thulium","m":168.934,"p":6,"b":"f","ser":"Lanthanides","mp":1818.2,"bp":2223.2,"d":9.321,"en":1.25,"rad":175.0,"ab":0.52,"yr":1879,"cfg":"[Xe] 4f13 6s2","nat":[[169,100.0]],"desc":"Soft grey metallic element that belongs to the lanthanoids","uses":"Radioactive thulium is used to power portable x-ray machines, eliminating the need for electrical equipment."},{"z":70,"s":"Yb","n":"Ytterbium","m":173.045,"p":6,"b":"f","ser":"Lanthanides","mp":1097.2,"bp":1469.2,"d":6.9,"rad":175.0,"ab":3.2,"yr":1878,"cfg":"[Xe] 4f14 6s2","nat":[[174,32.0],[172,21.7],[173,16.1],[171,14.1]],"desc":"Silvery metallic element of the lanthanoids","uses":"Used in metallurgical and chemical experiments."},{"z":71,"s":"Lu","n":"Lutetium","m":174.967,"p":6,"b":"f","ser":"Transition metals","mp":1936.2,"bp":3675.2,"d":9.84,"en":1.0,"rad":175.0,"ab":0.8,"yr":1907,"cfg":"[Xe] 4f14 5d 6s2","nat":[[175,97.4],[176,2.6]],"desc":"Silvery-white rare-earth metal which is relatively stable in air","uses":"It has no practical applications."},{"z":72,"s":"Hf","n":"Hafnium","m":178.49,"p":6,"g":4,"b":"d","ser":"Transition metals","mp":2506.2,"bp":4873.1,"d":13.3,"en":1.3,"rad":155.0,"ab":3.0,"yr":1923,"cfg":"[Xe] 4f14 5d2 6s2","nat":[[180,35.1],[178,27.3],[177,18.6],[179,13.6]],"desc":"Silvery lustrous metallic transition element","uses":"Used in reactor control rods because of its ability to absorb neutrons."},{"z":73,"s":"Ta","n":"Tantalum","m":180.948,"p":6,"g":5,"b":"d","ser":"Transition metals","mp":3290.2,"bp":5728.1,"d":16.4,"en":1.5,"rad":145.0,"ab":2.0,"yr":1802,"cfg":"[Xe] 4f14 5d3 6s2","nat":[[181,100.0]],"desc":"Heavy blue-grey metallic transition element","uses":"Often used as an economical substitute for platinum. Tantalum pentoxide is used in capacitors and in camera lenses to increase refracting power. It and its allo"},{"z":74,"s":"W","n":"Tungsten","m":183.84,"p":6,"g":6,"b":"d","ser":"Transition metals","mp":3687.2,"bp":5828.1,"d":19.3,"en":1.7,"rad":135.0,"ab":1.25,"yr":1783,"cfg":"[Xe] 4f14 5d4 6s2","nat":[[184,30.6],[186,28.4],[182,26.5],[183,14.3]],"desc":"White or grey metallic transition element,formerly called Wolfram","uses":"Made into filaments for vacuum tubes and electric lights. Also as contact points in cars. Combined with calcium or magnesium it makes phosphors. Tungsten carbid"},{"z":75,"s":"Re","n":"Rhenium","m":186.207,"p":6,"g":7,"b":"d","ser":"Transition metals","mp":3458.2,"bp":5863.1,"d":20.8,"en":1.9,"rad":135.0,"ab":0.0007,"yr":1925,"cfg":"[Xe] 4f14 5d5 6s2","nat":[[187,62.6],[185,37.4]],"desc":"Silvery-white metallic transition element","uses":"Mixed with tungsten or platinum to make filaments for mass spectrographs. Its main value is as a trace alloying agent for hardening metal components that are su"},{"z":76,"s":"Os","n":"Osmium","m":190.23,"p":6,"g":8,"b":"d","ser":"Transition metals","mp":3306.2,"bp":5281.1,"d":22.59,"en":2.2,"rad":130.0,"ab":0.0015,"yr":1804,"cfg":"[Xe] 4f14 5d6 6s2","nat":[[192,40.8],[190,26.3],[189,16.1],[188,13.2]],"desc":"Hard blue-white metallic transition element","uses":"Used to tip gold pen points, instrument pivots, to make electric light filaments. Used for high temp. alloys and pressure bearings. Very hard and resists corros"},{"z":77,"s":"Ir","n":"Iridium","m":192.217,"p":6,"g":9,"b":"d","ser":"Transition metals","mp":2719.2,"bp":4701.1,"d":22.56,"en":2.2,"rad":135.0,"ab":0.001,"yr":1804,"cfg":"[Xe] 4f14 5d7 6s2","nat":[[193,62.7],[191,37.3]],"desc":"Very hard and brittle, silvery metallic transition element","uses":"Used with osmium to tip gold pen points, to make crucible and special containers. Also to make alloys used for standard weights and measures, and heat-resistant"},{"z":78,"s":"Pt","n":"Platinum","m":195.084,"p":6,"g":10,"b":"d","ser":"Transition metals","mp":2041.3,"bp":4098.1,"d":21.5,"en":2.2,"rad":135.0,"ab":0.005,"yr":1735,"cfg":"[Xe] 4f14 5d9 6s","nat":[[195,33.8],[194,32.9],[196,25.2],[198,7.36]],"desc":"Attractive greyish-white metal","uses":"Used in jewelry, to make crucible and special containers and as a catalyst. Used with cobalt to produce very strong magnets. Also to make standard weights and m"},{"z":79,"s":"Au","n":"Gold","m":196.967,"p":6,"g":11,"b":"d","ser":"Transition metals","mp":1337.3,"bp":3109.2,"d":19.3,"en":2.4,"rad":135.0,"ab":0.004,"cfg":"[Xe] 4f14 5d10 6s","nat":[[197,100.0]],"desc":"Gold is gold colored","uses":"Very malleable. Used in electronics, jewelry and coins. It is a good reflector of infrared radiation, so a thin film of gold is applied to the glass of skyscrap"},{"z":80,"s":"Hg","n":"Mercury","m":200.592,"p":6,"g":12,"b":"d","ser":"Transition metals","mp":234.32,"bp":629.77,"d":13.53,"en":1.9,"rad":150.0,"ab":0.085,"cfg":"[Xe] 4f14 5d10 6s2","nat":[[202,29.7],[200,23.1],[199,16.9],[201,13.2]],"desc":"Heavy silvery liquid metallic element, belongs to the zinc group","uses":"Used in thermometers, barometers, and batteries. Also used in electrical switches and mercury-vapor lighting products."},{"z":81,"s":"Tl","n":"Thallium","m":204.38,"p":6,"g":13,"b":"p","ser":"Poor metals","mp":577.15,"bp":1746.2,"d":11.8,"en":1.8,"rad":190.0,"ab":0.85,"yr":1861,"cfg":"[Xe] 4f14 5d10 6s2 6p","nat":[[205,70.5],[203,29.5]],"desc":"Pure, unreacted thallium appears silvery-white and exhibits a metallic lustre","uses":"Its compounds are used in rat and ant poisons. Also for detecting infrared radiation."},{"z":82,"s":"Pb","n":"Lead","m":207.2,"p":6,"g":14,"b":"p","ser":"Poor metals","mp":600.61,"bp":2022.2,"d":11.3,"en":1.8,"rad":180.0,"ab":14.0,"cfg":"[Xe] 4f14 5d10 6s2 6p2","nat":[[208,52.4],[206,24.1],[207,22.1],[204,1.4]],"desc":"Heavy dull grey ductile metallic element, belongs to group 14","uses":"Used in solder, shielding against radiation and in batteries."},{"z":83,"s":"Bi","n":"Bismuth","m":208.98,"p":6,"g":15,"b":"p","ser":"Poor metals","mp":544.55,"bp":1837.2,"d":9.79,"en":1.9,"rad":160.0,"ab":0.0085,"cfg":"[Xe] 4f14 5d10 6s2 6p3","hl":6.343e+26,"hlm":209,"mode":"A","nat":[[209,100.0]],"desc":"White crystalline metal with a pink tinge, belongs to group 15","uses":"Main use is in pharmaceuticals and low melting point alloys used as fuses."},{"z":84,"s":"Po","n":"Polonium","m":209.0,"p":6,"g":16,"b":"p","ser":"Metalloids","mp":527.15,"bp":1235.2,"d":9.2,"en":2.0,"rad":190.0,"ab":2e-10,"yr":1898,"cfg":"[Xe] 4f14 5d10 6s2 6p4","rad_":true,"hl":3913000000.0,"hlm":209,"mode":"A","desc":"Rare radioactive metallic element, belongs to group 16 of the periodic table","uses":"Used in industrial equipment that eliminates static electricity caused by such processes as rolling paper, wire, and sheet metal."},{"z":85,"s":"At","n":"Astatine","m":210.0,"p":6,"g":17,"b":"p","ser":"Halogens","mp":575.15,"bp":610,"d":7.0,"en":2.2,"yr":1940,"cfg":"[Xe] 4f14 5d10 6s2 6p5","rad_":true,"hl":29160.0,"hlm":210,"mode":"B+","desc":"Radioactive halogen element","uses":"Since its isotopes have such short half-lives there are no commercially significant compounds of astatine.","mp_est":1},{"z":86,"s":"Rn","n":"Radon","m":222.0,"p":6,"g":18,"b":"p","ser":"Noble gases","mp":202.15,"bp":211.45,"d":0.009074,"ab":4e-13,"yr":1898,"cfg":"[Xe] 4f14 5d10 6s2 6p6","rad_":true,"hl":330200.0,"hlm":222,"mode":"A","desc":"Colorless radioactive gaseous element, belongs to the noble gases","uses":"Used to treat some forms of cancer."},{"z":87,"s":"Fr","n":"Francium","m":223.0,"p":7,"g":1,"b":"s","ser":"Alkali metals","mp":294.15,"bp":950,"d":1.87,"en":0.7,"yr":1939,"cfg":"[Rn] 7s","rad_":true,"hl":1320.0,"hlm":223,"mode":"B-","desc":"Radioactive element, belongs to group 1 of the periodic table","uses":"Since its isotopes have such short half-lives there are no commercially significant compounds of francium.","mp_est":1},{"z":88,"s":"Ra","n":"Radium","m":226.0,"p":7,"g":2,"b":"s","ser":"Alkaline earth metals","mp":969.15,"bp":2010,"d":5.0,"en":0.9,"rad":215.0,"ab":9e-07,"yr":1898,"cfg":"[Rn] 7s2","rad_":true,"hl":50490000000.0,"hlm":226,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to group 2 of the periodic table","uses":"Used in treating cancer because of the gamma rays it gives off."},{"z":89,"s":"Ac","n":"Actinium","m":227.0,"p":7,"g":3,"b":"d","ser":"Actinides","mp":1323.2,"bp":3473.2,"d":10.0,"en":1.1,"rad":195.0,"ab":5.5e-10,"yr":1899,"cfg":"[Rn] 6d 7s2","rad_":true,"hl":687100000.0,"hlm":227,"mode":"B-","desc":"Silvery radioactive metallic element, belongs to group 3 of the periodic table","uses":"It has no significant commercial applications."},{"z":90,"s":"Th","n":"Thorium","m":232.038,"p":7,"b":"f","ser":"Actinides","mp":2023.2,"bp":5058.1,"d":11.7,"en":1.3,"rad":180.0,"ab":9.6,"yr":1828,"cfg":"[Rn] 6d2 7s2","rad_":true,"hl":4.418e+17,"hlm":232,"mode":"A","nat":[[232,100.0],[230,0.02]],"desc":"Grey radioactive metallic element","uses":"Used in making strong alloys. Also in ultraviolet photoelectric cells. It is a common ingredient in high-quality lenses. Bombarded with neutrons make uranium-23"},{"z":91,"s":"Pa","n":"Protactinium","m":231.036,"p":7,"b":"f","ser":"Actinides","mp":1845.2,"bp":4273,"d":15.4,"en":1.5,"rad":180.0,"ab":1.4e-06,"yr":1917,"cfg":"[Rn] 5f2 6d 7s2","rad_":true,"hl":1030000000000.0,"hlm":231,"mode":"A","nat":[[231,100.0]],"desc":"Radioactive metallic element, belongs to the actinoids","uses":"It has no significant commercial applications."},{"z":92,"s":"U","n":"Uranium","m":238.029,"p":7,"b":"f","ser":"Actinides","mp":1408.2,"bp":4404.1,"d":19.1,"en":1.7,"rad":175.0,"ab":2.7,"yr":1789,"cfg":"[Rn] 5f3 6d 7s2","rad_":true,"hl":1.408e+17,"hlm":238,"mode":"A","nat":[[238,99.3],[235,0.72],[234,0.0054]],"desc":"White radioactive metallic element belonging to the actinoids","uses":"For many centuries it was used as a pigment for glass. Now it is used as a fuel in nuclear reactors and in bombs."},{"z":93,"s":"Np","n":"Neptunium","m":237.0,"p":7,"b":"f","ser":"Actinides","mp":917.15,"bp":4447,"d":20.2,"en":1.3,"rad":175.0,"yr":1940,"cfg":"[Rn] 5f4 6d 7s2","rad_":true,"hl":67660000000000.0,"hlm":237,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"It has no significant commercial applications."},{"z":94,"s":"Pu","n":"Plutonium","m":244.0,"p":7,"b":"f","ser":"Actinides","mp":913.15,"bp":3501.2,"d":19.7,"en":1.3,"rad":175.0,"yr":1940,"cfg":"[Rn] 5f6 7s2","rad_":true,"hl":2566000000000000.0,"hlm":244,"mode":"A","desc":"Dense silvery radioactive metallic transuranic element, belongs to the actinoids","uses":"Used in bombs and reactors. Small quantities are used in thermo-electric generators."},{"z":95,"s":"Am","n":"Americium","m":243.0,"p":7,"b":"f","ser":"Actinides","mp":1449.2,"bp":2880,"d":12.0,"rad":175.0,"yr":1945,"cfg":"[Rn] 5f7 7s2","rad_":true,"hl":231900000000.0,"hlm":243,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"Americium-241 is currently used in smoke detectors."},{"z":96,"s":"Cm","n":"Curium","m":247.0,"p":7,"b":"f","ser":"Actinides","mp":1618.2,"bp":3383,"d":13.51,"yr":1944,"cfg":"[Rn] 5f7 6d 7s2","rad_":true,"hl":492300000000000.0,"hlm":247,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications."},{"z":97,"s":"Bk","n":"Berkelium","m":247.0,"p":7,"b":"f","ser":"Actinides","mp":1259.2,"d":14.78,"yr":1949,"cfg":"[Rn] 5f9 7s2","rad_":true,"hl":43550000000.0,"hlm":247,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications."},{"z":98,"s":"Cf","n":"Californium","m":251.0,"p":7,"b":"f","ser":"Actinides","mp":1173.2,"d":15.1,"yr":1950,"cfg":"[Rn] 5f10 7s2","rad_":true,"hl":28340000000.0,"hlm":251,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications."},{"z":99,"s":"Es","n":"Einsteinium","m":252.0,"p":7,"b":"f","ser":"Actinides","mp":1133.2,"d":8.84,"yr":1952,"cfg":"[Rn] 5f11 7s2","rad_":true,"hl":40750000.0,"hlm":252,"mode":"A","desc":"Appearance is unknown, however it is most probably metallic and silver or gray in color","uses":"It has no significant commercial applications."},{"z":100,"s":"Fm","n":"Fermium","m":257.0,"p":7,"b":"f","ser":"Actinides","mp":1800.2,"d":9.7,"yr":1953,"cfg":"[Rn] 5f12 7s2","rad_":true,"hl":8683000.0,"hlm":257,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"It has no significant commercial applications.","pred":1},{"z":101,"s":"Md","n":"Mendelevium","m":258.0,"p":7,"b":"f","ser":"Actinides","mp":1100.2,"d":10.3,"yr":1955,"cfg":"[Rn] 5f13 7s2","rad_":true,"hl":4457000.0,"hlm":258,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications.","pred":1},{"z":102,"s":"No","n":"Nobelium","m":259.0,"p":7,"b":"f","ser":"Actinides","mp":1100.2,"d":9.9,"yr":1957,"cfg":"[Rn] 5f14 7s2","rad_":true,"hl":3480.0,"hlm":259,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"It has no significant commercial applications.","pred":1},{"z":103,"s":"Lr","n":"Lawrencium","m":262.0,"p":7,"b":"f","ser":"Transition metals","mp":1900.2,"d":15.6,"yr":1961,"cfg":"[Rn] 5f14 7s2 7p1","rad_":true,"hl":39600,"hlm":266,"mode":"SF","desc":"Appearance unknown, however it is most likely silvery-white or grey and metallic","uses":"It has no significant commercial applications.","pred":1},{"z":104,"s":"Rf","n":"Rutherfordium","m":267.0,"p":7,"g":4,"b":"d","ser":"Transition metals","d":23.3,"yr":1969,"cfg":"[Rn] 5f14 6d2 7s2","rad_":true,"hl":4700,"hlm":267,"mode":"SF","desc":"Radioactive transactinide element","uses":"It has no significant commercial applications.","pred":1},{"z":105,"s":"Db","n":"Dubnium","m":268.0,"p":7,"g":5,"b":"d","ser":"Transition metals","d":29.3,"yr":1970,"cfg":"[Rn] 5f14 6d3 7s2","rad_":true,"hl":57600,"hlm":268,"mode":"SF","desc":"Also known as Hahnium, Ha","uses":"It has no significant commercial applications.","pred":1},{"z":106,"s":"Sg","n":"Seaborgium","m":271.0,"p":7,"g":6,"b":"d","ser":"Transition metals","d":35.0,"yr":1974,"cfg":"[Rn] 5f14 6d4 7s2","rad_":true,"hl":300.0,"hlm":269,"mode":"A","desc":"Half-life of 0.9 +/- 0.2 s","uses":"It has no significant commercial applications.","pred":1},{"z":107,"s":"Bh","n":"Bohrium","m":274.0,"p":7,"g":7,"b":"d","ser":"Transition metals","d":37.1,"yr":1976,"cfg":"[Rn] 5f14 6d5 7s2","rad_":true,"hl":61,"hlm":270,"mode":"A","desc":"Radioactive transition metal","uses":"It has no significant commercial applications.","pred":1},{"z":108,"s":"Hs","n":"Hassium","m":269.0,"p":7,"g":8,"b":"d","ser":"Transition metals","d":40.7,"yr":1984,"cfg":"[Rn] 5f14 6d6 7s2","rad_":true,"hl":10,"hlm":269,"mode":"A","desc":"Radioactive transition metal first synthesized in 1984 by a German research team led by Peter Armbruster and Gottfried Muenzenberg at the Institute for Heavy Ion Research at Darmstadt.","uses":"It has no significant commercial applications.","pred":1},{"z":109,"s":"Mt","n":"Meitnerium","m":276.0,"p":7,"g":9,"b":"d","ser":"Transition metals","d":37.4,"yr":1982,"cfg":"[Rn] 5f14 6d7 7s2","rad_":true,"hl":4.5,"hlm":278,"mode":"A","desc":"Half-life of approximately 5 ms","uses":"It has no significant commercial applications.","pred":1},{"z":110,"s":"Ds","n":"Darmstadtium","m":281.0,"p":7,"g":10,"b":"d","ser":"Transition metals","d":34.8,"yr":1994,"cfg":"[Rn] 5f14 6d9 7s1","rad_":true,"hl":12.7,"hlm":281,"mode":"SF","uses":"It has no significant commercial applications.","pred":1,"desc":"Synthetic superheavy element, expected to be a dense transition metal"},{"z":111,"s":"Rg","n":"Roentgenium","m":281.0,"p":7,"g":11,"b":"d","ser":"Transition metals","d":28.7,"yr":1994,"cfg":"[Rn] 5f14 6d10 7s1","rad_":true,"hl":100,"hlm":282,"mode":"A","uses":"It has no significant commercial applications.","pred":1,"desc":"Synthetic superheavy element, expected to be a dense metal like gold"},{"z":112,"s":"Cn","n":"Copernicium","m":285.0,"p":7,"g":12,"b":"d","ser":"Transition metals","d":14.0,"yr":1996,"cfg":"[Rn] 5f14 6d10 7s2","rad_":true,"hl":30,"hlm":285,"mode":"A","uses":"It has no significant commercial applications.","pred":1,"desc":"Synthetic superheavy element, predicted to be a volatile metal, possibly a liquid"},{"z":113,"s":"Nh","n":"Nihonium","m":286.0,"p":7,"g":13,"b":"p","ser":"Poor metals","d":16.0,"yr":2015,"cfg":"[Rn] 5f14 6d10 7s2 7p1","rad_":true,"hl":9.5,"hlm":286,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the boron group","uses":"Only a handful of atoms have ever been made, for research."},{"z":114,"s":"Fl","n":"Flerovium","m":289.0,"p":7,"g":14,"b":"p","ser":"Poor metals","d":9.928,"yr":1998,"cfg":"[Rn] 5f14 6d10 7s2 7p2","rad_":true,"hl":1.9,"hlm":289,"mode":"A","pred":1,"desc":"Synthetic superheavy element, predicted to be a volatile metal","uses":"Only a handful of atoms have ever been made, for research."},{"z":115,"s":"Mc","n":"Moscovium","m":288.0,"p":7,"g":15,"b":"p","ser":"Poor metals","d":13.5,"yr":2003,"cfg":"[Rn] 5f14 6d10 7s2 7p3","rad_":true,"hl":0.65,"hlm":290,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the nitrogen group","uses":"Only a handful of atoms have ever been made, for research."},{"z":116,"s":"Lv","n":"Livermorium","m":293.0,"p":7,"g":16,"b":"p","ser":"Poor metals","d":12.9,"yr":2000,"cfg":"[Rn] 5f14 6d10 7s2 7p4","rad_":true,"hl":0.057,"hlm":293,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the oxygen group","uses":"Only a handful of atoms have ever been made, for research."},{"z":117,"s":"Ts","n":"Tennessine","m":294.0,"p":7,"g":17,"b":"p","ser":"Halogens","d":7.2,"yr":2010,"cfg":"[Rn] 5f14 6d10 7s2 7p5","rad_":true,"hl":0.051,"hlm":294,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the halogen group","uses":"Only a handful of atoms have ever been made, for research."},{"z":118,"s":"Og","n":"Oganesson","m":294.0,"p":7,"g":18,"b":"p","ser":"Noble gases","d":7.0,"yr":2002,"cfg":"[Rn] 5f14 6d10 7s2 7p6","rad_":true,"hl":0.0007,"hlm":294,"mode":"A","pred":1,"desc":"Synthetic superheavy element, the heaviest ever made","uses":"Only a handful of atoms have ever been made, for research."}];
 </script>
-<script>
-(()=>{
-"use strict";
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {mergeVertices,mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 const $=s=>document.querySelector(s);
 const byZ=z=>EL[z-1];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -335,9 +355,6 @@ const MODE_NAME={A:'alpha decay','B-':'beta decay','B+':'positron emission',EC:'
 const S={z:11,T:293.15,exp:'look',allo:null,water:{t:0,hot:0},air:{t:0,hum:.6},flame:0,volt:.7,magnet:1,decayT:0,dark:0,
   speed:1,hit:null,cut:0,flat:0,shards:null,wob:0,light:-.7,float:'water',atoms:[],tracks:[],bubbles:[],sparks:[],t0:performance.now()};
 let anim={sol:1,liq:0,gas:0,atom:0};
-// additive light only reads as light on a dark ground; on a pale stage it washes to white
-let LIGHT=true;const GLOW=()=>LIGHT?'source-over':'lighter';
-function lum(c){const m=c.match(/#([0-9a-f]{6})/i);if(!m)return 1;const [r,g,b]=hex2rgb('#'+m[1]);return (.2126*r+.7152*g+.0722*b)/255;}
 
 function el(){return byZ(S.z);}
 function bulkUnknown(e){return e.z>=100||e.z===85||e.z===87;}
@@ -452,6 +469,7 @@ function buildExp(){
   }else if(x==='tube'){
     const Tb=TUBE[z];
     h=slider('volt','Voltage across the tube',0,1,.01,S.volt,Math.round(S.volt*10)+' kV');
+    if(LINES[z])h+=`<div><canvas class="spec" id="spec" width="560" height="60" aria-label="Line spectrum of ${e.n.toLowerCase()}"></canvas><div class="speclab"><span>380 nm</span><span>its line spectrum</span><span>780 nm</span></div></div>`;
     h+=`<p class="note">${Tb[1]} The colour is set by which wavelengths its electrons give off as they fall back to lower energy levels.</p>`;
   }else if(x==='magnet'){
     h=slider('mag','Bring the magnet closer',0,1,.01,S.magnet,S.magnet>.7?'Close':S.magnet>.3?'Middle':'Far');
@@ -478,12 +496,12 @@ function buildExp(){
   b.innerHTML=h;
   const on=(id,ev,fn)=>{const n=b.querySelector('#'+id);if(n)n.addEventListener(ev,fn);};
   on('strike','click',strike);on('cut','click',cut);on('reset','click',()=>{resetSample();resetExp();});
-  on('drop','click',()=>{S.water.t=0.0001;S.bubbles=[];});
+  on('drop','click',dropIn);
   on('wHot','input',ev=>{S.water.hot=+ev.target.value;$('#wHotO').textContent=S.water.hot>.5?'Hot':'Cold';});
   on('airT','input',ev=>{S.air.t=+ev.target.value;$('#airTO').textContent=airLabel(S.air.t);updateText();});
   on('hum','input',ev=>{S.air.hum=+ev.target.value;$('#humO').textContent=Math.round(S.air.hum*100)+'%';});
   on('gas','input',ev=>{S.flame=+ev.target.value;$('#gasO').textContent=S.flame<.05?'Off':Math.round(S.flame*100)+'%';});
-  on('volt','input',ev=>{S.volt=+ev.target.value;$('#voltO').textContent=Math.round(S.volt*10)+' kV';});
+  on('volt','input',ev=>{S.volt=+ev.target.value;$('#voltO').textContent=Math.round(S.volt*10)+' kV';drawSpec();});
   on('mag','input',ev=>{S.magnet=+ev.target.value;$('#magO').textContent=S.magnet>.7?'Close':S.magnet>.3?'Middle':'Far';});
   on('dT','input',ev=>{S.decayT=ev.target.value/100;$('#dTO').textContent=decayLabel(el(),S.decayT);updBar();});
   on('spd','input',ev=>{S.speed=sToSpeed(+ev.target.value);$('#spdO').textContent=speedLabel(S.speed);});
@@ -492,6 +510,7 @@ function buildExp(){
   b.querySelector('#liq')?.addEventListener('click',ev=>{const t=ev.target.closest('button');if(!t)return;S.float=t.dataset.l;buildExp();});
   if(x==='float')$('#floatNote').innerHTML=floatText(e);
   if(x==='decay'&&!bulkUnknown(e))updBar();
+  if(x==='tube')drawSpec();
   updateText();
 }
 function updBar(){const e=el(),r=Math.pow(2,-S.decayT),d=decayDaughter(e);
@@ -571,360 +590,858 @@ function updateText(){
 }
 
 /* ---------- actions ---------- */
-function resetSample(){S.cut=0;S.flat=0;S.shards=null;S.hit=null;S.wob=0;}
-function resetExp(){S.water.t=0;S.bubbles=[];S.air.t=0;S.decayT=0;S.dark=0;S.tracks=[];S.sparks=[];S.atoms=[];if(S.exp==='decay'&&bulkUnknown(el())){S.speed=clamp(el().hl/4,1e-6,1e9);makeAtoms();}if(S.exp==='flame')S.flame=.8;}
-function strike(){
-  const e=el(),m=mechOf(e);S.hit={t:0,m};
-  if(m==='malleable')S.flat=Math.min(.6,S.flat+.2);
-  else if(m==='soft')S.flat=Math.min(.75,S.flat+.3);
-  else if(m==='brittle'||m==='powder'){const r=rng(e.z*7+S.T|0);S.shards=Array.from({length:9},()=>({a:r()*Math.PI*2,v:.5+r(),s:.12+r()*.18,rot:r()*6}));}
-  S.wob=1;const n=$('#mechNote');if(n)n.textContent=MECH_NOTE[e.z]||mechText(e,m);
-}
-function cut(){
-  const e=el(),m=mechOf(e),n=$('#mechNote');
-  if(m==='soft'){S.cut=performance.now();if(n)n.textContent=MECH_NOTE[e.z]||`The knife slides through ${e.n.toLowerCase()} and leaves a bright face.`;}
-  else{S.sparks=Array.from({length:8},()=>({x:0,y:0,vx:(Math.random()-.5)*3,vy:-Math.random()*3,l:1}));
-    if(n)n.textContent=m==='gas'?`There is nothing to cut: ${e.n.toLowerCase()} is a gas here.`:m==='liquid'?`The knife passes through liquid ${e.n.toLowerCase()} without leaving a mark.`:`The blade skids off. ${e.n} is too hard to cut with a knife.`;}
-}
+function resetSample(){S.cut=0;S.flat=0;S.shards=null;S.hit=null;S.wob=0;needBuild=true;}
+function resetExp(){S.water.t=0;S.bubbles=[];S.air.t=0;S.decayT=0;S.dark=0;S.tracks=[];S.sparks=[];S.atoms=[];if(S.exp==='decay'&&bulkUnknown(el())){S.speed=clamp(el().hl/4,1e-6,1e9);makeAtoms();}if(S.exp==='flame')S.flame=.8;needBuild=true;}
 function makeAtoms(){const r=Math.random;for(let i=0;i<6;i++)S.atoms.push({x:.2+r()*.6,y:.25+r()*.45,born:performance.now(),dead:0,ph:r()*6});}
 
 /* ---------- canvas ---------- */
-const cv=$('#cv'),ctx=cv.getContext('2d');let W=0,H=0,DPR=1;
-function resize(){const r=cv.getBoundingClientRect();DPR=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
-new ResizeObserver(resize).observe(cv);
-const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-let drag=null;
-cv.addEventListener('pointerdown',ev=>{drag={x:ev.clientX,l:S.light,moved:0};cv.setPointerCapture(ev.pointerId);});
-cv.addEventListener('pointermove',ev=>{if(!drag)return;const dx=ev.clientX-drag.x;if(Math.abs(dx)>3)drag.moved=1;S.light=drag.l+dx*.01;});
-cv.addEventListener('pointerup',()=>{if(drag&&!drag.moved)S.wob=1;drag=null;});
-
-function blobPath(cx,cy,r,seed,flat,n=11){
-  const R=rng(seed),pts=[];
-  for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const rr=r*(.78+R()*.3);pts.push([cx+Math.cos(a)*rr*(1+flat*.7),cy+Math.sin(a)*rr*(.82-flat*.55)]);}
-  return pts;
-}
-function smooth(pts){ctx.beginPath();const n=pts.length;for(let i=0;i<=n;i++){const p=pts[i%n],q=pts[(i+1)%n];const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;if(i===0)ctx.moveTo(mx,my);else ctx.quadraticCurveTo(p[0],p[1],mx,my);}ctx.closePath();}
-function poly(pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();}
-
-function tarnishMix(e){
-  if(S.exp!=='air'||!AIR[e.z])return 0;
-  const A=AIR[e.z];let tau=A[0];if(e.z===26)tau=tau/Math.max(.02,Math.pow(S.air.hum,3));
-  const s=airSeconds();return s<=0?0:1-Math.exp(-s/tau);
-}
-function surfaceColor(e,T){
-  let c=hex2rgb(look(e).c);
-  const tm=tarnishMix(e);if(tm>0){let tc=hex2rgb(AIR[e.z][1]);if(e.z===29&&tm<.6)tc=hex2rgb('#7a4a2e');c=mix(c,tc,Math.min(1,tm*1.1));}
-  return c;
-}
-function drawSolid(e,cx,cy,r,time){
-  const L=look(e),k=L.k,base=surfaceColor(e,S.T),flat=S.flat,seed=e.z*31+(S.allo?S.allo.charCodeAt(0):0);
-  const la=S.light;
-  // wobble
-  const w=S.wob*Math.sin(time*.03)*.06;
-  ctx.save();ctx.translate(cx,cy);ctx.scale(1+w,1-w);ctx.translate(-cx,-cy);
-  if(S.shards&&S.hit&&(S.hit.m==='brittle'||S.hit.m==='powder')){
-    const t=Math.min(1,S.hit.t/40);
-    S.shards.forEach((s,i)=>{const d=t*r*1.2*s.v;const x=cx+Math.cos(s.a)*d,y=cy+Math.sin(s.a)*d*.4+t*r*.5;
-      ctx.save();ctx.translate(x,y);ctx.rotate(s.rot*t);const pts=blobPath(0,0,r*s.s*2,seed+i,0,5);poly(pts);
-      ctx.fillStyle=rgb(shade(base,(i%3-1)*.15));ctx.fill();ctx.restore();});
-    ctx.restore();return;
-  }
-  if(k==='powder'){
-    const R=rng(seed);for(let i=0;i<260;i++){const a=R()*Math.PI,d=Math.sqrt(R());const x=cx+Math.cos(a)*d*r*1.25*(R()>.5?1:-1),y=cy+r*.5-Math.sin(a)*d*r*.75*(1-Math.abs(Math.cos(a))*.4);
-      ctx.fillStyle=rgb(shade(base,(R()-.6)*.4));ctx.beginPath();ctx.arc(x,y,r*.05+R()*r*.04,0,7);ctx.fill();}
-    ctx.restore();return;
-  }
-  const pts=blobPath(cx,cy,r,seed,flat,k==='crystal'||k==='diamond'?7:11);
-  if(k==='crystal'||k==='diamond'){
-    const c0=[cx+Math.cos(la)*r*.15,cy-r*.2];
-    for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length];
-      const nx=(p[0]+q[0])/2-cx,ny=(p[1]+q[1])/2-cy;const ang=Math.atan2(ny,nx);const lit=Math.cos(ang-la-Math.PI)*.5;
-      ctx.beginPath();ctx.moveTo(c0[0],c0[1]);ctx.lineTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);ctx.closePath();
-      let col=shade(base,lit*.6);
-      if(k==='diamond'){const hues=[[255,210,210],[210,255,220],[210,220,255],[255,250,200]];col=mix([235,242,255],hues[i%4],.35+.3*Math.sin(time*.02+i));col=shade(col,lit*.3);}
-      if(e.z===83){const hues=[[200,120,220],[90,170,220],[230,190,90],[120,210,160]];col=mix(col,hues[i%4],.45);}
-      ctx.fillStyle=rgb(col);ctx.fill();ctx.strokeStyle=rgb(shade(base,.3),.25);ctx.lineWidth=.8;ctx.stroke();}
-    if(k==='diamond'){for(let i=0;i<4;i++){const a=time*.01+i*1.7;const x=cx+Math.cos(a)*r*.5,y=cy+Math.sin(a*1.3)*r*.3;star(x,y,r*.12*(.5+.5*Math.sin(time*.05+i)));}}
-  }else{
-    smooth(pts);
-    let g;
-    if(k==='metal'||k==='liquid'){
-      const dx=Math.cos(la)*r,dy=Math.sin(la)*r*.6;
-      g=ctx.createLinearGradient(cx-dx,cy-dy-r,cx+dx,cy+dy+r);
-      g.addColorStop(0,rgb(shade(base,-.35)));g.addColorStop(.35,rgb(shade(base,.15)));g.addColorStop(.48,rgb(shade(base,.55)));
-      g.addColorStop(.6,rgb(base));g.addColorStop(1,rgb(shade(base,-.5)));
-    }else{
-      g=ctx.createRadialGradient(cx+Math.cos(la)*r*.4,cy-r*.4,r*.1,cx,cy,r*1.2);
-      g.addColorStop(0,rgb(shade(base,k==='waxy'?.35:.12)));g.addColorStop(1,rgb(shade(base,-.35)));
-    }
-    ctx.fillStyle=g;ctx.fill();
-    if(k==='metal'){ctx.save();smooth(pts);ctx.clip();ctx.globalAlpha=.55*(1-tarnishMix(e)*.8);
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(cx+Math.cos(la)*r*.35,cy-r*.35,r*.35,r*.08,la*.3,0,7);ctx.fill();ctx.restore();}
-    if(k==='matte'&&e.z===6){ctx.save();smooth(pts);ctx.clip();ctx.strokeStyle='rgba(255,255,255,.08)';for(let i=-6;i<7;i++){ctx.beginPath();ctx.moveTo(cx-r*1.5,cy+i*r*.15);ctx.lineTo(cx+r*1.5,cy+i*r*.15+r*.1);ctx.stroke();}ctx.restore();}
-  }
-  // knife cut: bright face that tarnishes
-  if(S.cut){const age=(performance.now()-S.cut)/1000;const A=AIR[e.z];const tau=A?A[0]:1e9;const f=1-Math.exp(-age/Math.max(1,tau*.5));
-    ctx.save();smooth(pts);ctx.clip();ctx.beginPath();ctx.moveTo(cx+r*.2,cy-r*1.2);ctx.lineTo(cx+r*.55,cy-r*1.2);ctx.lineTo(cx+r*.35,cy+r*1.2);ctx.lineTo(cx,cy+r*1.2);ctx.closePath();
-    ctx.fillStyle=rgb(mix([248,248,250],A?hex2rgb(A[1]):base,f));ctx.fill();ctx.restore();}
-  ctx.restore();
-}
-function star(x,y,s){ctx.save();ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x+s*.2,y);ctx.lineTo(x,y+s);ctx.lineTo(x-s*.2,y);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(x-s,y);ctx.lineTo(x,y+s*.2);ctx.lineTo(x+s,y);ctx.lineTo(x,y-s*.2);ctx.closePath();ctx.fill();ctx.restore();}
-function drawLiquid(e,cx,cy,r,time,alpha){
-  const col=hex2rgb(liquidColor(e,S.T)),metal=look(e).k==='metal'||e.z===80||e.z===31;
-  ctx.save();ctx.globalAlpha*=alpha;
-  const rx=r*1.55,ry=r*.32,y=cy+r*.55;
-  const g=ctx.createLinearGradient(cx-rx,y-ry,cx+rx,y+ry);
-  if(metal){g.addColorStop(0,rgb(shade(col,-.4)));g.addColorStop(.45,rgb(shade(col,.5)));g.addColorStop(.55,rgb(shade(col,.1)));g.addColorStop(1,rgb(shade(col,-.45)));}
-  else{g.addColorStop(0,rgb(col,.75));g.addColorStop(1,rgb(shade(col,-.25),.9));}
-  ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,y,rx,ry,0,0,7);ctx.fill();
-  ctx.strokeStyle=rgb(shade(col,.6),.5);ctx.lineWidth=1;
-  for(let i=1;i<3;i++){const ph=(time*.002+i*.5)%1;ctx.globalAlpha=alpha*(1-ph)*.6;ctx.beginPath();ctx.ellipse(cx,y,rx*ph,ry*ph,0,0,7);ctx.stroke();}
-  ctx.globalAlpha=alpha*.7;ctx.fillStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.ellipse(cx-rx*.3,y-ry*.35,rx*.25,ry*.12,-.1,0,7);ctx.fill();
-  // vapour near boiling
-  const p=points(e);if(p.bp&&S.T>p.bp*.9){const gc=gasColor(e);const vc=gc?hex2rgb(gc):[200,205,210];
-    for(let i=0;i<10;i++){const ph=(time*.0006+i/10)%1;ctx.globalAlpha=alpha*(1-ph)*.35;ctx.fillStyle=rgb(vc);ctx.beginPath();ctx.arc(cx+Math.sin(i*2.1+time*.002)*rx*.6,y-ph*r*2,r*.12*(1+ph),0,7);ctx.fill();}}
-  ctx.restore();
-  // boiling bubbles
-  if(p.bp&&S.T>=p.bp*.98){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=rgb(shade(col,.7),.8);for(let i=0;i<6;i++){const x=cx+Math.sin(i*3.7+time*.01)*rx*.7;ctx.beginPath();ctx.arc(x,y-Math.abs(Math.sin(time*.02+i))*ry*.5,2+i%3,0,7);ctx.stroke();}ctx.restore();}
-}
-const GP=Array.from({length:70},(_,i)=>{const r=rng(i+3);return{x:r()*2-1,y:r()*2-1,vx:r()*2-1,vy:r()*2-1};});
-function drawGas(e,cx,cy,r,time,alpha,glow){
-  ctx.save();ctx.globalAlpha*=alpha;
-  const R=r*1.25,ink=css('--ink');
-  // flask
-  ctx.lineWidth=1.5;ctx.strokeStyle=ink;ctx.globalAlpha=alpha*.35;
-  ctx.beginPath();ctx.arc(cx,cy,R,-Math.PI/2+.32,Math.PI*1.5-.32);ctx.lineTo(cx-R*.32,cy-R*1.55);ctx.lineTo(cx+R*.32,cy-R*1.55);ctx.closePath();ctx.stroke();
-  ctx.globalAlpha=alpha;
-  const gc=gasColor(e);
-  if(glow){const g=ctx.createRadialGradient(cx,cy,R*.1,cx,cy,R);const gcol=hex2rgb(glow[0]);g.addColorStop(0,rgb(mix(gcol,[255,255,255],.5),.95*glow[1]));g.addColorStop(.6,rgb(gcol,.75*glow[1]));g.addColorStop(1,rgb(gcol,.2*glow[1]));
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*.98,0,7);ctx.fill();
-    ctx.globalCompositeOperation=GLOW();const h=ctx.createRadialGradient(cx,cy,R*.6,cx,cy,R*2);h.addColorStop(0,rgb(gcol,.35*glow[1]));h.addColorStop(1,rgb(gcol,0));ctx.fillStyle=h;ctx.beginPath();ctx.arc(cx,cy,R*2,0,7);ctx.fill();ctx.globalCompositeOperation='source-over';}
-  else if(gc){ctx.fillStyle=rgb(hex2rgb(gc),.45);ctx.beginPath();ctx.arc(cx,cy,R*.98,0,7);ctx.fill();}
-  // particles: speed from sqrt(T/m)
-  const v=clamp(Math.sqrt(S.T/e.m)/Math.sqrt(300/4),0.05,3)*(RM?0:1);
-  ctx.fillStyle=glow?'rgba(255,255,255,.85)':gc?rgb(shade(hex2rgb(gc),-.3)):ink;ctx.globalAlpha=alpha*(glow?.6:.45);
-  GP.forEach(p=>{p.x+=p.vx*.004*v;p.y+=p.vy*.004*v;if(p.x*p.x+p.y*p.y>.85){p.vx*=-1;p.vy*=-1;p.x*=.98;p.y*=.98;}
-    ctx.beginPath();ctx.arc(cx+p.x*R,cy+p.y*R,1.6,0,7);ctx.fill();});
-  ctx.restore();
-}
-function glowOverlay(cx,cy,r,T,shape){
-  if(T<798)return;const k=clamp((T-798)/1400,0,1);const c=blackbody(Math.max(T,1000));
-  ctx.save();ctx.globalCompositeOperation=GLOW();
-  ctx.globalAlpha=.25+.6*k;ctx.fillStyle=rgb(c);shape();ctx.fill();
-  const h=ctx.createRadialGradient(cx,cy,r*.5,cx,cy,r*2.6);h.addColorStop(0,rgb(c,.45*k+.1));h.addColorStop(1,rgb(c,0));ctx.fillStyle=h;ctx.beginPath();ctx.arc(cx,cy,r*2.6,0,7);ctx.fill();ctx.restore();
-}
-function shadow(cx,cy,r,a=1){const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.5);g.addColorStop(0,'rgba(0,0,0,.28)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.save();ctx.globalAlpha=a;ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,cy,r*1.5,r*.22,0,0,7);ctx.fill();ctx.restore();}
-
-function drawSample(e,cx,cy,r,time){
-  const ph=phase(e,S.T);
-  const tg={sol:ph==='solid'?1:0,liq:ph==='liquid'?1:0,gas:ph==='gas'?1:0};
-  for(const k in tg)anim[k]+= (tg[k]-anim[k])*(RM?1:.08);
-  shadow(cx,cy+r*.95,r,1-anim.gas*.8);
-  if(anim.sol>.01){ctx.save();ctx.globalAlpha=anim.sol;const rr=r*(.6+.4*anim.sol);drawSolid(e,cx,cy+(r-rr)*.6,rr,time);ctx.restore();
-    if(ph==='solid')glowOverlay(cx,cy,r,S.T,()=>smooth(blobPath(cx,cy,r,e.z*31+(S.allo?S.allo.charCodeAt(0):0),S.flat,look(e).k==='crystal'?7:11)));}
-  if(anim.liq>.01){drawLiquid(e,cx,cy,r,time,anim.liq);if(ph==='liquid')glowOverlay(cx,cy+r*.55,r*.7,S.T,()=>{ctx.beginPath();ctx.ellipse(cx,cy+r*.55,r*1.55,r*.32,0,0,7);});}
-  if(anim.gas>.01){let glow=null;if(S.exp==='tube'&&TUBE[e.z]&&S.volt>.05)glow=[TUBE[e.z][0],S.volt];drawGas(e,cx,cy-r*.1,r,time,anim.gas,glow);}
-  // hit flash
-  if(S.hit){S.hit.t++;if(S.hit.t<8){ctx.save();ctx.globalAlpha=(8-S.hit.t)/8*.6;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy-r*.9,r*.5*(S.hit.t/8+.3),0,7);ctx.fill();ctx.restore();}}
-  // hammer & knife sparks
-  S.sparks=S.sparks.filter(s=>s.l>0);S.sparks.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.vy+=.15;s.l-=.03;ctx.fillStyle=`rgba(255,200,90,${s.l})`;ctx.fillRect(cx+r*.3+s.x*6,cy-r*.6+s.y*6,2,2);});
-  S.wob*=.95;
-}
-
-/* experiments drawn on top of / instead of the plain sample */
-function drawWater(e,cx,cy,r,time){
-  const W=WATER[e.z];const bw=r*3.2,bh=r*3,x0=cx-bw/2,y0=cy-bh*.45,ink=css('--ink');
-  const level=y0+bh*.3;
-  // water
-  let wc=[150,200,235];const tt=S.water.t;
-  if(W.milky&&tt>0)wc=mix(wc,[235,238,240],clamp(tt/600,0,W.milky));
-  ctx.fillStyle=rgb(wc,.45);ctx.fillRect(x0,level,bw,bh-(level-y0));
-  ctx.strokeStyle=rgb(hex2rgb(css('--ink').startsWith('#')?css('--ink'):'#222222'),.35);ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0+bh);ctx.lineTo(x0+bw,y0+bh);ctx.lineTo(x0+bw,y0);ctx.stroke();
-  for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(x0,y0+bh*i/5);ctx.lineTo(x0+10,y0+bh*i/5);ctx.stroke();}
-  const sr=r*.35;
-  if(tt<=0){drawSolid(e,cx,y0-sr*2.2,sr,time);return;}
-  S.water.t+=1;
-  const floats=e.d<1;let sx=cx,sy;
-  const fall=Math.min(1,tt/30);
-  const restY=floats?level-sr*.3:y0+bh-sr*.9;sy=(y0-sr*2.2)+(restY-(y0-sr*2.2))*fall;
-  let rate=W.rate;if(W.hot)rate=S.water.hot*.45;
-  let size=1;
-  if(W.kind==='dart'&&fall>=1){sx=cx+Math.sin(tt*.05)*bw*.32;sy=level-sr*.3;size=Math.max(.15,1-tt/1800);}
-  if(W.kind==='boom'&&fall>=1){const bt=tt-30;if(bt<40){const k=bt/40;ctx.save();ctx.globalCompositeOperation=GLOW();const g=ctx.createRadialGradient(cx,restY,0,cx,restY,r*3*k+5);g.addColorStop(0,'rgba(255,255,240,.95)');g.addColorStop(.3,rgb(hex2rgb(W.flame),.8*(1-k)));g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,restY,r*3*k+5,0,7);ctx.fill();ctx.restore();
-      for(let i=0;i<24;i++){const a=-Math.PI*(i/24);ctx.fillStyle=rgb(wc,.7*(1-k));ctx.beginPath();ctx.arc(cx+Math.cos(a)*bw*.6*k,level+Math.sin(a)*bh*.8*k,3,0,7);ctx.fill();}}
-    return;}
-  if(W.kind==='bubble'||W.kind==='fizz')size=Math.max(.2,1-tt*rate/4000);
-  if(fall>=1&&Math.random()<rate*1.5)S.bubbles.push({x:sx+(Math.random()-.5)*sr,y:sy,v:1+Math.random()*1.5});
-  ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;
-  S.bubbles=S.bubbles.filter(b=>b.y>level);S.bubbles.forEach(b=>{b.y-=b.v;b.x+=Math.sin(b.y*.1)*.3;ctx.beginPath();ctx.arc(b.x,b.y,2,0,7);ctx.stroke();});
-  drawSolid(e,sx,sy,sr*size,time);
-  if(W.flame&&fall>=1&&W.kind==='dart'&&size>.2){const on=W.p>=1||(Math.sin(tt*.013)>.6);if(on){flame(sx,level-sr*.2,sr*3.4,hex2rgb(W.flame),1,time);flame(sx,level-sr*.2,sr*2.2,hex2rgb(W.flame),.8,time+50);}}
-}
-function flame(x,y,h,col,k,time){
-  ctx.save();ctx.globalCompositeOperation=GLOW();
-  for(let i=0;i<3;i++){const f=1-i*.28;const wob=Math.sin(time*.05+i)*h*.06;
-    const g=ctx.createRadialGradient(x+wob,y-h*.45*f,0,x,y-h*.3,h*.65*f);g.addColorStop(0,rgb(mix(col,[255,255,255],LIGHT?.08:.35),(LIGHT?.85:.7)*k));g.addColorStop(1,rgb(col,0));
-    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x-h*.22*f,y);ctx.quadraticCurveTo(x-h*.3*f,y-h*.5*f,x+wob,y-h*f);ctx.quadraticCurveTo(x+h*.3*f,y-h*.5*f,x+h*.22*f,y);ctx.closePath();ctx.fill();}
-  ctx.restore();
-}
-function drawFlame(e,cx,cy,r,time){
-  const F=FLAME[e.z],ink=css('--ink'),by=cy+r*1.1;
-  // burner
-  ctx.fillStyle=rgb(hex2rgb('#6b6f75'));ctx.fillRect(cx-r*.18,by,r*.36,r*.9);ctx.fillRect(cx-r*.5,by+r*.9,r,r*.12);
-  if(S.flame<.05){if(!F[2])wire(cx,cy,r);else drawSolid(e,cx,cy-r*.2,r*.45,time);return;}
-  const h=r*2.6*S.flame+r*.4;
-  // base: colourless blue burner flame
-  flame(cx,by,h*.9,[90,120,255],.35,time);
-  if(F[2]){ // burns itself
-    if(e.z===12){ctx.save();ctx.globalCompositeOperation=GLOW();const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*4);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.25,`rgba(255,255,255,${.7*S.flame})`);g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.restore();return;}
-    if(e.z===26){drawSolid(e,cx,cy-r*.2,r*.45,time);for(let i=0;i<30*S.flame;i++){const a=Math.random()*Math.PI*2,d=Math.random()*r*2;ctx.strokeStyle=`rgba(255,${150+Math.random()*80|0},60,.9)`;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*d*.3,cy-r*.2+Math.sin(a)*d*.3);ctx.lineTo(cx+Math.cos(a)*d,cy-r*.2+Math.sin(a)*d);ctx.stroke();}return;}
-    if(e.z===1){drawGasJet(cx,cy,r);flame(cx,cy-r*.05,h*.8,hex2rgb(F[0]),.25*S.flame,time);return;}
-    drawSolid(e,cx,cy-r*.2,r*.45,time);flame(cx,cy,h*.8,hex2rgb(F[0]),.85*S.flame,time);
-    if(e.z===15){ctx.fillStyle='rgba(240,240,240,.5)';for(let i=0;i<14;i++){const ph=(time*.001+i/14)%1;ctx.globalAlpha=1-ph;ctx.beginPath();ctx.arc(cx+Math.sin(i*4+time*.003)*r*.6,cy-r*.8-ph*r*2.5,r*.18*(1+ph*2),0,7);ctx.fill();}ctx.globalAlpha=1;}
-    return;
-  }
-  wire(cx,cy,r);flame(cx,by,h,hex2rgb(F[0]),.95*S.flame,time);
-}
-function drawGasJet(cx,cy,r){ctx.fillStyle='#8a8f96';ctx.fillRect(cx-r*1.6,cy-r*.04,r*1.5,r*.08);}
-function wire(cx,cy,r){ctx.strokeStyle='#9aa0a6';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx+r*1.8,cy-r*1.2);ctx.lineTo(cx+r*.15,cy+r*.2);ctx.stroke();ctx.beginPath();ctx.arc(cx,cy+r*.3,r*.15,0,7);ctx.stroke();ctx.fillStyle=rgb(hex2rgb('#f2f0ea'));ctx.beginPath();ctx.arc(cx,cy+r*.3,r*.08,0,7);ctx.fill();}
-function drawTube(e,cx,cy,r,time){
-  const T=TUBE[e.z],w=r*3.6,h=r*.7,x0=cx-w/2,ink=css('--ink');
-  const on=S.volt>.05,col=hex2rgb(T[0]),fl=on?(.85+.15*Math.sin(time*.3)*Math.random()):0;
-  ctx.save();
-  if(on){ctx.globalCompositeOperation=GLOW();const g=ctx.createRadialGradient(cx,cy,h*.2,cx,cy,w*.7);g.addColorStop(0,rgb(col,(LIGHT?.35:.5)*S.volt*fl));g.addColorStop(1,rgb(col,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,w*.7,0,7);ctx.fill();
-    const g2=ctx.createLinearGradient(0,cy-h/2,0,cy+h/2);const kb=LIGHT?1:1.8;g2.addColorStop(0,rgb(col,Math.min(1,.5*S.volt*kb)));g2.addColorStop(.5,rgb(mix(col,[255,255,255],LIGHT?.3:.5),Math.min(1,S.volt*fl*kb)));g2.addColorStop(1,rgb(col,Math.min(1,.5*S.volt*kb)));
-    ctx.fillStyle=g2;rr(x0+r*.3,cy-h/2+3,w-r*.6,h-6,h/2);ctx.fill();ctx.globalCompositeOperation='source-over';}
-  ctx.strokeStyle=ink;ctx.globalAlpha=.4;ctx.lineWidth=1.5;rr(x0,cy-h/2,w,h,h/2);ctx.stroke();ctx.globalAlpha=1;
-  ctx.fillStyle='#7d838a';ctx.fillRect(x0-r*.25,cy-h*.18,r*.45,h*.36);ctx.fillRect(x0+w-r*.2,cy-h*.18,r*.45,h*.36);
-  ctx.strokeStyle='#7d838a';ctx.lineWidth=1.5;const py=cy+r*1.05;ctx.beginPath();ctx.moveTo(x0-r*.25,cy+h*.18);ctx.quadraticCurveTo(x0-r*.25,py,cx-r*.45,py);ctx.moveTo(x0+w+r*.25,cy+h*.18);ctx.quadraticCurveTo(x0+w+r*.25,py,cx+r*.45,py);ctx.stroke();
-  ctx.fillStyle='#5d6268';rr(cx-r*.45,py-r*.2,r*.9,r*.4,4);ctx.fill();ctx.fillStyle='#eef0f2';ctx.font='600 11px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(Math.round(S.volt*10)+' kV',cx,py);ctx.textBaseline='alphabetic';
-  ctx.restore();
-  // spectrum strip
-  drawSpectrum(e,cx,cy+r*1.7,w,on);
-}
+/* line spectra (nm, relative strength) for the glow tube */
 const LINES={1:[[656,1],[486,.5],[434,.3],[410,.2]],2:[[587,1],[668,.5],[501,.4],[447,.4],[492,.2],[706,.4]],10:[[640,1],[585,.8],[614,.7],[633,.7],[703,.6],[650,.6],[588,.5]],
  18:[[750,.6],[763,.7],[811,.5],[420,.5],[427,.4],[696,.4],[434,.3]],36:[[557,.8],[587,1],[760,.6],[450,.4],[431,.4]],54:[[467,1],[462,.7],[473,.5],[492,.6],[529,.5],[764,.5]],
  7:[[399,.6],[463,.5],[500,.6],[568,.4],[648,.4],[661,.4],[746,.4]],8:[[777,1],[615,.5],[645,.4],[533,.3],[437,.3]],80:[[436,1],[546,.9],[577,.6],[579,.6],[405,.6]],11:[[589,1],[589.6,.9],[568,.2],[498,.1]],86:[[745,.5],[705,.5]],17:[[479,.5],[522,.4],[543,.5],[837,.5]]};
 function wlRGB(l){let r=0,g=0,b=0;if(l<440){r=-(l-440)/60;b=1;}else if(l<490){g=(l-440)/50;b=1;}else if(l<510){g=1;b=-(l-510)/20;}else if(l<580){r=(l-510)/70;g=1;}else if(l<645){r=1;g=-(l-645)/65;}else r=1;
   const f=l<420?.3+.7*(l-380)/40:l>700?.3+.7*(780-l)/80:1;return[255*r*f,255*g*f,255*b*f];}
-function drawSpectrum(e,cx,y,w,on){
-  const L=LINES[e.z];if(!L)return;const x0=cx-w/2,h=12;ctx.fillStyle='#0b0c0e';ctx.fillRect(x0,y,w,h);
-  if(on)L.forEach(([l,a])=>{const x=x0+(l-380)/400*w;ctx.fillStyle=rgb(wlRGB(Math.min(779,l)),a*S.volt+.15);ctx.fillRect(x-1,y,2.2,h);});
-  ctx.fillStyle=css('--muted');ctx.font='10px "IBM Plex Mono",monospace';ctx.textAlign='left';ctx.fillText('380 nm',x0,y+h+12);ctx.textAlign='right';ctx.fillText('780 nm',x0+w,y+h+12);ctx.textAlign='center';ctx.fillText('its line spectrum',cx,y+h+12);
-}
-function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function drawMagnet(e,cx,cy,r,time){
-  const M=MAG[e.z],tc=TC[e.z],ph=phase(e,S.T);
-  const gapFar=r*2.6,gapNear=r*.9;let my=cy-r*.9-(gapNear+(gapFar-gapNear)*(1-S.magnet));
-  let sy=cy,label='';
-  const sc=tc&&S.T<tc;
-  if(sc){ // superconductor: sample is a disc, magnet floats
-    shadow(cx,cy+r*.95,r);drawSolidDisc(e,cx,cy+r*.6,r);
-    const fy=cy+r*.6-r*.9-Math.sin(time*.03)*3;ctx.save();magnetShape(cx,fy,r*.5,false);ctx.restore();
-    label='Superconducting: the magnet floats';
-  }else if(M&&M[0]==='F'&&S.T<M[1]&&ph==='solid'){
-    const pull=S.magnet>.25;sy=pull?my+r*1.15:cy;shadow(cx,cy+r*.95,r,pull?.3:1);
-    drawSample(e,cx,sy,r*.7,time);magnetShape(cx,my,r,true);label=pull?'Pulled up to the magnet':'Too far away to pull';
-  }else if(M&&M[0]==='P'&&ph==='liquid'){
-    magnetShape(cx,my,r,true);
-    // liquid oxygen held between poles
-    ctx.fillStyle=rgb(hex2rgb(liquidColor(e,S.T)),.9);const k=S.magnet;ctx.beginPath();ctx.ellipse(cx,my+r*.95,r*.62*k+2,r*.18,0,0,7);ctx.fill();
-    drawSample(e,cx,cy,r*(1-k*.4),time);label=k>.3?'Liquid oxygen clings between the poles':'Bring the magnet closer';
-  }else if(M&&M[0]==='D'&&ph==='solid'){
-    const push=S.magnet*r*.35;drawSample(e,cx,cy+push*.2,r*.8,time);magnetShape(cx,my,r,true);
-    label=S.magnet>.6?'Gently pushed away':'Barely affected';
-  }else{
-    drawSample(e,cx,cy,r*.8,time);magnetShape(cx,my,r,true);
-    label=M&&M[0]==='F'?(ph!=='solid'?'No longer solid':'Above its Curie point: no pull'):tc?`Not attracted. Cool below ${tc} K to superconduct.`:'Not attracted';
-  }
-  ctx.fillStyle=css('--muted');ctx.font='12px "IBM Plex Sans",sans-serif';ctx.textAlign='center';ctx.fillText(label,cx,cy+r*1.75);
-}
-function drawSolidDisc(e,cx,cy,r){const c=surfaceColor(e,S.T);const g=ctx.createLinearGradient(cx-r*1.3,0,cx+r*1.3,0);g.addColorStop(0,rgb(shade(c,-.4)));g.addColorStop(.5,rgb(shade(c,.45)));g.addColorStop(1,rgb(shade(c,-.4)));
-  ctx.fillStyle=rgb(shade(c,-.45));ctx.beginPath();ctx.ellipse(cx,cy+r*.14,r*1.3,r*.32,0,0,7);ctx.fill();ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(cx,cy,r*1.3,r*.32,0,0,7);ctx.fill();
-  if(S.T<77){ctx.fillStyle='rgba(235,245,255,.6)';for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(cx-r+i*r*.5,cy-r*.15-Math.random()*r*.4,r*.12,0,7);ctx.fill();}}}
-function magnetShape(cx,y,r,horseshoe){
-  if(!horseshoe){const g=ctx.createLinearGradient(0,y-r*.5,0,y+r*.5);ctx.fillStyle='#c0392b';ctx.fillRect(cx-r,y-r*.25,r,r*.5);ctx.fillStyle='#2e4fb5';ctx.fillRect(cx,y-r*.25,r,r*.5);return;}
-  ctx.lineWidth=r*.38;ctx.lineCap='butt';ctx.strokeStyle='#c0392b';ctx.beginPath();ctx.arc(cx,y,r*.62,Math.PI,Math.PI*2,false);ctx.stroke();
-  ctx.fillStyle='#c0392b';ctx.fillRect(cx-r*.81,y,r*.38,r*.45);ctx.fillStyle='#2e4fb5';ctx.fillRect(cx+r*.43,y,r*.38,r*.45);
-  ctx.fillStyle='#d7dade';ctx.fillRect(cx-r*.81,y+r*.45,r*.38,r*.25);ctx.fillRect(cx+r*.43,y+r*.45,r*.38,r*.25);
-}
-function drawDecay(e,cx,cy,r,time){
-  const rem=Math.pow(2,-S.decayT),d=decayDaughter(e);
-  // sample shows as mix of parent and daughter colour (daughter shown as darker speckles)
-  drawSample(e,cx,cy,r,time);
-  if(S.decayT>0&&d){const R=rng(e.z);ctx.save();ctx.globalAlpha=.85;for(let i=0;i<120;i++){if(R()>1-rem)continue;const a=R()*7,dd=Math.sqrt(R())*r*.75;ctx.fillStyle=rgb(hex2rgb((LOOK[d.z]||['#777777'])[0]).map(v=>v*.7));ctx.beginPath();ctx.arc(cx+Math.cos(a)*dd,cy+Math.sin(a)*dd*.7,2,0,7);ctx.fill();}ctx.restore();}
-  // emission rate scaled by log of activity
-  const act=clamp((20-Math.log10(e.hl))/20,0.05,1)*rem;
-  if(!RM&&Math.random()<act*.6)S.tracks.push(mkTrack(e.mode,cx,cy,r));
-  drawTracks();
-}
-function mkTrack(mode,cx,cy,r){const a=Math.random()*Math.PI*2;
-  const len={A:r*.9,'B-':r*2.8,'B+':r*2.2,EC:r*2.4,SF:r*1.4}[mode]||r*2;
-  const col={A:[255,90,70],'B-':[90,160,255],'B+':[120,230,190],EC:[200,170,255],SF:[255,200,60]}[mode]||[255,255,255];
-  return{x:cx+Math.cos(a)*r*.6,y:cy+Math.sin(a)*r*.4,a,len,col,l:1,two:mode==='SF'};}
-function drawTracks(){ctx.save();ctx.lineCap='round';S.tracks=S.tracks.filter(t=>t.l>0);S.tracks.forEach(t=>{t.l-=.03;const p=1-t.l;
-  const draw=(a)=>{ctx.strokeStyle=rgb(t.col,t.l);ctx.lineWidth=t.col[0]===255&&t.col[1]===90?3:1.4;ctx.beginPath();ctx.moveTo(t.x,t.y);ctx.lineTo(t.x+Math.cos(a)*t.len*Math.min(1,p*3),t.y+Math.sin(a)*t.len*Math.min(1,p*3));ctx.stroke();};
-  draw(t.a);if(t.two)draw(t.a+Math.PI);});ctx.restore();}
-function drawAtoms(e,cx,cy,r,time,dt){
-  const ink=css('--ink'),x0=cx-r*2.4,y0=cy-r*1.6,w=r*4.8,h=r*3.2;
-  ctx.save();ctx.strokeStyle=ink;ctx.globalAlpha=.25;ctx.lineWidth=1;
-  for(let i=0;i<=8;i++){ctx.beginPath();ctx.moveTo(x0+w*i/8,y0);ctx.lineTo(x0+w*i/8,y0+h);ctx.stroke();}
-  for(let i=0;i<=6;i++){ctx.beginPath();ctx.moveTo(x0,y0+h*i/6);ctx.lineTo(x0+w,y0+h*i/6);ctx.stroke();}
-  ctx.restore();
-  const lam=Math.LN2/e.hl;const p=1-Math.exp(-lam*dt/1000*S.speed);const d=decayDaughter(e);
-  S.atoms.forEach(a=>{
-    if(!a.dead&&Math.random()<p){a.dead=performance.now();S.tracks.push(mkTrack(e.mode,x0+a.x*w,y0+a.y*h,r*.2));S.tracks[S.tracks.length-1].x=x0+a.x*w;S.tracks[S.tracks.length-1].y=y0+a.y*h;}
-    const X=x0+a.x*w,Y=y0+a.y*h;
-    if(!a.dead){const pul=1+.15*Math.sin(time*.01+a.ph);const g=ctx.createRadialGradient(X,Y,0,X,Y,r*.25*pul);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(.3,rgb(hex2rgb(css('--accent').startsWith('#')?css('--accent'):'#2b47c9'),.8));g.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(X,Y,r*.25*pul,0,7);ctx.fill();ctx.fillStyle=ink;ctx.font='11px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText(`${e.s}-${e.hlm}`,X,Y+r*.38);}
-    else{ctx.globalAlpha=.55;ctx.fillStyle=css('--muted');ctx.font='11px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.fillText(d?d.s:'fission',X,Y+4);ctx.globalAlpha=1;}
-  });
-  drawTracks();
-  const alive=S.atoms.filter(a=>!a.dead).length;
-  ctx.fillStyle=css('--muted');ctx.font='12px "IBM Plex Sans",sans-serif';ctx.textAlign='center';ctx.fillText(`${alive} of ${S.atoms.length} atoms still ${e.s}`,cx,y0+h+20);
-}
-function drawFloat(e,cx,cy,r,time){
-  const bw=r*3,bh=r*2.6,x0=cx-bw/2,y0=cy-bh*.4,level=y0+bh*.35,hg=S.float==='mercury';
-  const lc=hg?[200,204,208]:[150,200,235];
-  if(hg){const g=ctx.createLinearGradient(x0,0,x0+bw,0);g.addColorStop(0,'#8d9196');g.addColorStop(.5,'#eef0f2');g.addColorStop(1,'#8d9196');ctx.fillStyle=g;}else ctx.fillStyle=rgb(lc,.45);
-  ctx.fillRect(x0,level,bw,y0+bh-level);
-  ctx.strokeStyle='rgba(128,128,128,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x0,y0+bh);ctx.lineTo(x0+bw,y0+bh);ctx.lineTo(x0+bw,y0);ctx.stroke();
-  const liq=hg?13.53:1,fl=e.d<liq;const sub=fl?e.d/liq:1;const sr=r*.45;
-  const sy=fl?level+sr*(sub*2-1)*.8:y0+bh-sr*.9+Math.sin(time*.01)*0;
-  drawSolid(e,cx,sy,sr,time);
-  if(!hg){ctx.fillStyle=rgb(lc,.3);ctx.fillRect(x0,level,bw,y0+bh-level);}
+function drawSpec(){
+  const c=$('#spec');if(!c)return;const g=c.getContext('2d'),L=LINES[S.z],w=c.width,h=c.height;
+  g.fillStyle='#0b0c0e';g.fillRect(0,0,w,h);if(!L)return;
+  L.forEach(([l,a])=>{const x=(l-380)/400*w,col=wlRGB(Math.min(779,l)),al=S.volt>.05?Math.min(1,a*(.35+S.volt)):.08;
+    const gr=g.createLinearGradient(x-6,0,x+6,0);gr.addColorStop(0,rgb(col,0));gr.addColorStop(.5,rgb(col,al));gr.addColorStop(1,rgb(col,0));g.fillStyle=gr;g.fillRect(x-6,0,12,h);
+    g.fillStyle=rgb(mix(col,[255,255,255],.35),al);g.fillRect(x-1,0,2,h);});
 }
 
-let last=performance.now();
-function frame(now){
-  const dt=Math.min(100,now-last);last=now;const time=now-S.t0;
-  const e=el();
-  ctx.clearRect(0,0,W,H);
-  const dark=S.exp==='dark'&&S.dark;
-  LIGHT=!dark&&lum(css('--stage'))>.5;
-  if(dark){ctx.fillStyle='#050608';ctx.fillRect(0,0,W,H);}
-  const narrow=W<600;
-  const cx=narrow?W*.5:W*.54,cy=narrow?H*.5:H*.47,r=Math.min(W,H)*(narrow?.16:.17);
-  if(bulkUnknown(e)){drawAtoms(e,cx,cy,r,time,dt);}
-  else if(S.exp==='water'){drawWater(e,cx,cy,r,time);}
-  else if(S.exp==='flame'){drawFlame(e,cx,cy,r,time);}
-  else if(S.exp==='tube'){drawTube(e,cx,cy,r,time);}
-  else if(S.exp==='magnet'){drawMagnet(e,cx,cy,r,time);}
-  else if(S.exp==='decay'){drawDecay(e,cx,cy,r,time);}
-  else if(S.exp==='float'){drawFloat(e,cx,cy,r,time);}
-  else if(S.exp==='air'){
-    drawSample(e,cx,cy,r,time);
-    const A=AIR[e.z];
-    const ign=A&&(A[3]===1&&airSeconds()>A[0]||A[3]===2&&S.T>=303&&(!S.allo||S.allo==='w')&&phase(e,S.T)!=='gas');
-    if(ign)flame(cx,cy+r*.3,r*2.4,A[3]===2?[255,240,200]:hex2rgb((FLAME[e.z]||['#ff8040'])[0]),.9,time);
-  }
-  else{drawSample(e,cx,cy,r,time);}
-  if(dark){ctx.fillStyle='rgba(5,6,8,.72)';ctx.fillRect(0,0,W,H);const D=DARK[e.z];ctx.save();ctx.globalCompositeOperation='lighter';const c=hex2rgb(D[0]);const pul=.8+.2*Math.sin(time*.004);
-    const g=ctx.createRadialGradient(cx,cy,r*.2,cx,cy,r*2.2);g.addColorStop(0,rgb(c,.55*pul));g.addColorStop(.4,rgb(c,.22*pul));g.addColorStop(1,rgb(c,0));ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,r*2.2,0,7);ctx.fill();ctx.restore();}
-  $('#stage').style.color=dark?'#e9eaea':'';
-  requestAnimationFrame(frame);
+/* ================= 3D bench ================= */
+// What each element looks like on a real specimen shelf: [form, colour, metalness, roughness, extra]
+const MAT={
+ // gases and volatile liquids sealed in glass ampoules
+ 1:['ampoule'],2:['ampoule'],7:['ampoule'],8:['ampoule'],9:['ampoule'],10:['ampoule'],17:['ampoule'],18:['ampoule'],35:['ampoule'],36:['ampoule'],54:['ampoule'],86:['ampoule'],
+ 37:['ampouleMetal','#d9d2c0',1,.12,{crust:'#8a7b62'}],55:['ampouleMetal','#e9c35c',1,.1,{crust:'#8c6a2c'}],
+ 3:['chunk','#cfcbc2',1,.12,{crust:'#6f6c66'}],11:['chunk','#dcdcd4',1,.1,{crust:'#e3e0d4'}],19:['chunk','#d3cfc4',1,.1,{crust:'#9c978c'}],
+ 20:['chunk','#d9d6cc',1,.18,{crust:'#cfcbbf'}],38:['chunk','#dcd2a8',1,.18,{crust:'#e2d7a8'}],56:['chunk','#cdc8b3',1,.2,{crust:'#a9a493'}],63:['chunk','#d7d0b4',1,.2,{crust:'#c4b06e'}],
+ 4:['cube','#a9b0b4',1,.32],12:['ribbon','#d9dbdc',1,.28],13:['ingot','#d6d9dc',1,.26],
+ 5:['shard','#3a3735',.55,.28],6:['flakes','#232323',.25,.42],14:['shard','#717b8c',.75,.08],15:['waxy','#efe7c6',0,.45],16:['crystals','#f2cf25',0,.32],
+ 21:['dendrite','#d8d6cd',1,.26],22:['crystalbar','#a8a59b',1,.3],23:['crystalbar','#b5b9be',1,.24],24:['shard','#e2e7ee',1,.06],25:['shard','#b7ada2',1,.38],
+ 26:['cube','#a19e97',1,.3],27:['flakes','#b2b7bd',1,.2],28:['beads','#cbc3b4',1,.16],29:['nugget','#d98a5b',1,.22],30:['cube','#c3cbd3',1,.3],
+ 31:['ingot','#e1e5e8',1,.09],32:['shard','#8f949b',.85,.12],33:['shard','#6f7378',.8,.22],34:['shard','#4c4c51',.6,.2],
+ 39:['dendrite','#d0d0cc',1,.26],40:['crystalbar','#c5c5c1',1,.25],41:['rod','#a9abb4',1,.3],42:['rod','#b1b4b9',1,.32],43:['vial','#b9bcbf',1,.3],
+ 44:['shard','#c8c9cc',1,.18],45:['cube','#dcdde0',1,.12],46:['nugget','#d3d0ca',1,.16],47:['nugget','#eef0f2',1,.08],48:['rod','#c3c8cd',1,.26],
+ 49:['ingot','#cdd0d5',1,.35],50:['ingot','#d8d8d5',1,.3],51:['shard','#bac0c7',.9,.14],52:['shard','#a7abb1',.85,.2],53:['flakes','#2b2236',.6,.22,{vapour:'#8a3fb5'}],
+ 57:['cube','#cdcbc4',1,.36],58:['cube','#c9c4b4',1,.4],59:['cube','#c3c5b3',1,.4],60:['cube','#c5c5bc',1,.35],61:['vial','#c0c0bc',1,.3],62:['dendrite','#cbc8bd',1,.3],
+ 64:['dendrite','#c9c9c4',1,.28],65:['dendrite','#c8c7c0',1,.28],66:['dendrite','#c9cbcf',1,.26],67:['dendrite','#cfcfc7',1,.26],68:['dendrite','#d4cfcf',1,.24],69:['dendrite','#cfd2d8',1,.24],
+ 70:['dendrite','#d6d3c4',1,.3],71:['dendrite','#c5c7c9',1,.26],72:['crystalbar','#b0b2b5',1,.26],73:['rod','#8e98a9',1,.3],74:['rod','#9a9b9c',1,.36],75:['rod','#b0b2b6',1,.26],
+ 76:['shard','#a9b8d0',1,.12],77:['cube','#d7d9dc',1,.12],78:['nugget','#d8d8d6',1,.12],79:['nugget','#f2c14e',1,.12],80:['droplet','#e4e6e9',1,.02],
+ 81:['ingot','#b8bcc2',1,.36],82:['ingot','#7f8792',1,.46],83:['hopper','#d6c6cf',1,.16],84:['vial','#a9abb0',1,.3],88:['vial','#e6e6e2',1,.3],89:['vial','#d3d6da',1,.3],
+ 90:['cube','#a6a8a4',1,.36],91:['vial','#b3b6b7',1,.3],92:['cube','#8e8d88',1,.4],93:['button','#a3a6a8',1,.3],94:['button','#8c8b86',1,.45],
+ 95:['vial','#d1d3d5',1,.25],96:['vial','#c0c2c4',1,.3],97:['vial','#c4c5c5',1,.3],98:['vial','#c8c9c9',1,.3],99:['vial','#c4c6c8',1,.3],
+};
+const ALLO_FORM={6:{g:['flakes','#232323',.25,.42],d:['diamond','#ffffff',0,0]},15:{w:['waxy','#efe7c6',0,.45],r:['powder','#9a2f2a',0,.7],b:['flakes','#26282b',.5,.3]},
+ 34:{g:['shard','#4c4c51',.6,.2],r:['powder','#a2302c',0,.7]},33:{g:['shard','#6f7378',.8,.22],y:['waxy','#e8cf3a',0,.45]}};
+function matOf(e){
+  const A=ALLO_FORM[e.z];if(A){const k=S.allo||ALLO[e.z].def;if(A[k])return A[k];}
+  const m=MAT[e.z]||['cube','#c4c6c8',1,.3];
+  // outside its display ampoule (in water or air) rubidium and caesium are shown as bare lumps
+  if(m[0]==='ampouleMetal'&&S.exp!=='look')return['chunk',m[1],1,.1,m[4]];
+  return m;
 }
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C=h=>new THREE.Color(h);
+const UP=new THREE.Vector3(0,1,0),IDQ=new THREE.Quaternion(),_dark=new THREE.Color(.03,.028,.026);
+let needBuild=true;
+
+/* ---- noise and geometry helpers ---- */
+function hash3(x,y,z){const h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h);}
+function vnoise(x,y,z){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi;
+  const s=t=>t*t*(3-2*t),u=s(xf),v=s(yf),w=s(zf);let r=0;
+  for(let a=0;a<2;a++)for(let b=0;b<2;b++)for(let c=0;c<2;c++)r+=hash3(xi+a,yi+b,zi+c)*(a?u:1-u)*(b?v:1-v)*(c?w:1-w);return r;}
+function fbm(x,y,z,o=4){let a=.5,f=1,s=0;for(let i=0;i<o;i++){s+=a*vnoise(x*f,y*f,z*f);a*=.5;f*=2;}return s;}
+function bare(g){g.deleteAttribute('normal');g.deleteAttribute('uv');return mergeVertices(g);}
+function lump(r,detail,amp,freq,seed){
+  const g=bare(new THREE.IcosahedronGeometry(r,detail)),p=g.attributes.position,v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);const n=v.clone().normalize();const d=(fbm(n.x*freq+seed,n.y*freq,n.z*freq)-.5)*amp*2;v.addScaledVector(n,d*r);p.setXYZ(i,v.x,v.y,v.z);}
+  g.computeVertexNormals();return g;
+}
+function facet(r,detail,jit,seed){
+  let g=bare(new THREE.IcosahedronGeometry(r,detail));const p=g.attributes.position,v=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){v.fromBufferAttribute(p,i);v.multiplyScalar(1+(hash3(v.x*9+seed,v.y*9,v.z*9)-.5)*jit);p.setXYZ(i,v.x,v.y,v.z);}
+  g=g.toNonIndexed();g.computeVertexNormals();return g;
+}
+const _m4=new THREE.Matrix4(),_q=new THREE.Quaternion(),_eu=new THREE.Euler(),_sc=new THREE.Vector3(),_ps=new THREE.Vector3();
+function placed(geo,x,y,z,rx=0,ry=0,rz=0,sx=1,sy=1,sz=1){_q.setFromEuler(_eu.set(rx,ry,rz));return geo.applyMatrix4(_m4.compose(_ps.set(x,y,z),_q,_sc.set(sx,sy,sz)));}
+function prism(len,r0,r1,sides){const g=new THREE.CylinderGeometry(r1,r0,len,sides,1);g.translate(0,len/2,0);return g;}
+function aim(geo,from,dir){_q.setFromUnitVectors(UP,_ps.copy(dir).normalize());return geo.applyMatrix4(_m4.compose(from,_q,_sc.set(1,1,1)));}
+function merged(list){
+  const g=mergeGeometries(list.map(x=>{const y=x.index?x.toNonIndexed():x;['normal','uv'].forEach(a=>y.getAttribute(a)&&y.deleteAttribute(a));return y;}));
+  g.computeVertexNormals();return g;
+}
+// branching crystals grown from vapour (how scandium, yttrium and the heavy lanthanides are often sold)
+function dendriteGeo(seed){
+  const R=rng(seed),parts=[],n=6+Math.floor(R()*3);
+  for(let i=0;i<n;i++){
+    const a=i/n*Math.PI*2+R()*.6,tilt=.25+R()*.6;
+    const dir=new THREE.Vector3(Math.cos(a)*Math.sin(tilt),Math.cos(tilt),Math.sin(a)*Math.sin(tilt));
+    const len=.42+R()*.42,base=new THREE.Vector3((R()-.5)*.12,0,(R()-.5)*.12);
+    parts.push(aim(prism(len,.085,.018,4),base,dir));
+    let side=new THREE.Vector3().crossVectors(dir,UP);if(side.lengthSq()<.01)side.set(1,0,0);side.normalize();
+    const k=3+Math.floor(R()*3);
+    for(let j=1;j<=k;j++){const t=j/(k+1),p=base.clone().addScaledVector(dir,len*t),al=len*(1-t)*.55*(.6+R()*.5);
+      for(const sg of [1,-1]){const d=side.clone().multiplyScalar(sg).addScaledVector(dir,.35).normalize();parts.push(aim(prism(al,.04*(1-t)+.012,.006,4),p,d));}}
+  }
+  parts.push(placed(facet(.16,1,.5,seed),0,.02,0,0,0,0,1.4,.5,1.2));
+  return merged(parts);
+}
+// a rod furred with small crystals (titanium, zirconium, hafnium, vanadium made by the crystal-bar process)
+function crystalBarGeo(seed){
+  const R=rng(seed),parts=[placed(new THREE.CylinderGeometry(.12,.12,1.15,10,1),0,0,0,0,0,Math.PI/2)];
+  for(let i=0;i<110;i++){const x=(R()-.5)*1.08,a=R()*Math.PI*2,p=new THREE.Vector3(x,Math.cos(a)*.105,Math.sin(a)*.105);
+    const d=new THREE.Vector3((R()-.5)*.8,Math.cos(a)+(R()-.5)*.5,Math.sin(a)+(R()-.5)*.5);
+    parts.push(aim(prism(.05+R()*.07,.028+R()*.025,.004,R()<.5?3:4),p,d));}
+  return merged(parts);
+}
+function beadsGeo(seed){
+  const R=rng(seed),at=[[0,0,0],[.28,-.02,.08],[-.25,-.03,.13],[.06,-.03,-.28],[-.1,.2,-.04],[.16,.17,-.1],[-.3,-.03,-.22]];
+  return mergeGeometries(at.map(([x,y,z],i)=>{const r=.14+R()*.05;return placed(lump(r,3,.04,3,seed+i),x,y+r,z);}));
+}
+
+/* ---- renderer, scene, camera ---- */
+const stage=$('#stage'),cv=$('#cv');
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});}
+catch(err){$('#nogl').hidden=false;throw err;}
+renderer.setPixelRatio(Math.min(1.75,devicePixelRatio||1));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.72;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();scene.background=new THREE.Color();
+const camera=new THREE.PerspectiveCamera(30,1,.05,100);
+camera.position.set(2.35,2.15,4.3);
+const pmrem=new THREE.PMREMGenerator(renderer);
+// a photo studio for reflections: dark walls, a pale floor glow and a few softboxes, so metals read as metal
+function studioEnv(){
+  const s=new THREE.Scene(),geo=new THREE.SphereGeometry(30,48,24),col=[],p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){const y=p.getY(i)/30,v=y>0?.26+.32*Math.pow(y,.7):.26-.16*Math.pow(-y,.5);col.push(v,v*1.01,v*1.03);}
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  s.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({side:THREE.BackSide,vertexColors:true})));
+  const box=(w,h,x,y,z,i,tint=0xffffff)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(tint).multiplyScalar(i),side:THREE.DoubleSide}));m.position.set(x,y,z);m.lookAt(0,0,0);s.add(m);};
+  box(10,6,-9,11,9,7);box(3,14,13,3,-3,5,0xf2f5ff);box(8,8,0,18,0,3.2);box(6,3,-10,2,-12,2.2,0xfff4e6);box(14,2,0,-3,14,1.6);
+  return pmrem.fromScene(s,.015).texture;
+}
+scene.environment=studioEnv();
+const key=new THREE.DirectionalLight(0xffffff,2.4);key.position.set(-3.2,6.5,3.8);key.castShadow=true;
+key.shadow.mapSize.set(1024,1024);Object.assign(key.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:1,far:20});key.shadow.bias=-.0004;key.shadow.normalBias=.02;key.shadow.radius=4;
+scene.add(key);
+const rim=new THREE.DirectionalLight(0xdfe8ff,1);rim.position.set(3.5,2.5,-4);scene.add(rim);
+const hemi=new THREE.HemisphereLight(0xffffff,0x77746c,.45);scene.add(hemi);
+const glowLight=new THREE.PointLight(0xffffff,0,6,1.6);glowLight.position.set(0,.8,0);scene.add(glowLight);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.ShadowMaterial({opacity:.5}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+// soft contact shadow that follows the specimen, so it reads as sitting on (or lifted off) the bench
+const radial=(stops)=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);stops.forEach(([o,s])=>gr.addColorStop(o,s));g.fillStyle=gr;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);};
+const contactTex=radial([[0,'rgba(0,0,0,.9)'],[.4,'rgba(0,0,0,.45)'],[1,'rgba(0,0,0,0)']]);
+const contact=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x000000,map:contactTex,transparent:true,depthWrite:false}));
+contact.rotation.x=-Math.PI/2;contact.renderOrder=-1;scene.add(contact);
+
+const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,samples:4}));
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.5,.45,1.25);composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const controls=new OrbitControls(camera,cv);
+controls.target.set(0,.42,0);controls.enableDamping=true;controls.dampingFactor=.08;controls.enablePan=false;
+controls.minDistance=2.4;controls.maxDistance=10;controls.minPolarAngle=.25;controls.maxPolarAngle=Math.PI*.47;
+controls.autoRotate=!RM;controls.autoRotateSpeed=.55;
+controls.addEventListener('start',()=>{controls.autoRotate=false;camGoal=null;hint(false);});
+// each experiment gets its own framing: the camera eases there after a change, unless you are already steering
+let camGoal=null;
+const baseDist=()=>5.3/Math.min(1,camera.aspect*1.1);
+function frameView(){const f=bulkUnknown(el())?[.55,1.3]:{water:[.5,1.42],float:[.5,1.42],flame:[.85,1.32],tube:[.62,1.4],magnet:[.8,1.28]}[S.exp]||[.42,1];camGoal={ty:f[0],dist:baseDist()*f[1]};}
+// let the mouse wheel scroll the page; pinch still zooms
+cv.addEventListener('wheel',ev=>ev.stopImmediatePropagation(),{capture:true});
+
+let W=1,H=1;
+function resize(){const r=stage.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);
+  renderer.setSize(W,H,false);composer.setSize(W,H);bloom.resolution.set(W/2,H/2);camera.aspect=W/H;
+  // keep the bench in frame on tall phone screens, and nudge it right of the title on wide ones
+  frameView();
+  if(camera.aspect>1.25)camera.setViewOffset(W,H,-W*.08,H*.03,W,H);else camera.setViewOffset(W,H,0,H*.05,W,H);
+  camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe(stage);
+const readings=stage.querySelector('.readings');new ResizeObserver(()=>stage.style.setProperty('--rh',readings.offsetHeight+'px')).observe(readings);
+let visible=true;new IntersectionObserver(es=>{visible=es[0].isIntersecting;}).observe(stage);
+
+/* ---- background: match the page colour exactly through the ACES tone curve ---- */
+const ACES_IN=new THREE.Matrix3().set(.59719,.35458,.04823,.07600,.90834,.01566,.02840,.13383,.83777).invert();
+const ACES_OUT=new THREE.Matrix3().set(1.60475,-.53108,-.07367,-.10208,1.10813,-.00605,-.00327,-.07276,1.07602).invert();
+function fitInv(y){y=clamp(y,0,.985);const A=1-.983729*y,B=.0245786-.432951*y,Cc=-(.000090537+.238081*y);return(-B+Math.sqrt(B*B-4*A*Cc))/(2*A);}
+const _v=new THREE.Vector3();
+function untone(col,exposure,out){_v.set(col.r,col.g,col.b).applyMatrix3(ACES_OUT);_v.set(fitInv(_v.x),fitInv(_v.y),fitInv(_v.z)).applyMatrix3(ACES_IN).multiplyScalar(.6/exposure);
+  return out.setRGB(Math.max(0,_v.x),Math.max(0,_v.y),Math.max(0,_v.z));}
+let stageCol=C('#efefeb'),THEME_DARK=false,bgLum=1;const bgCur=new THREE.Color(),DARK_ROOM=C('#040506');
+function applyTheme(){stageCol=C(css('--stage')||'#efefeb');const l=stageCol.r*.2126+stageCol.g*.7152+stageCol.b*.0722,d=l<.2;
+  if(d!==THEME_DARK){THEME_DARK=d;needBuild=true;}floor.material.opacity=d?.55:.42;}
+applyTheme();bgCur.copy(stageCol);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+// light sources have to out-shine whatever is behind them: on the pale stage that means pushing them well above white
+const lit=()=>bgLum<.4;
+const boost=()=>Math.max(1,bgLum*.95);
+
+/* ---- materials ---- */
+const KEEP={keep:true};
+function metalMat(hex,metal,rough,extra={}){return new THREE.MeshPhysicalMaterial(Object.assign({color:C(hex),metalness:metal,roughness:rough,envMapIntensity:1.3},extra));}
+// glass: only reflections plus a darker rim where you look through more of it, so whatever is inside stays visible
+function glassMat(o={}){
+  const m=new THREE.MeshPhysicalMaterial({color:0x000000,roughness:o.rough??.03,metalness:0,ior:1.5,specularIntensity:1,envMapIntensity:o.env??2.4,
+    transparent:true,depthWrite:false,side:o.side??THREE.DoubleSide,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
+  const base=(o.base??.04).toFixed(3),edge=(o.edge??.5).toFixed(3);
+  m.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('#include <opaque_fragment>',`#include <opaque_fragment>
+    float fres=pow(1.0-abs(dot(normalize(vViewPosition),normal)),2.2);gl_FragColor.a=clamp(${base}+fres*${edge},0.,1.);`);};
+  m.customProgramCacheKey=()=>'glass'+base+edge;return m;
+}
+function shadowAll(o){o.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});return o;}
+function disposeTree(o){o.traverse(m=>{if(m.geometry&&!m.geometry.userData.keep)m.geometry.dispose();
+  if(m.material)(Array.isArray(m.material)?m.material:[m.material]).forEach(x=>{if(x.userData.keep)return;if(x.map&&!x.map.userData.keep)x.map.dispose();x.dispose();});});}
+const sprTex=radial([[0,'rgba(255,255,255,1)'],[.35,'rgba(255,255,255,.55)'],[1,'rgba(255,255,255,0)']]);sprTex.userData=KEEP;
+const AMP_PROFILE=[[0,0],[.16,.006],[.235,.04],[.26,.11],[.26,.86],[.245,.95],[.16,1.03],[.075,1.1],[.06,1.22],[.045,1.33],[.02,1.38],[0,1.39]].map(([x,y])=>new THREE.Vector2(x,y));
+function ampouleShell(scale=1){
+  const g=new THREE.Group();
+  const shell=new THREE.Mesh(new THREE.LatheGeometry(AMP_PROFILE,48),glassMat());shell.renderOrder=2;g.add(shell);
+  const inner=AMP_PROFILE.filter(p=>p.y<1.0).map(p=>new THREE.Vector2(Math.max(0,p.x-.02),Math.max(.014,p.y)));
+  const gas=new THREE.Mesh(new THREE.LatheGeometry(inner,40),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
+  gas.renderOrder=1;g.add(gas);g.scale.setScalar(scale);g.userData.gas=gas;return g;
+}
+function labelTexture(e){
+  const c=document.createElement('canvas');c.width=512;c.height=300;const g=c.getContext('2d');
+  g.fillStyle='#f4f1e8';g.fillRect(0,0,512,300);g.strokeStyle='#cbc4b3';g.lineWidth=5;g.strokeRect(14,14,484,272);
+  g.fillStyle='#1d1f22';g.font='500 30px "IBM Plex Mono",monospace';g.fillText(String(e.z),38,62);
+  g.textAlign='right';g.fillText(String(e.m),474,62);g.textAlign='left';
+  g.font='italic 400 130px "Instrument Serif",Georgia,serif';g.fillText(e.s,34,192);
+  g.font='500 32px "IBM Plex Sans",sans-serif';g.fillText(e.n,38,252);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;
+}
+
+/* ---- specimen builders ---- */
+function buildForm(e){
+  const [form,col='#c4c6c8',metal=1,rough=.3,ex={}]=matOf(e);const seed=e.z*1.37;
+  const g=new THREE.Group();const surf=[];let soft=.05,upright=false;
+  const add=(geo,mat,setup)=>{const m=new THREE.Mesh(geo,mat);if(setup)setup(m);g.add(m);return m;};
+  const M=(extra)=>{const m=metalMat(col,metal,rough,extra);surf.push(m);return m;};
+  if(form==='cube'){
+    add(new RoundedBoxGeometry(.74,.74,.74,5,.045),M(),o=>o.rotation.y=.35);
+  }else if(form==='nugget'){
+    add(lump(.5,5,.32,2.1,seed),M(),o=>o.scale.set(1.25,.72,1));soft=.06;
+  }else if(form==='shard'){
+    const m=M({flatShading:true});
+    add(facet(.42,1,.55,seed),m,o=>{o.scale.set(1,1.35,.8);o.rotation.set(.15,.3,.2);o.position.set(-.08,0,0);});
+    add(facet(.28,1,.6,seed+3),m,o=>{o.scale.set(.9,1.5,.8);o.rotation.set(-.35,1.2,-.4);o.position.set(.33,-.12,.1);});
+    add(facet(.2,0,.5,seed+7),m,o=>{o.rotation.set(.6,.2,.9);o.position.set(-.15,-.3,.32);});
+  }else if(form==='dendrite'){
+    add(dendriteGeo(e.z*7.3),M({flatShading:true}));
+  }else if(form==='crystalbar'){
+    add(crystalBarGeo(e.z*5.1),M({flatShading:true}),o=>{o.rotation.y=.5;o.scale.setScalar(1.35);});
+  }else if(form==='beads'){
+    add(beadsGeo(e.z),M());
+  }else if(form==='hopper'){
+    const R=rng(e.z),mats=[];for(let k=0;k<5;k++){const m=M({iridescence:1,iridescenceIOR:2.0,iridescenceThicknessRange:[220+k*110,420+k*130]});mats.push(m);}
+    const hop=(S0,n,x,y,z,rx,rz)=>{const h=new THREE.Group();h.position.set(x,y,z);h.rotation.set(rx,R()*1.5,rz);
+      for(let k=0;k<n;k++){const s=S0*(.32+.68*k/(n-1)),t=.07*S0,lvl=new THREE.Group(),m=mats[(k+Math.floor(R()*2))%mats.length];lvl.position.y=k*.062*S0;
+        [[0,s/2,s,t],[0,-s/2,s,t],[s/2,0,t,s],[-s/2,0,t,s]].forEach(([x,z,w,d])=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w+t,.06*S0,d),m);b.position.set(x,0,z);lvl.add(b);});
+        if(k===0){const f=new THREE.Mesh(new THREE.BoxGeometry(s,.05*S0,s),m);lvl.add(f);}h.add(lvl);}g.add(h);};
+    hop(1,9,0,0,0,0,0);hop(.62,7,.46,.08,.32,.5,-.35);hop(.45,6,-.42,.05,.3,-.3,.45);
+  }else if(form==='ribbon'){
+    const m=M({side:THREE.DoubleSide});
+    const pts=[];for(let i=0;i<=200;i++){const t=i/200,a=t*Math.PI*2*3.2;pts.push(new THREE.Vector3(Math.cos(a)*.38,.05+t*.5,Math.sin(a)*.38));}
+    const sh=new THREE.Shape();sh.moveTo(-.006,-.06);sh.lineTo(.006,-.06);sh.lineTo(.006,.06);sh.lineTo(-.006,.06);sh.lineTo(-.006,-.06);
+    add(new THREE.ExtrudeGeometry(sh,{steps:400,extrudePath:new THREE.CatmullRomCurve3(pts),bevelEnabled:false}),m);
+  }else if(form==='chunk'){
+    // a lump of soft metal under a mottled crust; a knife cut opens it to show the bright metal inside
+    const crust=new THREE.MeshPhysicalMaterial({color:0xffffff,vertexColors:true,roughness:.7,metalness:.35,envMapIntensity:1.1});
+    const fresh=metalMat(col,1,.08);surf.push(crust);g.userData.fresh=fresh;g.userData.halves=[];
+    const cc=C(ex.crust),mc=C(col).multiplyScalar(.82),tc=new THREE.Color();
+    for(const side of [-1,1]){
+      const geo=new THREE.BoxGeometry(.44,.56,.74,10,10,12),pa=geo.attributes.position,v=new THREE.Vector3(),q=new THREE.Vector3(),cols=[];
+      for(let i=0;i<pa.count;i++){v.fromBufferAttribute(pa,i);const inner=side<0?v.x>.215:v.x<-.215;v.x+=side*.22;
+        // pillow the box towards an ellipsoid, the same way on both halves so the cut faces meet
+        q.set(v.x/.44,v.y/.28,v.z/.37);const inf=Math.max(Math.abs(q.x),Math.abs(q.y),Math.abs(q.z)),l2=q.length()||1;v.multiplyScalar(1+(inf/l2-1)*.6);
+        const n=v.clone().normalize(),d=(fbm(v.x*3+seed,v.y*3,v.z*3)-.5)*.16*inf;v.addScaledVector(n,d);if(inner)v.x=0;
+        const mt=clamp((fbm(v.x*5+seed*2,v.y*5,v.z*5)-.42)*4,0,1)*.65;tc.copy(cc).lerp(mc,mt);cols.push(tc.r,tc.g,tc.b);
+        v.x-=side*.22;pa.setXYZ(i,v.x,v.y,v.z);}
+      geo.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));geo.computeVertexNormals();
+      const mats=[crust,crust,crust,crust,crust,crust];mats[side<0?0:1]=fresh;
+      g.userData.halves.push(add(geo,mats,o=>o.position.x=side*.22));}
+    soft=.12;
+  }else if(form==='droplet'){
+    add(new THREE.SphereGeometry(.44,64,40),M(),o=>o.scale.set(1,.5,1));soft=.4;
+  }else if(form==='ingot'){
+    let geo=new THREE.CylinderGeometry(.3,.4,.3,4,1);geo.rotateY(Math.PI/4);geo=geo.toNonIndexed();geo.computeVertexNormals();
+    add(geo,M(),o=>o.scale.set(1.55,1,.95));soft=SOFT.has(e.z)?.1:.05;
+  }else if(form==='rod'){
+    const m=M();
+    add(new THREE.CylinderGeometry(.15,.15,1.15,48),m,o=>{o.rotation.z=Math.PI/2;o.rotation.y=.4;});
+    add(new THREE.CylinderGeometry(.11,.11,.7,40),m,o=>{o.rotation.z=Math.PI/2;o.rotation.y=-.5;o.position.set(.05,-.04,.36);});
+  }else if(form==='button'){
+    if(e.z===93)add(new THREE.SphereGeometry(.3,48,32),M());else add(lump(.42,4,.06,3,seed),M(),o=>o.scale.set(1,.32,1));
+  }else if(form==='vial'){
+    // radioactive: a small piece sealed in a glass vial
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.29,.31,.06,40),metalMat('#26282c',.3,.5));base.position.y=.03;g.add(base);
+    const sh=ampouleShell(.78);sh.position.y=.06;g.add(sh);g.userData.vialGlass=sh;
+    const bead=new THREE.Mesh(lump(.1,3,.25,3,seed),M());bead.position.y=.06+.065;g.add(bead);upright=true;
+  }else if(form==='powder'){
+    const dish=new THREE.Mesh(new THREE.LatheGeometry([[0,0],[.3,.005],[.55,.05],[.62,.1],[.6,.1],[.53,.06],[.3,.02],[0,.018]].map(([x,y])=>new THREE.Vector2(x,y)),48),glassMat({edge:.6}));g.add(dish);
+    const m=new THREE.MeshPhysicalMaterial({color:C(col),roughness:rough,metalness:0});surf.push(m);
+    const n=420,im=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.028,1),m,n),R=rng(e.z*11);
+    for(let i=0;i<n;i++){const a=R()*Math.PI*2,d=Math.sqrt(R())*.42,h=(.42-d)*.55*R()+.03;_m4.makeScale(.6+R()*.8,.6+R()*.8,.6+R()*.8).setPosition(Math.cos(a)*d,.02+h,Math.sin(a)*d);im.setMatrixAt(i,_m4);}
+    g.add(im);soft=.15;
+  }else if(form==='waxy'){
+    const m=new THREE.MeshPhysicalMaterial({color:C(col),roughness:rough,metalness:0,transmission:.35,thickness:.4,sheen:.6,sheenColor:C('#fffbe8'),attenuationColor:C(col),attenuationDistance:.6});surf.push(m);
+    add(new THREE.CapsuleGeometry(.16,.7,12,32),m,o=>{o.rotation.z=Math.PI/2;o.rotation.y=.3;});
+    add(new THREE.CapsuleGeometry(.12,.4,12,32),m,o=>{o.rotation.z=Math.PI/2;o.rotation.y=-.9;o.position.set(.05,-.03,.3);});soft=.12;
+  }else if(form==='diamond'){
+    const m=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:0,transmission:1,thickness:.9,ior:2.42,iridescence:.35,iridescenceIOR:1.6,envMapIntensity:2.5,specularIntensity:1,flatShading:true});surf.push(m);
+    add(new THREE.OctahedronGeometry(.4,0),m,o=>{o.scale.set(1,.95,1);o.rotation.set(.2,.4,.1);});
+  }else if(form==='flakes'){
+    const m=M({flatShading:true}),R=rng(e.z*5);
+    for(let i=0;i<6;i++)add(facet(.35,0,.5,seed+i),m,o=>{o.scale.set(1+R()*.6,.13,.8+R()*.5);o.position.set((R()-.5)*.5,i*.05,(R()-.5)*.45);o.rotation.set((R()-.5)*.5,R()*3,(R()-.5)*.5);});
+    if(ex.vapour)g.userData.vapour=ex.vapour;
+  }else if(form==='crystals'){
+    const m=new THREE.MeshPhysicalMaterial({color:C(col),roughness:rough,metalness:0,transmission:.3,thickness:.5,attenuationColor:C('#c79a00'),attenuationDistance:.5,flatShading:true});surf.push(m);const R=rng(e.z*3);
+    for(let i=0;i<7;i++)add(new THREE.OctahedronGeometry(.22+R()*.14,0),m,o=>{o.scale.set(1,1.6+R()*.5,.8);o.position.set((R()-.5)*.7,.15+R()*.15,(R()-.5)*.6);o.rotation.set((R()-.5)*1.1,R()*3,(R()-.5)*1.1);});
+  }else if(form==='ampoule'||form==='ampouleMetal'){
+    // a sealed ampoule on a small display stand, like the ones in element collections
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.3,.33,.08,48),metalMat('#222428',.3,.45));base.position.y=.04;g.add(base);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.275,.012,8,48),metalMat('#b87333',1,.3));ring.rotation.x=Math.PI/2;ring.position.y=.11;g.add(ring);
+    const sh=ampouleShell(1);sh.position.y=.08;g.add(sh);upright=true;soft=.02;g.userData.amp=sh;
+    if(form==='ampouleMetal'){const m=metalMat(col,1,rough);surf.push(m);const b=new THREE.Mesh(lump(.2,4,.12,3,seed),m);b.scale.set(1,.55,1);b.position.y=.08;sh.add(b);g.userData.metalIn=b;}
+  }
+  shadowAll(g);
+  g.traverse(m=>{if(m.isMesh&&m.material&&m.material.transparent)m.castShadow=false;});
+  return {group:g,surf,soft,upright,form,origColors:surf.map(m=>m.color.clone()),origRough:surf.map(m=>m.roughness)};
+}
+
+/* ---- the bench ---- */
+const bench=new THREE.Group();scene.add(bench);
+let spec=null,rig=null,card=null,puddle=null,fx=[],tool=null,pour=null;
+const particles=[],shards=[];
+const body={pos:new THREE.Vector3(),vel:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),held:false,halfH:.4,inside:false,inLiquid:false,gone:false,stuck:false,jig:0,jigT:9,scale:1,flat:0};
+const tmpV=new THREE.Vector3(),tmpQ=new THREE.Quaternion();
+
+function clearBench(){
+  [...bench.children].forEach(c=>{bench.remove(c);disposeTree(c);});
+  spec=null;rig=null;card=null;puddle=null;fx=[];tool=null;pour=null;particles.length=0;shards.length=0;
+}
+function makeCard(e,x,z,rz=.38){
+  const t=labelTexture(e);
+  card=new THREE.Mesh(new THREE.PlaneGeometry(.74,.434),new THREE.MeshStandardMaterial({map:t,roughness:.8,envMapIntensity:.4,emissive:0xffffff,emissiveMap:t,emissiveIntensity:0}));
+  card.rotation.x=-Math.PI/2;card.rotation.z=rz;card.position.set(x,.003,z);card.receiveShadow=true;bench.add(card);
+}
+function rebuild(){
+  clearBench();const e=el();glowLight.intensity=0;frameView();
+  if(bulkUnknown(e)){buildAtoms(e);return;}
+  const built=buildForm(e),inner=new THREE.Group();inner.add(built.group);
+  const box=new THREE.Box3().setFromObject(built.group,true),c=box.getCenter(new THREE.Vector3());built.group.position.sub(c);box.translate(c.negate());
+  const pivot=new THREE.Group();pivot.add(inner);bench.add(pivot);
+  spec={pivot,inner,built,box,glow:0};
+  Object.assign(body,{held:false,inside:false,inLiquid:false,gone:false,stuck:false,jig:0,jigT:9,scale:1,flat:0,halfH:(box.max.y-box.min.y)/2});
+  body.pos.set(0,body.halfH,0);body.vel.set(0,0,0);body.w.set(0,0,0);body.q.identity();
+  // molten pool, faded in when the specimen melts
+  const [,,metal=1]=matOf(e);
+  const liq=new THREE.MeshPhysicalMaterial({color:C(liquidColor(e,S.T)),metalness:metal>.5?1:0,roughness:metal>.5?.04:.08,transmission:metal>.5?0:.4,thickness:.3,envMapIntensity:1.4});
+  puddle=new THREE.Mesh(new THREE.SphereGeometry(.62,64,24),liq);puddle.scale.setScalar(.001);puddle.receiveShadow=true;puddle.castShadow=true;bench.add(puddle);
+  makeCard(e,1.05,.95);
+  buildRig(e);syncPivot();
+}
+
+/* ---- rigid body: gravity, bounces, buoyancy ---- */
+const G=9,_c=new THREE.Vector3();
+function bottomOf(){const b=spec.box;let m=Infinity;for(let i=0;i<8;i++){_c.set(i&1?b.max.x:b.min.x,i&2?b.max.y:b.min.y,i&4?b.max.z:b.min.z).applyQuaternion(body.q);m=Math.min(m,_c.y);}return body.pos.y+m*body.scale;}
+function impact(s){body.jig=Math.min(1,s*.25);body.jigT=0;}
+function syncPivot(){if(!spec)return;spec.pivot.position.copy(body.pos);spec.pivot.quaternion.copy(body.q);spec.pivot.scale.setScalar(body.scale);}
+function stepBody(dt){
+  if(!spec||body.held||body.gone||body.stuck)return;
+  const e=el();
+  body.vel.y-=G*dt;
+  if(pour){const dx=body.pos.x-pour.x,dz=body.pos.z-pour.z,rr=Math.hypot(dx,dz),hr=body.halfH*body.scale;
+    if(rr<pour.r&&body.pos.y<pour.top+hr)body.inside=true;
+    if(body.inside){
+      const lim=pour.r-hr*.9;if(rr>lim){const k=lim/rr;body.pos.x=pour.x+dx*k;body.pos.z=pour.z+dz*k;body.vel.x*=-.3;body.vel.z*=-.3;}
+      const bot=body.pos.y-hr,f=clamp((pour.level-bot)/(2*hr),0,1);
+      if(f>0){if(!body.inLiquid){body.inLiquid=true;onEnterLiquid(Math.abs(body.vel.y));}
+        body.vel.y+=G*f*(pour.rho/(e.d||5))*dt;const damp=Math.exp(-4*f*dt);body.vel.multiplyScalar(damp);body.w.multiplyScalar(damp);}
+    }else if(rr<pour.r+hr+.04&&body.pos.y-hr<pour.top){const k=(pour.r+hr+.04)/Math.max(rr,1e-3);body.pos.x=pour.x+dx*k;body.pos.z=pour.z+dz*k;body.vel.x*=-.3;body.vel.z*=-.3;}
+  }
+  body.pos.addScaledVector(body.vel,dt);
+  if(body.w.lengthSq()>1e-6){tmpQ.setFromAxisAngle(tmpV.copy(body.w).normalize(),body.w.length()*dt);body.q.premultiply(tmpQ);}
+  if(spec.built.upright){tmpV.set(0,0,1).applyQuaternion(body.q);body.q.setFromAxisAngle(UP,Math.atan2(tmpV.x,tmpV.z));body.w.set(0,0,0);}
+  const floorY=body.inside&&pour?pour.floor:0,b=bottomOf();
+  if(b<floorY){body.pos.y+=floorY-b;
+    if(body.vel.y<-.7){impact(-body.vel.y);body.vel.y*=-(.25+spec.built.soft*.4);body.w.multiplyScalar(.6);
+      if(!spec.built.upright)body.w.add(tmpV.set((Math.random()-.5)*2.5,0,(Math.random()-.5)*2.5));}
+    else body.vel.y=Math.max(0,body.vel.y);
+    const fr=Math.exp(-6*dt);body.vel.x*=fr;body.vel.z*=fr;body.w.multiplyScalar(Math.exp(-5*dt));
+    // settle back onto its base once it slows down
+    if(body.vel.lengthSq()<.3&&!spec.built.upright){tmpV.set(0,0,1).applyQuaternion(body.q);tmpQ.setFromAxisAngle(UP,Math.atan2(tmpV.x,tmpV.z));body.q.slerp(tmpQ,1-Math.exp(-5*dt));}
+  }
+  const lim=2.5,rxz=Math.hypot(body.pos.x,body.pos.z);if(rxz>lim){body.pos.x*=lim/rxz;body.pos.z*=lim/rxz;body.vel.x*=-.4;body.vel.z*=-.4;}
+  syncPivot();
+}
+
+/* ---- pick up, throw, poke ---- */
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),dragPlane=new THREE.Plane(),grabOff=new THREE.Vector3();let grab=null;
+function setNdc(ev){const r=cv.getBoundingClientRect();ndc.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);}
+function canGrab(){return spec&&spec.pivot.visible&&!body.gone&&!tool&&anim.sol>.5&&['look','air','decay','dark','water','float'].includes(S.exp)&&!(S.exp==='water'&&body.inLiquid);}
+function hitSpec(ev){setNdc(ev);ray.setFromCamera(ndc,camera);return ray.intersectObject(spec.pivot,true)[0];}
+cv.addEventListener('pointerdown',ev=>{
+  if(!canGrab())return;const hit=hitSpec(ev);if(!hit)return;
+  controls.enabled=false;controls.autoRotate=false;hint(false);
+  const n=camera.getWorldDirection(new THREE.Vector3());n.y=0;n.normalize().negate();
+  dragPlane.setFromNormalAndCoplanarPoint(n,hit.point);grabOff.copy(body.pos).sub(hit.point);
+  grab={id:ev.pointerId,last:performance.now(),t0:performance.now(),x:ev.clientX,y:ev.clientY,moved:false};
+  body.held=true;body.stuck=false;body.inside=false;body.inLiquid=false;body.vel.set(0,0,0);body.w.set(0,0,0);
+  cv.setPointerCapture(ev.pointerId);impact(1.2);cv.style.cursor='grabbing';
+});
+cv.addEventListener('pointermove',ev=>{
+  if(grab){if(Math.hypot(ev.clientX-grab.x,ev.clientY-grab.y)>5)grab.moved=true;if(!grab.moved)return;
+    setNdc(ev);ray.setFromCamera(ndc,camera);const p=ray.ray.intersectPlane(dragPlane,tmpV);if(!p)return;
+    const t=p.add(grabOff);t.y=Math.max(t.y,body.halfH*body.scale+.3);
+    const now=performance.now(),dt=Math.max(.008,(now-grab.last)/1000);
+    body.vel.lerp(t.clone().sub(body.pos).divideScalar(dt),.5);body.pos.copy(t);grab.last=now;
+    // swing like something held between the fingers
+    if(!spec.built.upright){_eu.set(clamp(body.vel.z*.05,-.6,.6),0,clamp(-body.vel.x*.05,-.6,.6));spec.inner.quaternion.slerp(tmpQ.setFromEuler(_eu),.25);}
+    syncPivot();return;}
+  if(!canGrab()){cv.style.cursor='';return;}
+  cv.style.cursor=hitSpec(ev)?'grab':'';
+});
+function release(){if(!grab)return;const g=grab;grab=null;body.held=false;controls.enabled=true;cv.style.cursor='';
+  if(!g.moved&&performance.now()-g.t0<350){ // a tap: it hops and wobbles
+    body.vel.set((Math.random()-.5)*.5,2.4,(Math.random()-.5)*.5);if(!spec.built.upright)body.w.set((Math.random()-.5)*5,(Math.random()-.5)*3,(Math.random()-.5)*5);impact(1.5);return;}
+  body.vel.clampLength(0,7);if(!spec.built.upright)body.w.set(body.vel.z*1.6,(Math.random()-.5)*2,-body.vel.x*1.6);}
+cv.addEventListener('pointerup',release);cv.addEventListener('pointercancel',release);
+
+/* ---- particles: bubbles, sparks, droplets, smoke ---- */
+const bubbleGeo=new THREE.SphereGeometry(1,12,8);bubbleGeo.userData=KEEP;
+const bubbleMat=glassMat({base:.03,edge:.9,side:THREE.FrontSide,env:3});bubbleMat.userData=KEEP;
+const GLOWING=new Set(['spark','flash','glowmist']);
+function spawn(kind,pos,vel,life,size,color){
+  let o;
+  if(kind==='bubble'){o=new THREE.Mesh(bubbleGeo,bubbleMat);o.scale.setScalar(size);o.renderOrder=3;}
+  else{const glow=GLOWING.has(kind),c=C(color||'#ffffff');
+    if(glow)c.multiplyScalar(lit()?2.2:1.6);else if(kind==='vapour')c.multiplyScalar(lit()?1.4:boost()*.6);else c.multiplyScalar(lit()?.9:boost()*.95);
+    o=new THREE.Sprite(new THREE.SpriteMaterial({map:sprTex,color:c,transparent:true,depthWrite:false,blending:glow&&lit()?THREE.AdditiveBlending:THREE.NormalBlending}));o.scale.setScalar(size);o.renderOrder=4;}
+  o.position.copy(pos);bench.add(o);particles.push({o,kind,vel:vel.clone(),life,age:0,size});
+}
+function stepParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.age+=dt;const k=p.age/p.life;
+    if(p.kind==='bubble'){p.vel.y+=1.6*dt;p.o.position.addScaledVector(p.vel,dt);p.o.position.x+=Math.sin(p.age*9+i)*.0015;if(pour&&p.o.position.y>pour.level-.01)p.age=p.life;}
+    else if(p.kind==='spark'||p.kind==='drop'){p.vel.y-=G*dt*.8;p.o.position.addScaledVector(p.vel,dt);if(p.o.position.y<.01){p.o.position.y=.01;p.vel.multiplyScalar(.3);}p.o.material.opacity=1-k*k;}
+    else if(p.kind==='track'){p.o.scale.y=p.size*Math.min(1,k*4);p.o.material.opacity=1-k;}
+    else if(p.kind==='ripple'){p.o.scale.setScalar(.05+k*p.size);p.o.material.opacity=.6*(1-k);}
+    else if(p.kind==='smoke'||p.kind==='frost'||p.kind==='vapour'||p.kind==='glowmist'){p.o.position.addScaledVector(p.vel,dt);p.o.scale.setScalar(p.size*(1+k*2));p.o.material.opacity=(p.kind==='frost'?.4:.55)*(1-k)*Math.min(1,p.age*4);}
+    else{p.o.position.addScaledVector(p.vel,dt);p.o.material.opacity=1-k;}
+    if(p.age>=p.life){bench.remove(p.o);if(p.o.material!==bubbleMat)p.o.material.dispose();if(p.kind==='ripple')p.o.geometry.dispose();particles.splice(i,1);}
+  }
+}
+
+/* ---- flame ---- */
+const flameVS=`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+const flameFS=`uniform float uTime,uI,uOver,uBoost;uniform vec3 uCol,uCore;varying vec2 vUv;
+float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+void main(){float y=vUv.y;float x=(vUv.x-.5)*2.;
+ float fl=n(vec2(x*3.,y*4.-uTime*5.))*.5+n(vec2(x*7.,y*9.-uTime*9.))*.25;
+ x+=(fl-.4)*.35*y;
+ float w=1.15*pow(max(y,0.),.45)*pow(max(1.-y,0.),.85)+.001;
+ float d=abs(x)/w;float a=smoothstep(1.,.15,d)*smoothstep(0.,.06,y)*(1.-smoothstep(.75,1.,y+fl*.25));
+ float core=smoothstep(.55,0.,d)*smoothstep(.55,.05,y);
+ vec3 c=mix(uCol,uCore,core*.8)+uCol*core*.6;float A=a*uI;
+ gl_FragColor=vec4(c*A*uBoost,A*uOver);}`;
+// premultiplied output: pure additive light on a dark stage, a coloured veil over a pale one
+function makeFlame(col,core,h){
+  const m=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uI:{value:1},uOver:{value:0},uBoost:{value:1},uCol:{value:C(col)},uCore:{value:C(core||'#ffffff')}},vertexShader:flameVS,fragmentShader:flameFS,
+    transparent:true,depthWrite:false,side:THREE.DoubleSide,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor});
+  const geo=new THREE.PlaneGeometry(h*.68,h);geo.translate(0,h/2,0);const f=new THREE.Mesh(geo,m);f.renderOrder=5;fx.push(f);return f;
+}
+
+/* ---- experiment rigs ---- */
+function beaker(liquid){
+  const R=.78,Hh=1.15,grp=new THREE.Group();
+  const prof=[[0,0],[R,0],[R+.03,.02],[R+.03,Hh],[R+.07,Hh+.02],[R+.07,Hh+.045],[R,Hh+.03],[R-.005,.04],[0,.04]].map(([x,y])=>new THREE.Vector2(x,y));
+  const g=new THREE.Mesh(new THREE.LatheGeometry(prof,72),glassMat({edge:.55}));g.renderOrder=2;grp.add(g);
+  // printed volume marks
+  const mk=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75});
+  for(let i=1;i<=4;i++){const m=new THREE.Mesh(new THREE.TorusGeometry(R+.032,.004,4,24,i%2?.22:.12),mk);m.rotation.set(Math.PI/2,0,Math.PI*.62);m.position.y=i*.22;grp.add(m);}
+  const level=.72;let lm;
+  if(liquid==='mercury')lm=metalMat('#dfe2e5',1,.03);
+  else lm=new THREE.MeshPhysicalMaterial({color:C('#ffffff'),metalness:0,roughness:.02,transmission:1,thickness:1.4,ior:1.333,attenuationColor:C('#8fd0ea'),attenuationDistance:2.4,envMapIntensity:1.2,specularIntensity:1});
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(R-.012,R-.012,level-.04,72),lm);w.position.y=.04+(level-.04)/2;w.receiveShadow=true;grp.add(w);grp.userData.water=w;
+  return {grp,R:R-.02,level,top:Hh};
+}
+function buildRig(e){
+  const x=S.exp;pour=null;
+  if(x==='water'||x==='float'){
+    const liquid=x==='float'?S.float:'water',bk=beaker(liquid);bk.grp.position.set(.35,0,0);bench.add(bk.grp);rig=bk.grp;
+    pour={x:.35,z:0,r:bk.R,floor:.04,level:bk.level,top:bk.top,rho:liquid==='mercury'?13.53:1};
+    body.scale=.5;body.pos.set(-1.2,body.halfH*body.scale,.45);
+    card.position.set(-1.45,.003,1.25);
+    S.water.t=0;if(x==='float')dropIn();
+  }else if(x==='flame'){
+    const g=new THREE.Group(),dark=metalMat('#2b2d31',.6,.45),steel=metalMat('#b9bec4',1,.25),brass=metalMat('#c9a256',1,.3);
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(.38,.42,.07,48),dark);base.position.y=.035;g.add(base);
+    const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.075,.08,.78,32),steel);barrel.position.y=.46;g.add(barrel);
+    const collar=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.1,32),brass);collar.position.y=.2;g.add(collar);
+    const hose=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(.09,.2,0),new THREE.Vector3(.4,.18,.1),new THREE.Vector3(.9,.06,.4),new THREE.Vector3(1.6,.05,.5)]),40,.03,10),new THREE.MeshPhysicalMaterial({color:C('#c2552b'),roughness:.6}));g.add(hose);
+    shadowAll(g);
+    const F=FLAME[e.z],top=.85;
+    const blue=makeFlame('#3d6cff','#a8c4ff',.5);blue.position.y=top;g.add(blue);g.userData.blue=blue;
+    const col=makeFlame(F[0],'#'+C(F[0]).lerp(C('#ffffff'),.45).getHexString(),F[2]?1.0:1.25);col.position.y=top+.05;g.add(col);g.userData.col=col;
+    if(F[2]){ // burns by itself: a piece held in a deflagrating spoon above the burner
+      body.scale=.32;body.pos.set(0,top+.33,0);body.stuck=true;
+      if(e.z===1)spec.pivot.visible=false;
+      const spoon=new THREE.Mesh(new THREE.TorusGeometry(.12,.012,8,32),steel);spoon.rotation.x=Math.PI/2;spoon.position.y=top+.2;g.add(spoon);
+      const handle=new THREE.Mesh(new THREE.CylinderGeometry(.01,.01,1.4,8),steel);handle.rotation.z=Math.PI/2.6;handle.position.set(.62,top+.45,0);g.add(handle);
+    }else{
+      spec.pivot.visible=false;
+      const wm=metalMat('#9da3aa',1,.3);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(1.5,top+.9,.2),new THREE.Vector3(.6,top+.55,.05),new THREE.Vector3(.11,top+.42,0)]),30,.006,6),wm));
+      const loop=new THREE.Mesh(new THREE.TorusGeometry(.05,.006,8,24),wm);loop.position.set(.06,top+.42,0);g.add(loop);
+      const salt=new THREE.Mesh(new THREE.SphereGeometry(.035,16,12),new THREE.MeshPhysicalMaterial({color:C('#f4f1ea'),roughness:.6}));salt.position.copy(loop.position);g.add(salt);
+    }
+    bench.add(g);rig=g;glowLight.color.set(F[0]);glowLight.position.set(0,1.3,0);card.position.set(-1.1,.003,.9);
+  }else if(x==='tube'){
+    const g=new THREE.Group(),L=2.3,r=.17;
+    const sh=new THREE.Mesh(new THREE.CapsuleGeometry(r,L,16,48),glassMat({edge:.6,env:1.3}));sh.rotation.z=Math.PI/2;sh.position.y=.75;sh.renderOrder=2;g.add(sh);
+    const plasma=new THREE.Mesh(new THREE.CapsuleGeometry(r*.6,L*.9,12,32),new THREE.MeshBasicMaterial({color:C(TUBE[e.z][0]),transparent:true,opacity:.9,depthWrite:false}));
+    plasma.rotation.z=Math.PI/2;plasma.position.y=.75;plasma.renderOrder=1;g.add(plasma);g.userData.plasma=plasma;
+    const core=new THREE.Mesh(new THREE.CapsuleGeometry(r*.28,L*.88,8,24),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.9,depthWrite:false}));core.rotation.z=Math.PI/2;core.position.y=.75;core.renderOrder=1;g.add(core);g.userData.core=core;
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:sprTex,color:C(TUBE[e.z][0]),transparent:true,depthWrite:false,opacity:.5}));halo.scale.set(3.4,1.1,1);halo.position.y=.75;halo.renderOrder=0;g.add(halo);g.userData.halo=halo;
+    const steel=metalMat('#c3c7cc',1,.25),dark=metalMat('#33363b',.4,.5);
+    for(const s of [-1,1]){const cap=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.22,32),steel);cap.rotation.z=Math.PI/2;cap.position.set(s*(L/2+r+.06),.75,0);g.add(cap);
+      const leg=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.64,12),dark);leg.position.set(s*(L/2+.1),.32,0);g.add(leg);
+      const foot=new THREE.Mesh(new THREE.CylinderGeometry(.14,.16,.05,24),dark);foot.position.set(s*(L/2+.1),.025,0);g.add(foot);
+      g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(s*(L/2+r+.17),.75,0),new THREE.Vector3(s*(L/2+.45),.5,.3),new THREE.Vector3(s*.5,.06,.95),new THREE.Vector3(s*.25,.12,1.0)]),40,.014,8),new THREE.MeshPhysicalMaterial({color:C(s<0?'#b3261e':'#202225'),roughness:.5})));}
+    const box=new THREE.Mesh(new RoundedBoxGeometry(.6,.26,.36,3,.03),dark);box.position.set(0,.13,1.05);g.add(box);
+    const led=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8),new THREE.MeshBasicMaterial({color:C('#ff3b30')}));led.position.set(.2,.2,1.23);g.add(led);g.userData.led=led;
+    shadowAll(g);plasma.castShadow=false;sh.castShadow=false;
+    bench.add(g);rig=g;spec.pivot.visible=false;card.position.set(1.3,.003,-.75);
+    glowLight.color.set(TUBE[e.z][0]);glowLight.position.set(0,.75,.3);
+  }else if(x==='magnet'){
+    const g=new THREE.Group(),red=new THREE.MeshPhysicalMaterial({color:C('#c4271f'),roughness:.32,clearcoat:1,clearcoatRoughness:.15}),tip=metalMat('#ccd1d6',1,.2);
+    const arc=new THREE.Mesh(new THREE.TorusGeometry(.36,.11,24,48,Math.PI),red);arc.position.y=.62;g.add(arc);
+    for(const s of [-1,1]){const leg=new THREE.Mesh(new THREE.BoxGeometry(.22,.5,.22),red);leg.position.set(s*.36,.37,0);g.add(leg);
+      const t=new THREE.Mesh(new THREE.BoxGeometry(.22,.14,.22),tip);t.position.set(s*.36,.05,0);g.add(t);}
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,4,8),metalMat('#7d838a',1,.4));rod.position.y=2.75;g.add(rod);
+    shadowAll(g);bench.add(g);rig=g;g.position.y=3;
+    if(TC[e.z]){ // a small neodymium magnet rests on the sample, ready to float when it superconducts
+      const nd=new THREE.Mesh(new RoundedBoxGeometry(.3,.12,.3,3,.02),metalMat('#d7dade',1,.12));shadowAll(nd);bench.add(nd);g.userData.nd=nd;nd.position.y=body.halfH*2+.06;}
+  }
+}
+function dropIn(){if(!pour||!spec||body.gone)return;Object.assign(body,{held:false,stuck:false,inside:false,inLiquid:false});
+  body.pos.set(pour.x+(Math.random()-.5)*.1,pour.top+.7,pour.z+(Math.random()-.5)*.1);body.vel.set(0,-.5,0);body.w.set(Math.random()-.5,0,Math.random()-.5);S.water.t=0;syncPivot();}
+function onEnterLiquid(v){
+  const merc=S.exp==='float'&&S.float==='mercury';
+  for(let i=0;i<Math.min(30,8+v*10);i++){const a=Math.random()*Math.PI*2,s=.6+Math.random()*1.4;spawn('drop',tmpV.set(body.pos.x,pour.level,body.pos.z),new THREE.Vector3(Math.cos(a)*s*.5,1+Math.random()*1.6*Math.min(1,v/3),Math.sin(a)*s*.5),.6,.05,merc?'#cfd3d8':'#cfeaf7');}
+  ripple(body.pos.x,body.pos.z);
+  if(S.exp==='water'&&WATER[el().z])S.water.t=.0001;
+}
+function ripple(x,z){if(!pour)return;const m=new THREE.Mesh(new THREE.RingGeometry(.9,1,48),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.6,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.position.set(x,pour.level+.003,z);m.scale.setScalar(.05);m.renderOrder=3;bench.add(m);particles.push({o:m,kind:'ripple',vel:new THREE.Vector3(),life:1.1,age:0,size:.7});}
+
+/* ---- atoms in a trap (elements never seen in bulk) ---- */
+const atomGeo=new THREE.SphereGeometry(.05,20,14);atomGeo.userData=KEEP;
+function buildAtoms(e){
+  const g=new THREE.Group(),steel=metalMat('#b8bdc3',1,.2);
+  for(const y of [.35,1.05]){const ring=new THREE.Mesh(new THREE.TorusGeometry(.55,.035,16,64),steel);ring.rotation.x=Math.PI/2;ring.position.y=y;g.add(ring);}
+  for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4,rod=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.05,12),steel);rod.position.set(Math.cos(a)*.8,.52,Math.sin(a)*.8);g.add(rod);
+    const arm=new THREE.Mesh(new THREE.BoxGeometry(.3,.03,.03),steel);arm.position.set(Math.cos(a)*.66,.35,Math.sin(a)*.66);arm.rotation.y=-a;g.add(arm);}
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(.95,1,.08,64),metalMat('#2d3035',.5,.5));base.position.y=.04;g.add(base);
+  shadowAll(g);bench.add(g);rig=g;makeCard(e,1.35,1.05);
+  S.atoms.forEach(a=>a.mesh=null);glowLight.color.set('#7fa0ff');glowLight.position.set(0,.7,0);
+}
+function syncAtoms(e,dt){
+  const lam=Math.LN2/e.hl,p=1-Math.exp(-lam*dt*S.speed),d=decayDaughter(e),t=performance.now()/1000,b=boost();
+  S.atoms.forEach((a,i)=>{
+    if(!a.mesh){a.mesh=new THREE.Mesh(atomGeo,new THREE.MeshBasicMaterial({color:0xffffff}));bench.add(a.mesh);}
+    const ph=a.ph,cx=Math.cos(i*1.7+ph)*.28,cz=Math.sin(i*2.3+ph)*.28;
+    if(!a.dead){a.mesh.position.set(cx+Math.sin(t*2.1+ph)*.04,.7+Math.sin(t*1.7+ph*2)*.12,cz+Math.cos(t*2.6+ph)*.04);a.mesh.scale.setScalar(1.5);a.mesh.material.color.setRGB(.35*b,.6*b,1.6*b);
+      if(Math.random()<p){a.dead=performance.now();track(e.mode,a.mesh.position.clone(),.25);a.mesh.scale.setScalar(1);}}
+    else{a.mesh.position.y=Math.max(.1,a.mesh.position.y-dt*.03);const age=(performance.now()-a.dead)/1000;
+      if(d)a.mesh.material.color.setRGB(.25,.26,.28);else a.mesh.material.color.setRGB(1.4,.9,.3).multiplyScalar(Math.max(.2,1-age));}
+  });
+  const alive=S.atoms.filter(a=>!a.dead).length;
+  glowLight.intensity+=((alive?.6:0)-glowLight.intensity)*.1;
+  setStatus(S.atoms.length?`${alive} of ${S.atoms.length} atoms of ${e.s}-${e.hlm} still intact`:'');
+}
+
+/* ---- radiation tracks ---- */
+const trackGeo=new THREE.CylinderGeometry(1,1,1,6,1,true);trackGeo.translate(0,.5,0);trackGeo.userData=KEEP;
+function track(mode,from,scale=1){
+  const T={A:[.9,.012,'#ff5a46'],'B-':[2.6,.004,'#5aa0ff'],'B+':[2.2,.004,'#78e6be'],EC:[2.2,.003,'#c8aaff'],SF:[1.3,.009,'#ffc83c']}[mode]||[2,.004,'#ffffff'];
+  const v=new THREE.Vector3(Math.random()-.5,Math.random()*.8+.1,Math.random()-.5).normalize();
+  (mode==='SF'?[1,-1]:[1]).forEach(sg=>{
+    const m=new THREE.Mesh(trackGeo,new THREE.MeshBasicMaterial({color:C(T[2]).multiplyScalar(lit()?3:1.15),transparent:true,depthWrite:false,blending:lit()?THREE.AdditiveBlending:THREE.NormalBlending}));
+    m.position.copy(from);m.quaternion.setFromUnitVectors(UP,v.clone().multiplyScalar(sg));m.scale.set(T[1]*scale*2.2,.001,T[1]*scale*2.2);m.renderOrder=4;bench.add(m);
+    particles.push({o:m,kind:'track',vel:new THREE.Vector3(),life:.7,age:0,size:T[0]*scale});});
+}
+
+/* ---- hammer and knife ---- */
+function makeHammer(){
+  const g=new THREE.Group(),head=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.3,32),metalMat('#5d6268',1,.38));head.position.set(-.85,0,0);g.add(head);
+  const handle=new THREE.Mesh(new THREE.CylinderGeometry(.026,.032,.95,16),new THREE.MeshPhysicalMaterial({color:C('#a8743f'),roughness:.5,clearcoat:.5}));handle.rotation.z=Math.PI/2;handle.position.x=-.38;g.add(handle);
+  return shadowAll(g);
+}
+function makeKnife(){
+  const g=new THREE.Group(),sh=new THREE.Shape();sh.moveTo(-.45,0);sh.lineTo(.42,0);sh.lineTo(.42,.2);sh.lineTo(-.2,.2);sh.quadraticCurveTo(-.4,.15,-.45,0);
+  const blade=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.012,bevelEnabled:true,bevelThickness:.004,bevelSize:.003,bevelSegments:1}),metalMat('#dfe3e7',1,.12));blade.position.z=-.006;g.add(blade);
+  const handle=new THREE.Mesh(new RoundedBoxGeometry(.4,.09,.05,2,.02),new THREE.MeshPhysicalMaterial({color:C('#1e1f22'),roughness:.4}));handle.position.set(.62,.12,0);g.add(handle);
+  const k=new THREE.Group();g.rotation.y=Math.PI/2;k.add(g);return shadowAll(k);
+}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function stepTool(dt){
+  if(!tool)return;tool.t+=dt;const t=tool.t,g=tool.g,b=tool.at;
+  if(tool.kind==='hammer'){
+    let a;if(t<.18)a=-.3-.8*ease(t/.18);else if(t<.27)a=-1.1+1.1*Math.pow((t-.18)/.09,2);else if(t<.36)a=-.32*Math.sin((t-.27)/.09*Math.PI/2);else a=-.32;
+    g.rotation.z=a;if(t>.27&&!tool.hit){tool.hit=true;tool.onHit();}
+    if(t>.4)g.position.y=b.y+(t-.4)*3.2;
+    if(t>.75){bench.remove(g);disposeTree(g);tool=null;}
+  }else{
+    let y;if(t<.15)y=b.y+.6-.6*ease(t/.15);else if(t<.15+tool.dur)y=b.y-tool.depth*((t-.15)/tool.dur);else y=b.y-tool.depth+(t-.15-tool.dur)*3;
+    g.position.y=y;if(t>.15&&!tool.hit){tool.hit=true;tool.onHit();}
+    if(t>.15+tool.dur+.4){bench.remove(g);disposeTree(g);tool=null;}
+  }
+}
+function strike(){
+  const e=el(),m=mechOf(e),n=$('#mechNote');if(!spec||body.gone||tool||!spec.pivot.visible)return;
+  if(n)n.textContent=MECH_NOTE[e.z]||mechText(e,m);
+  if(m==='gas'||spec.built.upright){impact(.8);if(spec.built.upright&&m!=='gas'&&n)n.textContent=`${e.n} is sealed in glass here, so the hammer stays away.`;return;}
+  const top=body.pos.y+body.halfH*body.scale*(1-body.flat);
+  const g=makeHammer();g.position.set(body.pos.x+.85,top+.15,body.pos.z);bench.add(g);
+  tool={kind:'hammer',g,t:0,at:g.position.clone(),onHit:()=>{
+    const p=new THREE.Vector3(body.pos.x,top,body.pos.z);
+    if(m==='malleable'){body.flat=Math.min(.45,body.flat+.15);for(let i=0;i<5;i++)spawn('spark',p,new THREE.Vector3((Math.random()-.5)*2,1+Math.random(),(Math.random()-.5)*2),.25,.03,'#fff1cf');}
+    else if(m==='soft')body.flat=Math.min(.55,body.flat+.22);
+    else if(m==='liquid'){for(let i=0;i<14;i++){const a=Math.random()*Math.PI*2;spawn('drop',p,new THREE.Vector3(Math.cos(a)*1.4,.6+Math.random(),Math.sin(a)*1.4),.6,.05,liquidColor(e,S.T));}}
+    else{ // brittle: shatters into pieces that tumble across the bench
+      spec.pivot.visible=false;body.gone=true;const mat=spec.built.surf[0];
+      for(let i=0;i<14;i++){const s=new THREE.Mesh(facet((.05+Math.random()*.09)*body.scale,0,.6,i*3+e.z),mat);s.castShadow=true;s.position.copy(body.pos);bench.add(s);
+        const a=Math.random()*Math.PI*2,sp=.3+Math.random()*.9;s.userData.v=new THREE.Vector3(Math.cos(a)*sp,1+Math.random()*1.6,Math.sin(a)*sp*.7);s.userData.w=new THREE.Vector3(Math.random()*9,Math.random()*9,Math.random()*9);shards.push(s);}
+      for(let i=0;i<10;i++)spawn('smoke',p,new THREE.Vector3((Math.random()-.5)*.6,.3,(Math.random()-.5)*.6),1.2,.18,'#d8d5cf');}
+    impact(2.6);}};
+}
+function stepShards(dt){shards.forEach(s=>{const v=s.userData.v;v.y-=G*dt;s.position.addScaledVector(v,dt);s.rotation.x+=s.userData.w.x*dt;s.rotation.y+=s.userData.w.y*dt;
+  if(s.position.y<.04){s.position.y=.04;v.y*=-.3;v.x*=.6;v.z*=.6;s.userData.w.multiplyScalar(.5);}const r=Math.hypot(s.position.x,s.position.z);if(r>2.2){s.position.x*=2.2/r;s.position.z*=2.2/r;v.x*=-.3;v.z*=-.3;}});}
+function cut(){
+  const e=el(),m=mechOf(e),n=$('#mechNote');if(!spec||body.gone||tool||!spec.pivot.visible)return;
+  if(m==='gas'||spec.built.upright){if(n)n.textContent=m==='gas'?`There is nothing to cut: ${e.n.toLowerCase()} is a gas here.`:`${e.n} is sealed in glass here, so the knife stays out.`;return;}
+  const hh=body.halfH*body.scale,top=body.pos.y+hh,soft=m==='soft';
+  const g=makeKnife();g.position.set(body.pos.x,top,body.pos.z);bench.add(g);
+  tool={kind:'knife',g,t:0,at:g.position.clone(),depth:soft?hh*2-.02:m==='liquid'?hh*1.2:0,dur:soft?.55:m==='liquid'?.3:.08,onHit:()=>{
+    if(soft){S.cut=performance.now();const halves=spec.built.group.userData.halves;
+      if(halves)halves.forEach((h,i)=>h.userData.tx=(i?1:-1)*.36);
+      else{const gr=new THREE.Mesh(new THREE.BoxGeometry(.03,.02,1.4),metalMat('#f4f5f7',1,.05));gr.position.y=spec.box.max.y-.004;spec.inner.add(gr);}
+      if(n)n.textContent=MECH_NOTE[e.z]||`The knife slides through ${e.n.toLowerCase()} and leaves a bright face.`;}
+    else if(m==='liquid'){impact(2);if(n)n.textContent=`The knife passes through liquid ${e.n.toLowerCase()} without leaving a mark.`;}
+    else{const p=new THREE.Vector3(body.pos.x,top,body.pos.z);for(let i=0;i<16;i++){const a=Math.random()*Math.PI*2;spawn('spark',p,new THREE.Vector3(Math.cos(a)*1.5,.8+Math.random(),Math.sin(a)*1.5),.35,.03,'#ffd27a');}
+      impact(.8);if(n)n.textContent=`The blade skids off. ${e.n} is too hard to cut with a knife.`;}}};
+}
+function stepHalves(dt){const h=spec&&spec.built.group.userData.halves;if(!h)return;h.forEach((x,i)=>{if(x.userData.tx!==undefined){x.position.x+=(x.userData.tx-x.position.x)*(1-Math.exp(-6*dt));x.rotation.z+=((i?-1:1)*.14-x.rotation.z)*(1-Math.exp(-6*dt));}});}
+
+/* ---- the frame loop ---- */
+function setStatus(t){const s=$('#status');if(s.textContent!==t)s.textContent=t;s.hidden=!t;}
+function hint(on){const h=$('#hint');if(h)h.hidden=!on;}
+let lastT=performance.now(),elapsed=0,roomLv=1,envLv=1;
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min(.05,Math.max(0,(now-lastT)/1000));lastT=now;
+  if(!visible||document.hidden)return;
+  elapsed+=dt;
+  if(needBuild){needBuild=false;rebuild();}
+  const e=el(),k=RM?1:1-Math.exp(-5*dt);
+  // room: lights off dims everything and turns the stage black
+  const darkRoom=S.exp==='dark'&&S.dark&&!bulkUnknown(e);
+  roomLv+=((darkRoom?.03:1)-roomLv)*k;
+  key.intensity=2.4*roomLv;rim.intensity=1*roomLv;hemi.intensity=.45*roomLv;
+  if(Math.abs(envLv-roomLv)>.002){envLv=roomLv;bench.traverse(o=>{if(!o.isMesh)return;(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{if(m.envMapIntensity===undefined)return;if(m.userData.env===undefined)m.userData.env=m.envMapIntensity;m.envMapIntensity=m.userData.env*Math.max(.02,envLv);});});}
+  bgCur.lerp(darkRoom?DARK_ROOM:stageCol,k);untone(bgCur,renderer.toneMappingExposure,scene.background);
+  bgLum=scene.background.r*.2126+scene.background.g*.7152+scene.background.b*.0722;
+  bloom.threshold=Math.max(1.25,bgLum*1.1+.15);
+  stage.classList.toggle('lightsoff',roomLv<.5&&!THEME_DARK);
+  let gl=0;
+  if(bulkUnknown(e))syncAtoms(e,dt);
+  else if(spec){stepBody(dt);gl=Math.max(updateSpecimen(e,dt,k),spec.glow||0);}
+  stepParticles(dt);stepShards(dt);stepHalves(dt);stepTool(dt);
+  if(!bulkUnknown(e))glowLight.intensity+=(gl-glowLight.intensity)*k;
+  // contact shadow
+  if(spec&&spec.pivot.visible&&!body.gone&&(anim.sol>.05||spec.built.upright)){const b=spec.box,fp=Math.max(b.max.x-b.min.x,b.max.z-b.min.z)*body.scale*Math.max(.05,spec.inner.scale.x),fl=body.inside&&pour?pour.floor:0,ht=Math.max(0,bottomOf()-fl);
+    contact.visible=true;contact.position.set(body.pos.x,fl+.002,body.pos.z);contact.scale.setScalar(fp*(1.25+ht*.5));contact.material.opacity=(THEME_DARK?.5:.42)/(1+ht*2.2)*roomLv;}
+  else contact.visible=false;
+  if(card)card.material.emissiveIntensity=lit()?0:.18*roomLv;
+  const ov=lit()?0:.85,bo=lit()?1.5:1.35;
+  fx.forEach(f=>{const u=f.material.uniforms;u.uTime.value=elapsed;u.uOver.value=ov;u.uBoost.value=bo;f.getWorldPosition(tmpV);f.rotation.y=Math.atan2(camera.position.x-tmpV.x,camera.position.z-tmpV.z)-(f.parent&&f.parent!==bench?f.parent.rotation.y:0);});
+  if(camGoal){const kk=RM?1:1-Math.exp(-3.5*dt);controls.target.y+=(camGoal.ty-controls.target.y)*kk;
+    const d=camera.position.clone().sub(controls.target),L=d.length();d.setLength(L+(camGoal.dist-L)*kk);camera.position.copy(controls.target).add(d);
+    if(Math.abs(camGoal.ty-controls.target.y)<.003&&Math.abs(camGoal.dist-L)<.01)camGoal=null;}
+  controls.update();composer.render();
+}
+
+function updateSpecimen(e,dt,k){
+  const ph=phase(e,S.T),built=spec.built,form=built.form,x=S.exp;
+  const isAmp=form==='ampoule'||form==='ampouleMetal',sealed=isAmp||form==='vial';
+  const tgt={sol:ph==='solid'?1:0,liq:ph==='liquid'?1:0,gas:ph==='gas'?1:0};
+  for(const n in tgt)anim[n]+=(tgt[n]-anim[n])*k;
+  const rigLock=x==='flame'||x==='tube'||x==='magnet';
+  // squash and stretch after a bump, flattened by the hammer, settling back upright when let go
+  body.jigT+=dt;
+  const wobbly=(form==='droplet'&&ph!=='solid')||(ph==='liquid'&&!sealed);
+  const j=body.jig*(wobbly?.45:built.soft)*Math.sin(body.jigT*22)*Math.exp(-body.jigT*5);
+  const fl=body.flat||0,sx=(1+j*.5)*(1+fl*.5),sy=(1-j)*(1-fl);
+  let vis=1;if(!sealed)vis=form==='droplet'?1-anim.gas:anim.sol;vis=Math.max(.001,vis);
+  const wob=form==='droplet'&&ph==='liquid'?Math.sin(elapsed*2.3)*.02:0;
+  spec.inner.scale.set(sx*(1+wob)*vis,sy*vis,sx*(1-wob)*vis);
+  spec.inner.position.y=spec.box.min.y*(1-sy*vis);
+  if(!body.held)spec.inner.quaternion.slerp(IDQ,1-Math.exp(-8*dt));
+  // molten pool on the open bench
+  const open=!sealed&&form!=='droplet'&&!rigLock&&!pour&&!body.gone;
+  const l=open?anim.liq:0;puddle.visible=l>.01;
+  if(puddle.visible){const r=Math.max(spec.box.max.x-spec.box.min.x,spec.box.max.z-spec.box.min.z)*.75,w=Math.sin(elapsed*3)*.02;
+    puddle.position.set(body.pos.x,0,body.pos.z);puddle.scale.set(l*r*(1+w),l*.11,l*r*(1-w));puddle.material.color.set(liquidColor(e,S.T));}
+  // boiled away: wisps of vapour rise from where it was
+  let status='';
+  if(open&&anim.gas>.5){status='Boiled away into vapour. Cool it down to bring it back.';
+    if(Math.random()<dt*7){const gc=gasColor(e)||(THEME_DARK?'#9aa3ad':'#b9c0c7');spawn('vapour',new THREE.Vector3(body.pos.x+(Math.random()-.5)*.6,.1+Math.random()*.2,body.pos.z+(Math.random()-.5)*.6),new THREE.Vector3((Math.random()-.5)*.1,.35,(Math.random()-.5)*.1),2.6,.45,gc);}}
+  // things glow above about 525 °C (the Draper point), red first and whiter as they heat
+  const hot=clamp((S.T-798)/1500,0,1),bb=blackbody(Math.max(S.T,900)),bbc=new THREE.Color().setRGB(bb[0]/255,bb[1]/255,bb[2]/255,THREE.SRGBColorSpace);
+  const hotI=hot*3.2*(lit()?1:boost()*.35);
+  built.surf.forEach(m=>{m.emissive.copy(bbc);m.emissiveIntensity=hotI;});
+  const fresh=built.group.userData.fresh;if(fresh){fresh.emissive.copy(bbc);fresh.emissiveIntensity=hotI;}
+  puddle.material.emissive.copy(bbc);puddle.material.emissiveIntensity=hotI;
+  // frost and a cold mist below about −80 °C
+  if(S.T<190&&!rigLock&&ph!=='gas'&&Math.random()<dt*6){spawn('frost',new THREE.Vector3(body.pos.x+(Math.random()-.5)*.5,body.pos.y+body.halfH*body.scale*.8,body.pos.z+(Math.random()-.5)*.5),new THREE.Vector3((Math.random()-.5)*.1,-.12,(Math.random()-.5)*.1),2.2,.25,'#eef6ff');}
+  tarnish(e);
+  // red-hot metal darkens under its oxide so the glow reads as glow
+  if(hot>0){const dk=Math.min(.8,hot*4);built.surf.forEach(m=>m.color.lerp(_dark,dk));}
+  if(isAmp)status=updateAmpoule(e,ph,built.group.userData.amp)||status;
+  // iodine slowly sublimes into violet wisps
+  if(built.group.userData.vapour&&ph==='solid'&&!rigLock&&Math.random()<dt*(S.T>330?6:1.5))spawn('vapour',new THREE.Vector3(body.pos.x+(Math.random()-.5)*.4,body.pos.y+.1,body.pos.z+(Math.random()-.5)*.4),new THREE.Vector3(0,.15,0),3,.35,built.group.userData.vapour);
+  let gl=hot>0&&!rigLock?hot*2.5:0;
+  if(hot>0&&!rigLock){glowLight.color.copy(bbc);glowLight.position.set(body.pos.x,.5,body.pos.z);}
+  if(x==='water')status=waterStep(e,dt)||status;
+  else if(x==='float')status=floatStatus(e)||status;
+  else if(x==='flame')gl=flameStep(e,dt);
+  else if(x==='tube'){const v=S.volt,r=rig.userData,fl=v>.05?(.9+.1*Math.sin(elapsed*80)*Math.random()):0;
+    r.plasma.visible=r.halo.visible=r.core.visible=v>.05;r.core.material.color.set(TUBE[e.z][0]).lerp(C('#ffffff'),.18).multiplyScalar(lit()?(.8+v*3.6)*fl:(.6+v*.9)*fl);r.core.material.opacity=.4+v*.55;r.plasma.material.color.set(TUBE[e.z][0]).multiplyScalar(lit()?(.6+v*3.4)*fl*1.3:(.45+v*.85)*fl);r.plasma.material.opacity=lit()?.45+v*.5:.6+v*.38;
+    r.halo.material.color.set(TUBE[e.z][0]).multiplyScalar(lit()?1.2:1.1);r.halo.material.opacity=v*(lit()?.55:.3);r.halo.material.blending=lit()?THREE.AdditiveBlending:THREE.NormalBlending;
+    r.led.material.color.set(v>.05?'#ff3b30':'#3a1c1a');gl=v*2;status=v>.05?`${Math.round(v*10)} kV across the tube`:'Voltage off';}
+  else if(x==='magnet')status=magnetStep(e,dt,ph);
+  else if(x==='decay'){const act=clamp((20-Math.log10(e.hl))/20,.05,1)*Math.pow(2,-S.decayT);
+    if(!RM&&spec.pivot.visible&&Math.random()<act*dt*40)track(e.mode,body.pos.clone().add(new THREE.Vector3((Math.random()-.5)*.3,(Math.random()-.2)*.3,(Math.random()-.5)*.3)));
+    const d=decayDaughter(e),rem=Math.pow(2,-S.decayT);
+    if(d){const dc=C((MAT[d.z]&&MAT[d.z][1])||'#777777');built.surf.forEach((m,i)=>m.color.copy(built.origColors[i]).lerp(dc,(1-rem)*.7));}}
+  else if(x==='air')status=airStep(e,dt)||status;
+  // lights off: self-luminous elements glow on their own
+  const D=DARK[e.z];
+  if(x==='dark'&&S.dark&&D){const pul=.8+.2*Math.sin(elapsed*2.5);built.surf.forEach(m=>{m.emissive.set(D[0]);m.emissiveIntensity=1.6*pul;});gl=1.4*pul;glowLight.color.set(D[0]);glowLight.position.set(body.pos.x,.6,body.pos.z);
+    if(e.z===15&&Math.random()<dt*5)spawn('glowmist',new THREE.Vector3(body.pos.x+(Math.random()-.5)*.5,body.pos.y+.1,body.pos.z+(Math.random()-.5)*.4),new THREE.Vector3(0,.12,0),2,.35,D[0]);
+    status='Lights off';}
+  setStatus(status);
+  return gl;
+}
+function updateAmpoule(e,ph,amp){
+  const gm=amp.userData.gas.material,built=spec.built,metalIn=built.group.userData.metalIn;
+  if(!amp.userData.liq){
+    const lq=new THREE.Mesh(new THREE.CylinderGeometry(.236,.236,1,40),new THREE.MeshPhysicalMaterial({color:0xffffff,roughness:.05,transmission:.5,thickness:.4}));amp.add(lq);amp.userData.liq=lq;
+    const frost=new THREE.Group(),fm=new THREE.MeshPhysicalMaterial({color:0xffffff,roughness:.5,metalness:0,flatShading:true}),R=rng(e.z*9);
+    for(let i=0;i<8;i++){const s=new THREE.Mesh(facet(.07,0,.6,i+e.z),fm);s.position.set((R()-.5)*.3,.05,(R()-.5)*.3);s.scale.set(1,.6+R(),1);frost.add(s);}amp.add(frost);amp.userData.frost=frost;}
+  const lc=liquidColor(e,S.T);let status='';
+  if(metalIn){
+    metalIn.visible=anim.gas<.9;const L=anim.liq;metalIn.scale.set(1+L*.25,.55-L*.25,1+L*.25);metalIn.position.y=.08-L*.04;
+    amp.userData.liq.visible=amp.userData.frost.visible=false;
+    gm.blending=THREE.NormalBlending;gm.color.set(e.z===55?'#d9b85a':'#c9c0aa');gm.opacity=anim.gas*.35;return'';}
+  // sealed gas: a pool when it condenses, crystals when it freezes
+  const gc=gasColor(e);
+  if(S.exp==='look'&&TUBE[e.z]&&ph==='gas'){ // lit by a coil in the stand, as in element display sets
+    const c=C(TUBE[e.z][0]),flick=.92+.08*Math.sin(elapsed*50)*Math.random();
+    gm.blending=lit()?THREE.AdditiveBlending:THREE.NormalBlending;gm.color.copy(c).multiplyScalar((lit()?1.6:1.05)*flick);gm.opacity=lit()?.55:.82;
+    glowLight.color.copy(c);glowLight.position.set(body.pos.x,.7,body.pos.z);spec.glow=1.1;status='Shown lit by a coil in its stand, as in element display sets';
+  }else{spec.glow=0;
+    if(gc){gm.color.set(gc);if(lit()){gm.blending=THREE.NormalBlending;gm.color.multiplyScalar(1.2);gm.opacity=.5*Math.max(anim.gas,.7*anim.liq);}
+      else{gm.blending=THREE.MultiplyBlending;gm.color.lerp(C('#ffffff'),1-Math.min(.85,Math.max(anim.gas,.8*anim.liq)*.85));gm.opacity=1;}}
+    else gm.opacity=0;}
+  const L=amp.userData.liq;L.visible=anim.liq>.02;
+  if(L.visible){const h=.06+.14*anim.liq;L.scale.y=h;L.position.y=.016+h/2;L.material.color.set(lc);}
+  const F=amp.userData.frost;F.visible=anim.sol>.02;F.scale.setScalar(Math.max(.001,anim.sol));F.children.forEach(c=>c.material.color.set(e.z===35?'#5a1206':liquidColor(e,S.T)));
+  return status;
+}
+function tarnish(e){
+  const built=spec.built,A=AIR[e.z];
+  if(S.exp==='air'&&A){let tau=A[0];if(e.z===26)tau/=Math.max(.02,Math.pow(S.air.hum,3));const s=airSeconds(),t=s<=0?0:1-Math.exp(-s/tau);
+    let tc=C(A[1]);if(e.z===29&&t<.6)tc=C('#7a4a2e');
+    built.surf.forEach((m,i)=>{m.color.copy(built.origColors[i]).lerp(tc,Math.min(1,t*1.1));m.roughness=built.origRough[i]+(.85-built.origRough[i])*t;});}
+  else if(S.exp!=='decay')built.surf.forEach((m,i)=>{m.color.copy(built.origColors[i]);m.roughness=built.origRough[i];});
+  // the bright face of a fresh knife cut dulls at the rate the metal reacts with air
+  const fresh=built.group.userData.fresh;
+  if(fresh){if(S.cut){const age=(performance.now()-S.cut)/1000,tau=A?A[0]:1e9,t=1-Math.exp(-age/Math.max(1,tau*.6));
+      fresh.color.copy(C(matOf(e)[1])).lerp(C(A?A[1]:'#999999'),t);fresh.roughness=.08+.75*t;fresh.metalness=1-t*.8;}
+    else{fresh.color.copy(C(matOf(e)[1]));fresh.roughness=.08;fresh.metalness=1;}}
+}
+function waterStep(e,dt){
+  const W=WATER[e.z];if(!W)return'';const wm=rig.userData.water.material;
+  if(!body.inLiquid)return S.water.t||body.gone?'':'Pick it up and drop it in the water, or press “Drop it in”.';
+  S.water.t+=dt;const t=S.water.t;let rate=W.rate;if(W.hot)rate=S.water.hot*.5;
+  // hydrogen streams off the metal
+  if(Math.random()<rate*dt*60)spawn('bubble',body.pos.clone().add(new THREE.Vector3((Math.random()-.5)*.14,-.02,(Math.random()-.5)*.14)),new THREE.Vector3(0,.25+Math.random()*.3,0),3,.012+Math.random()*.022);
+  if(W.milky){const m=clamp(t/25,0,W.milky);wm.attenuationColor.set('#8fd0ea').lerp(C('#f2f2ee'),m);wm.roughness=.02+m*.35;wm.transmission=1-m*.55;}
+  if(W.hot&&S.water.hot>.5&&Math.random()<dt*8)spawn('smoke',new THREE.Vector3(pour.x+(Math.random()-.5)*.9,pour.level+.05,pour.z+(Math.random()-.5)*.9),new THREE.Vector3(0,.25,0),2.5,.3,'#ffffff');
+  if(W.kind==='dart'){ // floats, melts into a ball from the heat and skates around the surface
+    body.vel.x+=Math.sin(t*3.1+e.z)*2.4*dt*rate;body.vel.z+=Math.cos(t*2.3)*2.4*dt*rate;body.w.y=4;
+    body.scale=Math.max(.06,.5*(1-t/22));if(Math.random()<dt*3)ripple(body.pos.x,body.pos.z);
+    if(t>.8&&!spec.ball){const b=new THREE.Mesh(new THREE.SphereGeometry(.26,40,24),metalMat(matOf(e)[1],1,.12,{envMapIntensity:2.2}));b.castShadow=true;spec.inner.add(b);spec.ball=b;spec.built.group.visible=false;impact(2);}
+    const on=W.p>=1||Math.sin(t*1.3)>.55;
+    if(!rig.userData.fl){rig.userData.fl=makeFlame(W.flame,'#'+C(W.flame).lerp(C('#ffffff'),.45).getHexString(),.5);bench.add(rig.userData.fl);}
+    const f=rig.userData.fl;f.visible=on&&body.scale>.08;
+    if(f.visible){f.position.set(body.pos.x,pour.level+.02,body.pos.z);glowLight.color.set(W.flame);glowLight.position.set(body.pos.x,pour.level+.3,body.pos.z);spec.glow=1.6;}else spec.glow=0;
+    if(body.scale<=.06){spec.pivot.visible=false;f.visible=false;spec.glow=0;return'All of it has reacted. The water is now a solution of '+e.n.toLowerCase()+' hydroxide.';}
+    return W.p>=1?'The hydrogen it gives off is burning':'Fizzing and skating across the surface';}
+  if(W.kind==='boom'){if(t>.35&&!rig.userData.boomed){rig.userData.boomed=true;spec.pivot.visible=false;body.gone=true;
+      for(let i=0;i<70;i++){const a=Math.random()*Math.PI*2,s=1+Math.random()*3;spawn('drop',new THREE.Vector3(pour.x,pour.level,pour.z),new THREE.Vector3(Math.cos(a)*s*.4,2+Math.random()*3,Math.sin(a)*s*.4),1,.06,'#cfeaf7');}
+      for(let i=0;i<16;i++)spawn('flash',new THREE.Vector3(pour.x+(Math.random()-.5)*.3,pour.level+Math.random()*.4,pour.z),new THREE.Vector3((Math.random()-.5)*.6,.6,(Math.random()-.5)*.6),.5,.9,W.flame);
+      for(let i=0;i<12;i++)spawn('smoke',new THREE.Vector3(pour.x+(Math.random()-.5)*.4,pour.level+.2,pour.z),new THREE.Vector3((Math.random()-.5)*.4,.5,(Math.random()-.5)*.4),2.5,.4,'#e8e8e8');
+      glowLight.color.set(W.flame);glowLight.position.set(pour.x,pour.level+.4,0);glowLight.intensity=14;rig.userData.shake=.45;}
+    if(rig.userData.shake>0){rig.userData.shake-=dt;rig.position.x=.35+(Math.random()-.5)*.04*rig.userData.shake/.45;}
+    return rig.userData.boomed?'It exploded on contact with the water':'';}
+  body.scale=Math.max(.15,.5-t*rate*.004);
+  return W.hot&&S.water.hot<.5?'Barely reacting in cold water':W.kind==='fizz'?'Fizzing steadily, giving off hydrogen':'Bubbling as it gives off hydrogen';
+}
+function floatStatus(e){if(!body.inLiquid)return'';return e.d<pour.rho?`Floats: ${e.d} g/cm³ is lighter than ${S.float}`:`Sinks: ${e.d} g/cm³ is heavier than ${S.float}`;}
+function flameStep(e,dt){
+  const F=FLAME[e.z],on=S.flame>.05,b=rig.userData.blue,c=rig.userData.col;
+  b.visible=c.visible=on;b.material.uniforms.uI.value=.6*S.flame;c.material.uniforms.uI.value=(e.z===1?.3:1)*S.flame;
+  if(!on)return 0;
+  if(F[2]){
+    if(e.z===12){spec.built.surf.forEach(m=>{m.emissive.set('#ffffff');m.emissiveIntensity=7*S.flame*(lit()?1:boost());});glowLight.color.set('#ffffff');return 7*S.flame;}
+    if(e.z===26&&Math.random()<S.flame*dt*80){const a=Math.random()*Math.PI*2,s=1+Math.random()*2;spawn('spark',body.pos.clone(),new THREE.Vector3(Math.cos(a)*s,1+Math.random()*2,Math.sin(a)*s),.6+Math.random()*.4,.05,'#ffb347');}
+    if((e.z===15||e.z===16)&&Math.random()<dt*10)spawn('smoke',body.pos.clone().add(new THREE.Vector3(0,.3,0)),new THREE.Vector3((Math.random()-.5)*.1,.45,(Math.random()-.5)*.1),3,.35,e.z===15?'#f2f2f2':'#d9d9d4');}
+  return 1.5*S.flame;
+}
+function magnetStep(e,dt,ph){
+  const M=MAG[e.z],tc=TC[e.z],g=rig,hh=body.halfH*body.scale;
+  const want=.25+hh*2+(1-S.magnet)*1.6;g.position.y+=(want-g.position.y)*(1-Math.exp(-6*dt));
+  const nd=g.userData.nd;
+  if(tc){const sc=S.T<tc&&ph==='solid',top=body.pos.y+hh,ny=sc?top+.34+Math.sin(elapsed*2)*.025:top+.06;
+    nd.position.x=body.pos.x;nd.position.z=body.pos.z;nd.position.y+=(ny-nd.position.y)*(1-Math.exp(-5*dt));if(sc)nd.rotation.y+=dt*.6;g.visible=false;
+    if(sc&&Math.random()<dt*10)spawn('frost',new THREE.Vector3(body.pos.x+(Math.random()-.5)*.7,body.pos.y,body.pos.z+(Math.random()-.5)*.7),new THREE.Vector3((Math.random()-.5)*.15,-.05,(Math.random()-.5)*.15),2.5,.35,'#f2f8ff');
+    return sc?'Superconducting: the magnet floats above it':`Not superconducting yet. Cool it below ${tc} K.`;}
+  g.visible=true;
+  if(M&&M[0]==='F'){const mag=S.T<M[1]&&ph==='solid',tipY=g.position.y-.02;
+    if(mag&&S.magnet>.25){if(!body.stuck)impact(1.5);body.stuck=true;body.pos.x+=(0-body.pos.x)*(1-Math.exp(-10*dt));body.pos.y+=(tipY-hh-body.pos.y)*(1-Math.exp(-14*dt));body.vel.set(0,0,0);syncPivot();return'Pulled up and stuck to the magnet';}
+    if(body.stuck){body.stuck=false;body.vel.set(0,0,0);}
+    return mag?'Bring the magnet closer':`Above its Curie point (${fmtC(M[1])}), so it drops off`;}
+  if(M&&M[0]==='D'&&ph==='solid'){body.pos.x+=(S.magnet*.55-body.pos.x)*(1-Math.exp(-2*dt));syncPivot();return S.magnet>.6?'Gently pushed away from the magnet':'Barely affected';}
+  if(M&&M[0]==='P')return ph==='liquid'?'Liquid oxygen is drawn towards the poles':'Only weakly attracted as a gas; cool it to a liquid';
+  return'Not attracted to the magnet';
+}
+function airStep(e,dt){const A=AIR[e.z];if(!A)return S.air.t>0?'Still bright: a thin invisible oxide film protects it':'';
+  const ign=(A[3]===1&&airSeconds()>A[0])||(A[3]===2&&S.T>=303&&(!S.allo||S.allo==='w')&&phase(e,S.T)!=='gas');
+  if(!rig){rig=new THREE.Group();bench.add(rig);}
+  if(ign){if(!rig.userData.fire){rig.userData.fire=makeFlame((FLAME[e.z]||['#ff8a3a'])[0],'#fff4d6',.9);bench.add(rig.userData.fire);}
+    const f=rig.userData.fire;f.visible=true;f.position.set(body.pos.x,body.pos.y-body.halfH*body.scale*.5,body.pos.z);glowLight.color.set('#ff9a4a');glowLight.position.set(body.pos.x,.8,body.pos.z);spec.glow=1.8;
+    if(Math.random()<dt*6)spawn('smoke',body.pos.clone().add(new THREE.Vector3(0,.6,0)),new THREE.Vector3(0,.4,0),3,.3,'#e9e9e9');return'It has caught fire';}
+  if(rig.userData.fire)rig.userData.fire.visible=false;spec.glow=0;
+  return'';}
 
 /* ---------- table ---------- */
 function pos(e){
@@ -958,8 +1475,9 @@ document.addEventListener('keydown',ev=>{if(ev.target.tagName==='INPUT')return;i
 buildTable();
 const h=location.hash.slice(1);const fromHash=EL.find(e=>e.s.toLowerCase()===h.toLowerCase());
 select(fromHash?fromHash.z:11);
-resize();requestAnimationFrame(frame);
-})();
+requestAnimationFrame(frame);
+// redraw the bench label once the web fonts have arrived
+document.fonts&&document.fonts.ready.then(()=>{needBuild=true;});
 </script>
 </body>
 </html>
