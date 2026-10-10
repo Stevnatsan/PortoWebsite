@@ -455,15 +455,15 @@ section:not(.hero)::before{
 
 /* ---------- work: 3D fan of project tiles ----------
    Tiles sit on an arc, each rotated by its --i slot (centred on 0, e.g.
-   -1.5 .. 1.5 for four tiles) around a pivot --radius behind the plane.
+   -2.5 .. 2.5 for six tiles) around a pivot --radius behind the plane.
    Keep --radius >= half the tile width / tan(--step / 2) so neighbours
    meet edge to edge instead of slicing through each other. The selected
    tile slides further out along its own ray; its details show in a flat
    panel underneath so the text is never skewed. */
 .project-fan{ margin: 1rem 0; }
 .project-fan__ring{
-  --step: 24deg;
-  --radius: 450px;
+  --step: 20deg;
+  --radius: 540px;
   --tile: 190px;
   position: relative;
   height: 17rem;
@@ -560,7 +560,7 @@ section:not(.hero)::before{
 .project__link:hover svg{ transform: translate(3px,-3px); }
 
 @media (max-width: 960px){
-  .project-fan__ring{ --radius: 380px; --tile: 160px; }
+  .project-fan__ring{ --radius: 460px; --tile: 160px; }
 }
 @media (max-width: 800px){
   .project-fan__ring{
