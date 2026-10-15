@@ -211,6 +211,15 @@ select{font:500 13px var(--body);padding:8px;border:1px solid var(--line);border
 .stage.lightsoff{--ink:#f4f6f9;--ink-2:#d9dee5;--muted:#b3bbc6;--panel:#363a42;--panel-2:#40454e;--line:#4b515b;--line-2:#838c98;--glass:rgba(30,33,38,.8)}
 .stage .title,.stage .readings,.stage .nav button,.stage .toast{transition:color .4s}
 .spec{width:100%;height:34px;display:block;border-radius:8px;background:#0b0c0e}
+.startbox{display:grid;justify-items:end;gap:6px;pointer-events:none}
+.startbox[hidden]{display:none}
+.tlive{display:grid;gap:6px;justify-items:inherit}
+.start{pointer-events:auto;display:inline-flex;align-items:center;gap:8px;font:650 14px/1 var(--body);padding:11px 18px 11px 15px;border-radius:99px;border:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 18px -8px var(--accent),var(--shadow);cursor:pointer}
+.start svg{width:13px;height:13px;flex:none}
+.start:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media (hover:hover){.start:hover{filter:brightness(1.08)}}
+.startnote{font:500 12px/1.4 var(--body);color:var(--ink-2);padding:4px 10px;border-radius:99px;background:var(--glass);border:1px solid var(--line)}
+@media (max-width:980px){.startbox{justify-items:center}}
 .speclab{display:flex;justify-content:space-between;font:500 11px var(--body);color:var(--muted);margin-top:4px}
 @media (max-width:980px){
   .bench{grid-template-columns:1fr}
@@ -335,7 +344,7 @@ select{font:500 13px var(--body);padding:8px;border:1px solid var(--line);border
         <button id="next" aria-label="Next element">→</button>
         <button id="theme" class="theme" aria-label="Switch theme"></button>
       </div>
-      <div class="toast" role="status" aria-live="polite"><div class="hint" id="hint"><span class="hl-long">Drag to turn the bench · grab the specimen to pick it up</span><span class="hl-short">Drag to turn · grab to lift</span></div><div class="status" id="status" hidden></div></div>
+      <div class="toast"><div class="startbox" id="startbox" hidden><button class="start" id="start" type="button" aria-describedby="startnote"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.2v9.6L10.6 6z" fill="currentColor"/></svg>Start 3D</button><span class="startnote" id="startnote">Paused to save battery</span></div><div class="tlive" role="status" aria-live="polite"><div class="hint" id="hint"><span class="hl-long">Drag to turn the bench · grab the specimen to pick it up</span><span class="hl-short">Drag to turn · grab to lift</span></div><div class="status" id="status" hidden></div></div></div>
       <p class="nogl" id="nogl" hidden>This view needs WebGL, which this browser has turned off.</p>
       <div class="readings">
         <div class="caption" id="caption"></div>
@@ -628,7 +637,7 @@ function fillRanges(){panel.querySelectorAll('input[type=range]').forEach(r=>{fi
 panel.addEventListener('input',ev=>{if(ev.target.matches('input[type=range]')){fillRange(ev.target);valText(ev.target);}});
 // the drag hint has done its job once someone uses the controls
 panel.addEventListener('click',()=>{const h=$('#hint');if(h)h.hidden=true;},{once:true});
-setTimeout(()=>{const h=$('#hint');if(h)h.hidden=true;},12000);
+setTimeout(()=>{if(!GATE)hint(false);},12000);
 function buildPanel(){
   const e=el(),z=e.z,ex=experiments(e);
   if(!ex.some(x=>x[0]===S.exp))S.exp=ex[0][0];
@@ -876,6 +885,8 @@ const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim
 const C=h=>new THREE.Color(h);
 const UP=new THREE.Vector3(0,1,0),IDQ=new THREE.Quaternion(),_dark=new THREE.Color(.03,.028,.026);
 let needBuild=true;
+// GATE: start paused on a still frame until the visitor asks for the 3D bench (the portfolio build sets it)
+const GATE=true;let live=!GATE;
 
 /* ---- noise and geometry helpers ---- */
 function hash3(x,y,z){const h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h);}
@@ -934,9 +945,11 @@ function beadsGeo(seed){
 /* ---- renderer, scene, camera ---- */
 const stage=$('#stage'),cv=$('#cv');
 let renderer;
-try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});}
+try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:false});}
 catch(err){$('#nogl').hidden=false;throw err;}
-renderer.setPixelRatio(Math.min(1.75,devicePixelRatio||1));
+// sharp screens get 1.25x pixels and no multisampling; standard screens keep light 2x smoothing so edges stay clean
+const DPR=devicePixelRatio||1,AA=DPR>=1.5?0:2;
+renderer.setPixelRatio(Math.min(1.25,DPR));
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();scene.background=new THREE.Color();
@@ -955,6 +968,7 @@ function studioEnv(){
   return pmrem.fromScene(s,.015).texture;
 }
 scene.environment=studioEnv();
+cv.addEventListener('webglcontextrestored',()=>{scene.environment=studioEnv();DRAWN.length=0;});
 const key=new THREE.DirectionalLight(0xffffff,2.5);key.position.set(-3.2,6.5,3.8);key.castShadow=true;
 key.shadow.mapSize.set(512,512);Object.assign(key.shadow.camera,{left:-3,right:3,top:3,bottom:-3,near:1,far:20});key.shadow.bias=-.0004;key.shadow.normalBias=.02;key.shadow.radius=4;
 scene.add(key);
@@ -968,7 +982,7 @@ const contactTex=radial([[0,'rgba(0,0,0,.9)'],[.4,'rgba(0,0,0,.45)'],[1,'rgba(0,
 const contact=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x000000,map:contactTex,transparent:true,depthWrite:false}));
 contact.rotation.x=-Math.PI/2;contact.renderOrder=-1;scene.add(contact);
 
-const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,samples:4}));
+const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(4,4,{type:THREE.HalfFloatType,samples:AA}));
 composer.addPass(new RenderPass(scene,camera));
 const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.36,.45,1.25);composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -976,8 +990,12 @@ composer.addPass(new OutputPass());
 const controls=new OrbitControls(camera,cv);
 controls.target.set(0,.42,0);controls.enableDamping=true;controls.dampingFactor=.08;controls.enablePan=false;
 controls.minDistance=2.4;controls.maxDistance=10;controls.minPolarAngle=.25;controls.maxPolarAngle=Math.PI*.47;
-controls.autoRotate=!RM;controls.autoRotateSpeed=.55;
-controls.addEventListener('start',()=>{controls.autoRotate=false;camGoal=null;hint(false);});
+controls.autoRotate=false;controls.autoRotateSpeed=.55;
+let steered=false,spinUntil=0;
+function spinMore(){if(steered||RM||!live)return;spinUntil=performance.now()+15000;controls.autoRotate=true;controls.autoRotateSpeed=.55;}
+function spin(now){if(!controls.autoRotate)return;const left=(spinUntil-now)/1000;
+  if(left<1.5){controls.autoRotateSpeed=.55*Math.max(0,left)/1.5;if(left<=0)controls.autoRotate=false;}}
+controls.addEventListener('start',()=>{steered=true;controls.autoRotate=false;camGoal=null;hint(false);});
 // each experiment gets its own framing: the camera eases there after a change, unless you are already steering
 let camGoal=null;
 const baseDist=()=>5.3/Math.min(1,camera.aspect*1.1);
@@ -991,10 +1009,11 @@ function resize(){const r=stage.getBoundingClientRect();W=Math.max(1,r.width);H=
   // keep the bench in frame on tall phone screens, and nudge it right of the title on wide ones
   frameView();
   if(camera.aspect>1.25)camera.setViewOffset(W,H,-W*.08,H*.03,W,H);else camera.setViewOffset(W,H,0,H*.05,W,H);
-  camera.updateProjectionMatrix();}
+  camera.updateProjectionMatrix();drawNow();}
 new ResizeObserver(resize).observe(stage);
 const readings=stage.querySelector('.readings');new ResizeObserver(()=>stage.style.setProperty('--rh',readings.offsetHeight+'px')).observe(readings);
-let visible=true;new IntersectionObserver(es=>{visible=es[0].isIntersecting;}).observe(stage);
+let visible=true;new IntersectionObserver(es=>{visible=es[es.length-1].isIntersecting;if(visible)DRAWN.length=0;}).observe(stage);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)DRAWN.length=0;});
 
 /* ---- background: match the page colour exactly through the ACES tone curve ---- */
 const ACES_IN=new THREE.Matrix3().set(.59719,.35458,.04823,.07600,.90834,.01566,.02840,.13383,.83777).invert();
@@ -1162,7 +1181,7 @@ function makeCard(e,x,z,rz=.38){
   card.rotation.x=-Math.PI/2;card.rotation.z=rz;card.position.set(x,.003,z);card.receiveShadow=true;bench.add(card);
 }
 function rebuild(){
-  clearBench();const e=el();glowLight.intensity=0;frameView();
+  spinMore();clearBench();const e=el();glowLight.intensity=0;frameView();
   if(bulkUnknown(e)){buildAtoms(e);return;}
   const built=buildForm(e),inner=new THREE.Group();inner.add(built.group);
   const box=new THREE.Box3().setFromObject(built.group,true),c=box.getCenter(new THREE.Vector3());built.group.position.sub(c);box.translate(c.negate());
@@ -1215,11 +1234,11 @@ function stepBody(dt){
 /* ---- pick up, throw, poke ---- */
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),dragPlane=new THREE.Plane(),grabOff=new THREE.Vector3();let grab=null;
 function setNdc(ev){const r=cv.getBoundingClientRect();ndc.set(((ev.clientX-r.left)/r.width)*2-1,-((ev.clientY-r.top)/r.height)*2+1);}
-function canGrab(){return spec&&spec.pivot.visible&&!body.gone&&!tool&&anim.sol>.5&&['look','air','decay','dark','water','float'].includes(S.exp)&&!(S.exp==='water'&&body.inLiquid);}
+function canGrab(){return live&&spec&&spec.pivot.visible&&!body.gone&&!tool&&anim.sol>.5&&['look','air','decay','dark','water','float'].includes(S.exp)&&!(S.exp==='water'&&body.inLiquid);}
 function hitSpec(ev){setNdc(ev);ray.setFromCamera(ndc,camera);return ray.intersectObject(spec.pivot,true)[0];}
 cv.addEventListener('pointerdown',ev=>{
   if(!canGrab())return;const hit=hitSpec(ev);if(!hit)return;
-  controls.enabled=false;controls.autoRotate=false;hint(false);
+  controls.enabled=false;controls.autoRotate=false;steered=true;hint(false);
   const n=camera.getWorldDirection(new THREE.Vector3());n.y=0;n.normalize().negate();
   dragPlane.setFromNormalAndCoplanarPoint(n,hit.point);grabOff.copy(body.pos).sub(hit.point);
   grab={id:ev.pointerId,last:performance.now(),t0:performance.now(),x:ev.clientX,y:ev.clientY,moved:false};
@@ -1253,7 +1272,7 @@ function spawn(kind,pos,vel,life,size,color){
   if(kind==='bubble'){o=new THREE.Mesh(bubbleGeo,bubbleMat);o.scale.setScalar(size);o.renderOrder=3;}
   else{const glow=GLOWING.has(kind),c=C(color||'#ffffff');
     if(glow)c.multiplyScalar(lit()?2.2:1.6);else if(kind==='vapour')c.multiplyScalar(lit()?1.4:boost()*.6);else c.multiplyScalar(lit()?.9:boost()*.95);
-    o=new THREE.Sprite(new THREE.SpriteMaterial({map:sprTex,color:c,transparent:true,depthWrite:false,blending:glow&&lit()?THREE.AdditiveBlending:THREE.NormalBlending}));o.scale.setScalar(size);o.renderOrder=4;}
+    o=new THREE.Sprite(new THREE.SpriteMaterial({map:sprTex,color:c,transparent:true,depthWrite:false,blending:glow&&lit()?THREE.AdditiveBlending:THREE.NormalBlending}));if(kind==='spark'&&!fx.some(f=>f.visible))o.material.userData.noGlow=true;o.scale.setScalar(size);o.renderOrder=4;}
   o.position.copy(pos);bench.add(o);particles.push({o,kind,vel:vel.clone(),life,age:0,size});
 }
 function stepParticles(dt){
@@ -1384,7 +1403,7 @@ function buildAtoms(e){
   S.atoms.forEach(a=>a.mesh=null);glowLight.color.set('#7fa0ff');glowLight.position.set(0,.7,0);
 }
 function syncAtoms(e,dt){
-  const lam=Math.LN2/e.hl,p=1-Math.exp(-lam*dt*S.speed),d=decayDaughter(e),t=performance.now()/1000,b=boost();
+  const lam=Math.LN2/e.hl,p=1-Math.exp(-lam*dt*S.speed),d=decayDaughter(e),t=elapsed,b=boost();
   S.atoms.forEach((a,i)=>{
     if(!a.mesh){a.mesh=new THREE.Mesh(atomGeo,new THREE.MeshBasicMaterial({color:0xffffff}));bench.add(a.mesh);}
     const ph=a.ph,cx=Math.cos(i*1.7+ph)*.28,cz=Math.sin(i*2.3+ph)*.28;
@@ -1473,15 +1492,69 @@ function stepHalves(dt){const h=spec&&spec.built.group.userData.halves;if(!h)ret
 
 /* ---- the frame loop ---- */
 function setStatus(t){const s=$('#status');if(s.textContent!==t)s.textContent=t;s.hidden=!t;}
-function hint(on){const h=$('#hint');if(h)h.hidden=!on;}
+function hint(on){const h=$('#hint');if(h)h.hidden=!on||!live;}
+function goLive(){if(live)return;live=true;stage.classList.remove('paused');const s=$('#startbox');if(s)s.hidden=true;
+  controls.enabled=true;cv.style.touchAction='none';lastT=performance.now();spinMore();hint(true);setTimeout(()=>hint(false),9000);}
+if(GATE){stage.classList.add('paused');const s=$('#startbox');if(s)s.hidden=false;hint(false);
+  controls.enabled=false;cv.style.touchAction='pan-y';
+  $('#start').addEventListener('click',()=>{goLive();const c=$('#panel button,#panel input');if(c)c.focus({preventScroll:true});});
+  // a click or tap on the bench, or any experiment control, starts it too; on touch screens a swipe still scrolls the page
+  cv.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')goLive();},{capture:true});cv.addEventListener('click',goLive);
+  ['click','input'].forEach(t=>$('#panel').addEventListener(t,ev=>{if(ev.target.closest('button,input,select'))goLive();},{capture:true}));}
 let lastT=performance.now(),elapsed=0,roomLv=1,envLv=1;
+/* ---- draw only when the picture changes ----
+   Each frame we list every number that reaches the screen (camera, transforms, colours, light levels, uniforms)
+   and render only if one of them moved since the last drawn frame. A still bench costs no GPU time. */
+const SIG=[],DRAWN=[],SIGK=['roughness','metalness','envMapIntensity','transmission','thickness','clearcoat','iridescence','sheen','ior','rotation','attenuationDistance','size'];
+let lastDraw=-1e9,glowMax=0,glowAdd=0,bloomW=0;
+const lumC=c=>c.r*.2126+c.g*.7152+c.b*.0722,sigC=c=>SIG.push(c.r,c.g,c.b);
+function sigMat(m){
+  SIG.push(m.id,m.opacity,m.visible?1:0);
+  if(m.color)sigC(m.color);
+  // anything brighter than the bloom threshold is what the glow pass is for
+  if(m.emissive){sigC(m.emissive);SIG.push(m.emissiveIntensity);glowMax=Math.max(glowMax,lumC(m.emissive)*m.emissiveIntensity);}
+  else if(m.color&&(m.isMeshBasicMaterial||m.isSpriteMaterial)&&!m.userData.noGlow){const g=lumC(m.color)*(m.transparent?m.opacity:1);
+    // additive layers stack where they overlap (radiation tracks meet at the source), so count them together
+    if(m.blending===THREE.AdditiveBlending)glowMax=Math.max(glowMax,glowAdd+=g);else glowMax=Math.max(glowMax,g);}
+  for(const k of SIGK)if(typeof m[k]==='number')SIG.push(m[k]);
+  if(m.attenuationColor)sigC(m.attenuationColor);
+  if(m.map)SIG.push(m.map.id,m.map.version);
+  if(m.uniforms){const u=m.uniforms;if(u.uI&&u.uI.value>.02)glowMax=Infinity; // a lit flame
+    for(const k in u){const v=u[k].value;if(typeof v==='number')SIG.push(v);else if(v&&v.isColor)sigC(v);}}
+}
+function signature(){
+  SIG.length=0;glowMax=glowAdd=0;scene.updateMatrixWorld();camera.updateMatrixWorld();
+  SIG.push(W,H,renderer.getPixelRatio(),renderer.toneMappingExposure,bloom.threshold);sigC(scene.background);
+  for(const a of [camera.matrixWorld.elements,camera.projectionMatrix.elements])for(let i=0;i<16;i++)SIG.push(a[i]);
+  scene.traverseVisible(o=>{
+    SIG.push(o.id);const m=o.matrixWorld.elements;for(let i=0;i<16;i++)SIG.push(m[i]);
+    if(o.isLight){SIG.push(o.intensity);sigC(o.color);}
+    const g=o.geometry;if(g){SIG.push(g.id,g.drawRange.start,g.drawRange.count);for(const k in g.attributes)SIG.push(g.attributes[k].version);if(g.index)SIG.push(g.index.version);}
+    if(o.isInstancedMesh)SIG.push(o.count,o.instanceMatrix.version);
+    const ms=o.material;if(ms){if(Array.isArray(ms))ms.forEach(sigMat);else sigMat(ms);}
+  });
+}
+function changed(){if(SIG.length!==DRAWN.length)return true;for(let i=0;i<SIG.length;i++){const d=SIG[i]-DRAWN[i];if(d>1e-4||d<-1e-4)return true;}return false;}
+function draw(now,k=1){
+  signature();
+  // the glow pass only runs while something is bright enough to glow, and fades in and out instead of popping
+  const want=glowMax>bloom.threshold*.7||glowLight.intensity>.05?1:0;
+  bloomW+=(want-bloomW)*k;if(Math.abs(want-bloomW)<.01)bloomW=want;
+  bloom.enabled=bloomW>0;bloom.strength=.36*bloomW;SIG.push(bloomW);
+  if(!changed())return;
+  if(now-lastDraw<9)return; // screens up to 100 Hz draw every frame; 120 Hz and faster are held near 60 frames a second
+  composer.render();lastDraw=now;DRAWN.length=SIG.length;for(let i=0;i<SIG.length;i++)DRAWN[i]=SIG[i];
+}
+function drawNow(){DRAWN.length=0;lastDraw=-1e9;draw(performance.now());}
+
 function frame(now){
   requestAnimationFrame(frame);
-  const dt=Math.min(.05,Math.max(0,(now-lastT)/1000));lastT=now;
+  // while paused (portfolio, before Start) time stands still and every easing snaps to its end
+  const dt=Math.min(.05,Math.max(0,(now-lastT)/1000))*(live?1:0);lastT=now;
   if(!visible||document.hidden)return;
   elapsed+=dt;
   if(needBuild){needBuild=false;rebuild();}
-  const e=el(),k=RM?1:1-Math.exp(-5*dt);
+  const e=el(),k=RM||!live?1:1-Math.exp(-5*dt);
   // room: lights off dims everything and turns the stage black
   const darkRoom=S.exp==='dark'&&S.dark&&!bulkUnknown(e);
   roomLv+=((darkRoom?.03:1)-roomLv)*k;
@@ -1505,10 +1578,10 @@ function frame(now){
   // on the pale stage the flame has to cover the bright backdrop to read as coloured
   const ov=lit()?0:1.7,bo=lit()?1.5:1.6;
   fx.forEach(f=>{const u=f.material.uniforms;u.uTime.value=elapsed;u.uOver.value=ov;u.uBoost.value=bo;f.getWorldPosition(tmpV);f.rotation.y=Math.atan2(camera.position.x-tmpV.x,camera.position.z-tmpV.z)-(f.parent&&f.parent!==bench?f.parent.rotation.y:0);});
-  if(camGoal){const kk=RM?1:1-Math.exp(-3.5*dt);controls.target.y+=(camGoal.ty-controls.target.y)*kk;
+  if(camGoal){const kk=RM||!live?1:1-Math.exp(-3.5*dt);controls.target.y+=(camGoal.ty-controls.target.y)*kk;
     const d=camera.position.clone().sub(controls.target),L=d.length();d.setLength(L+(camGoal.dist-L)*kk);camera.position.copy(controls.target).add(d);
     if(Math.abs(camGoal.ty-controls.target.y)<.003&&Math.abs(camGoal.dist-L)<.01)camGoal=null;}
-  controls.update();composer.render();
+  spin(now);controls.update(dt);draw(now,k);
 }
 
 function updateSpecimen(e,dt,k){
