@@ -308,6 +308,72 @@ section:not(.hero)::before{
 }
 .btn-accent:hover{ transform: translateY(-2px); box-shadow: 0 10px 28px rgba(215,255,63,.28); }
 
+/* ---------- CV download + ghost buttons ---------- */
+.hero__actions{
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .9rem 1.25rem;
+  margin-top: 2.25rem;
+}
+.btn-cv, .btn-cv[data-magnetic]{
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem .6rem .55rem 1.5rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: .95rem;
+  letter-spacing: .01em;
+  text-decoration: none;
+  box-shadow: 0 0 0 0 rgba(215,255,63,0);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+.btn-cv__meta{
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  padding: .2rem .45rem;
+  border-radius: 6px;
+  border: 1.5px solid currentColor;
+  opacity: .7;
+}
+.btn-cv__icon{
+  width: 2.3rem;
+  height: 2.3rem;
+  padding: .55rem;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  color: var(--accent);
+  flex: none;
+  transition: transform .35s var(--ease);
+}
+.btn-cv:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(215,255,63,.3); }
+.btn-cv:hover .btn-cv__icon{ transform: translateY(2px); }
+.btn-cv:focus-visible, .btn-ghost:focus-visible{ outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn-cv--small{ font-size: .9rem; padding: .4rem .45rem .4rem 1.2rem; }
+.btn-cv--small .btn-cv__icon{ width: 2rem; height: 2rem; padding: .45rem; }
+.tone-light .btn-cv{ background: var(--ink); color: var(--bg); }
+.tone-light .btn-cv__icon{ background: var(--accent); color: var(--accent-ink); }
+.tone-light .btn-cv:hover{ box-shadow: 0 12px 30px rgba(20,18,15,.22); }
+.btn-ghost, .btn-ghost[data-magnetic]{
+  display: inline-flex;
+  align-items: center;
+  padding: .85rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: .95rem;
+  text-decoration: none;
+  transition: border-color .3s var(--ease), color .3s var(--ease);
+}
+.btn-ghost:hover{ border-color: var(--accent); color: var(--accent); }
+@media (hover: none){ .btn-cv:active{ transform: scale(.96); } }
+
 /* ---------- hero ---------- */
 .hero{
   min-height: 100svh;
