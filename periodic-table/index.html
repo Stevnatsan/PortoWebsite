@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Element Specimens — Steven Nathaniel Santoso</title>
-<meta name="description" content="An interactive 3D periodic table: put any of the 118 elements on a specimen bench, pick it up, drop it in water, and run the experiments it is known for, from melting and flame tests to glow tubes, magnets and radioactive decay.">
+<meta name="description" content="An interactive 3D periodic table: put any of the 118 elements on a specimen bench, run the experiments it is known for, turn its atom around to count protons, neutrons and electrons, and watch how its compounds form.">
 
 <script>try{var t=localStorage.getItem('es-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: a specimen bench. Title and readings sit over the stage on the left, the
@@ -383,6 +385,104 @@ select{font:500 13px var(--body);padding:8px;border:1px solid var(--line);border
   .stat:nth-child(3){border-left:0;padding-left:0}
   .seg.c5{grid-template-columns:repeat(3,auto)}
 }
+/* ---- v8: the whole page takes its accent from the selected element's family ---- */
+.wrap{--fam:var(--c-trans);--fam-deep:#1a6bb5}
+.wrap[data-k="alkali"]{--fam:var(--c-alkali);--fam-deep:#c2410f}
+.wrap[data-k="alkaline"]{--fam:var(--c-alkaline);--fam-deep:#9a6200}
+.wrap[data-k="trans"]{--fam:var(--c-trans);--fam-deep:#1a6bb5}
+.wrap[data-k="post"]{--fam:var(--c-post);--fam-deep:#0b7a78}
+.wrap[data-k="metalloid"]{--fam:var(--c-metalloid);--fam-deep:#4b7a17}
+.wrap[data-k="nonmetal"]{--fam:var(--c-nonmetal);--fam-deep:#7d6f00}
+.wrap[data-k="halogen"]{--fam:var(--c-halogen);--fam-deep:#b5237f}
+.wrap[data-k="noble"]{--fam:var(--c-noble);--fam-deep:#4a54c7}
+.wrap[data-k="lanth"]{--fam:var(--c-lanth);--fam-deep:#b9483f}
+.wrap[data-k="act"]{--fam:var(--c-act);--fam-deep:#a23366}
+.wrap{--accent:var(--fam-deep);--accent-ink:#fff;--accent-soft:color-mix(in srgb,var(--fam) 34%,var(--panel));--accent-text:color-mix(in srgb,var(--fam-deep) 84%,#000);
+  --nu-p:#e2504c;--nu-n:#8d97a8;--el-in:#5b6675;--el-mv:#1163d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .wrap{--accent:var(--fam);--accent-ink:#14171b;--accent-soft:color-mix(in srgb,var(--fam) 24%,var(--panel));--accent-text:color-mix(in srgb,var(--fam) 62%,#fff);
+  --nu-p:#ff7a72;--nu-n:#aab3c2;--el-in:#c3cad4;--el-mv:#8cc4ff;--selglow:0 0 20px 3px color-mix(in srgb,var(--fam) 55%,transparent)}}
+:root[data-theme="dark"] .wrap{--accent:var(--fam);--accent-ink:#14171b;--accent-soft:color-mix(in srgb,var(--fam) 24%,var(--panel));--accent-text:color-mix(in srgb,var(--fam) 62%,#fff);
+  --nu-p:#ff7a72;--nu-n:#aab3c2;--el-in:#c3cad4;--el-mv:#8cc4ff;--selglow:0 0 20px 3px color-mix(in srgb,var(--fam) 55%,transparent)}
+.record{box-shadow:inset 0 4px 0 var(--fam),var(--shadow)}
+.rtabs{overflow-x:auto;scrollbar-width:none}
+.rtabs::-webkit-scrollbar{display:none}
+.rtab{flex:none;white-space:nowrap}
+.rtab .ts{display:none}
+@media (max-width:520px){.rtab .tl{display:none}.rtab .ts{display:inline}.rtab{padding:8px 9px;gap:6px}}
+.atomv[hidden],.gloss[hidden]{display:none}
+
+/* ---- atom view ---- */
+.atomv{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px 28px;align-items:start}
+.av-stage{position:relative;border-radius:14px;border:1px solid var(--line);background:radial-gradient(circle at 50% 46%,color-mix(in srgb,var(--fam) 20%,var(--panel)) 0,var(--panel-2) 62%);overflow:hidden}
+#atomCv{display:block;width:100%;aspect-ratio:1/.86;touch-action:pan-y;cursor:grab}
+#atomCv:active{cursor:grabbing}
+.av-legend{position:absolute;left:12px;top:10px;display:flex;flex-wrap:wrap;gap:4px 12px;font:600 12px var(--body);color:var(--ink-2);pointer-events:none}
+.av-legend span{display:inline-flex;align-items:center;gap:6px}
+.av-legend i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.av-hint{position:absolute;right:12px;bottom:9px;margin:0;font:500 11.5px var(--body);color:var(--muted);pointer-events:none}
+.av-scale{position:absolute;left:12px;bottom:9px;margin:0;font:500 11.5px var(--body);color:var(--muted);pointer-events:none;max-width:62%}
+.av-side{display:grid;gap:14px;align-content:start;min-width:0}
+.av-counts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0}
+.av-counts div{background:var(--panel-2);border-radius:var(--r-s);padding:8px 11px 9px;display:grid;gap:1px;min-width:0;border-top:3px solid var(--k,var(--line))}
+.av-counts dt{font:500 12px var(--body);color:var(--muted)}
+.av-counts dd{margin:0;font:600 22px/1.15 var(--body);font-variant-numeric:tabular-nums}
+.av-counts small{display:block;font:500 11px/1.3 var(--body);color:var(--muted)}
+.av-h{margin:0 0 6px;font:600 11.5px var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.av-shells{display:grid;grid-template-columns:max-content minmax(0,1fr) max-content;gap:5px 10px;align-items:center;font-size:12.5px}
+.av-shells div{display:contents}
+.av-shells b{font-weight:600;white-space:nowrap}
+.av-shells .dots{display:flex;flex-wrap:wrap;gap:3px;min-width:0}
+.av-shells .dots i{width:8px;height:8px;border-radius:50%;background:var(--el-in)}
+.av-shells .out .dots i{background:var(--accent)}
+.av-shells span:last-child{font-variant-numeric:tabular-nums;font-weight:600}
+.av-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.av-row .act{flex:1 1 140px}
+@media (max-width:980px){.atomv{grid-template-columns:1fr}.av-stage{max-width:520px;width:100%;justify-self:center}}
+
+/* ---- glossary ---- */
+.gloss{display:grid;gap:14px}
+.gl-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.gl-top p{margin:0;font-size:14px;color:var(--ink-2);max-width:70ch}
+.gl-find{flex:0 1 240px;font:500 14px var(--body);min-height:40px;padding:8px 12px;border:1px solid var(--line-2);border-radius:var(--r-s);background:var(--panel);color:var(--ink)}
+.gl-sec{display:grid;gap:8px}
+.gl-sec h3{margin:6px 0 0;font:600 11.5px var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.gl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:8px;margin:0}
+.gl-i{background:var(--panel-2);border-radius:var(--r-s);padding:10px 12px 11px;display:grid;gap:4px;align-content:start;min-width:0;border-left:3px solid var(--fam)}
+.gl-i dt{font:650 14.5px/1.3 var(--body);color:var(--ink)}
+.gl-i dd{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-2);text-wrap:pretty}
+.gl-i dd.gl-for{color:var(--ink);font-weight:500}
+.gl-i dd.gl-for b{font-weight:650;color:var(--accent-text)}
+.gl-i sup{font-size:.72em;line-height:0}
+.gl-none{margin:0;color:var(--muted);font-size:14px}
+
+/* ---- how a compound forms ---- */
+.fbtn{display:inline-flex;align-items:center;gap:7px;justify-self:start;min-height:36px;margin:8px 0 0 4px;padding:6px 13px 6px 10px;border-radius:99px;border:0;background:var(--accent);color:var(--accent-ink);font:650 13px var(--body);cursor:pointer;box-shadow:0 4px 12px -6px var(--accent)}
+.fbtn svg{width:12px;height:12px;flex:none}
+@media (hover:hover){.fbtn:hover{filter:brightness(1.08)}}
+.cfig.playing>svg:first-of-type,.cfig.playing>figcaption,.cfig.playing>.fbtn{display:none}
+.fx{display:grid;gap:8px}
+.fx svg{display:block;width:100%;height:auto;max-height:none}
+.fx .tk circle{stroke:rgba(20,23,27,.4);stroke-width:1}
+.fx .tk text{fill:var(--tile-ink);font-family:var(--body);font-weight:700;text-anchor:middle}
+.fx .tk .tn{fill:var(--ink-2);font-weight:600;font-size:10px}
+.fx .ed{fill:var(--ink)}
+.fx .ed{stroke:var(--panel-2);stroke-width:.6;paint-order:stroke}
+.fx .ed.mv{fill:var(--el-mv)}
+.fx .grp{fill:none;stroke:var(--line-2);stroke-width:1.2;stroke-dasharray:4 3}
+.fx .arr{stroke:var(--accent);stroke-width:1.6;fill:none;stroke-linecap:round}
+.fx .use{color:var(--accent-text)}
+.fx .use rect{fill:var(--panel);stroke:var(--accent);stroke-width:1.5}
+.fx .use text{fill:var(--ink);font:650 13px var(--body);text-anchor:middle}
+.fx-cap{margin:0;padding:0 4px;font-size:13px;line-height:1.45;color:var(--ink);min-height:5.8em;text-wrap:pretty}
+.fx-cap b{font-weight:650}
+.fx-cap small{display:block;margin-top:3px;color:var(--muted);font-size:11.5px}
+.fx-ctl{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:0 2px}
+.fx-st{flex:1 1 auto;min-width:0;min-height:36px;padding:4px 6px;border-radius:9px;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);font:600 12px var(--body);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx-st i{font-style:normal;opacity:.62}
+@media (max-width:520px){.fx-st i{display:none}.fx-st{font-size:11.5px;padding:4px 5px}.fx-ctl{gap:4px}}
+.fx-st[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.fx-ic{flex:none;width:36px;min-height:36px;display:inline-grid;place-items:center;border-radius:9px;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);cursor:pointer;padding:0}
+.fx-ic svg{width:14px;height:14px}
 .sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
@@ -416,9 +516,11 @@ select{font:500 13px var(--body);padding:8px;border:1px solid var(--line);border
   </section>
 
   <section class="record" aria-label="About this element">
-    <div class="rtabs" role="tablist" aria-label="About this element"><button class="rtab" role="tab" type="button" data-t="facts" id="t-facts" aria-controls="facts" aria-selected="true">On the record</button><button class="rtab" role="tab" type="button" data-t="cmp" id="t-cmp" aria-controls="cmp" aria-selected="false" tabindex="-1">Compounds <span class="rn" id="cmpN"></span></button></div>
+    <div class="rtabs" role="tablist" aria-label="About this element"><button class="rtab" role="tab" type="button" data-t="facts" id="t-facts" aria-controls="facts" aria-selected="true"><span class="tl">On the record</span><span class="ts">Facts</span></button><button class="rtab" role="tab" type="button" data-t="atom" id="t-atom" aria-controls="atom" aria-selected="false" tabindex="-1">Atom</button><button class="rtab" role="tab" type="button" data-t="cmp" id="t-cmp" aria-controls="cmp" aria-selected="false" tabindex="-1">Compounds <span class="rn" id="cmpN"></span></button><button class="rtab" role="tab" type="button" data-t="gloss" id="t-gloss" aria-controls="gloss" aria-selected="false" tabindex="-1">Glossary</button></div>
     <div class="facts" id="facts" role="tabpanel" aria-labelledby="t-facts"></div>
+    <div class="atomv" id="atom" role="tabpanel" aria-labelledby="t-atom" hidden></div>
     <div class="cmp" id="cmp" role="tabpanel" aria-labelledby="t-cmp" hidden></div>
+    <div class="gloss" id="gloss" role="tabpanel" aria-labelledby="t-gloss" hidden></div>
   </section>
 
   <section class="index">
@@ -441,6 +543,20 @@ select{font:500 13px var(--body);padding:8px;border:1px solid var(--line);border
 const EL=[{"z":1,"s":"H","n":"Hydrogen","m":1.008,"p":1,"g":1,"b":"s","ser":"Nonmetals","mp":13.99,"bp":20.271,"d":8.2e-05,"en":2.2,"rad":25.0,"ab":1400.0,"yr":1766,"cfg":"1s","nat":[[1,100.0],[2,0.0145]],"desc":"Colourless, odourless gaseous chemical element","uses":"Most hydrogen is used in the production of ammonia. Also used in balloons and in metal refining. Also used as fuel in rockets. Its two heavier isotopes are: deu"},{"z":2,"s":"He","n":"Helium","m":4.0026,"p":1,"g":18,"b":"s","ser":"Noble gases","bp":4.222,"d":0.000164,"rad":120.0,"ab":0.008,"yr":1895,"cfg":"1s2","nat":[[4,100.0],[3,0.0002]],"desc":"Colourless, odourless gaseous nonmetallic element","uses":"Used in balloons, deep sea diving & welding. Also used in very low temperature research."},{"z":3,"s":"Li","n":"Lithium","m":6.94,"p":2,"g":1,"b":"s","ser":"Alkali metals","mp":453.65,"bp":1615.2,"d":0.534,"en":0.98,"rad":145.0,"ab":20.0,"yr":1817,"cfg":"[He] 2s","nat":[[7,95.2],[6,4.85]],"desc":"Soft silvery metal","uses":"Used in batteries. Also for certain kinds of glass and ceramics.  Some is used in lubricants."},{"z":4,"s":"Be","n":"Beryllium","m":9.01218,"p":2,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1560.2,"bp":2741.2,"d":1.85,"en":1.57,"rad":105.0,"ab":2.8,"yr":1798,"cfg":"[He] 2s2","nat":[[9,100.0]],"desc":"Grey metallic element of group 2 of the periodic table","uses":"Its ability to absorb large amounts of heat makes it useful in spacecraft, missiles, aircraft, etc. Emeralds are beryl crystals with chromium traces giving them"},{"z":5,"s":"B","n":"Boron","m":10.81,"p":2,"g":13,"b":"p","ser":"Metalloids","mp":2350.2,"bp":4273.1,"d":2.34,"en":2.04,"rad":85.0,"ab":10.0,"yr":1808,"cfg":"[He] 2s2 2p","nat":[[11,80.3],[10,19.6]],"desc":"An element of group 13 of the periodic table","uses":"Used with titanium & tungsten to make heat resistant alloys for jets & rockets."},{"z":6,"s":"C","n":"Carbon","m":12.011,"p":2,"g":14,"b":"p","ser":"Nonmetals","bp":4098.1,"sub":true,"d":2.2,"en":2.55,"rad":70.0,"ab":200.0,"cfg":"[He] 2s2 2p2","nat":[[12,98.9],[13,1.06]],"desc":"Carbon is a member of group 14 of the periodic table","uses":"For making steel, in filters, and many more uses. Radiocarbon dating uses the carbon-14 isotope to date old objects."},{"z":7,"s":"N","n":"Nitrogen","m":14.007,"p":2,"g":15,"b":"p","ser":"Nonmetals","mp":63.15,"bp":77.355,"d":0.001145,"en":3.04,"rad":65.0,"ab":19.0,"yr":1772,"cfg":"[He] 2s2 2p3","nat":[[14,99.6],[15,0.38]],"desc":"Colourless, gaseous element which belongs to group 15 of the periodic table","uses":"Primarily to produce ammonia and other fertilizers. Also used in making nitric acid, which is used in explosives. Also used in welding and enhanced oil recovery"},{"z":8,"s":"O","n":"Oxygen","m":15.999,"p":2,"g":16,"b":"p","ser":"Nonmetals","mp":54.36,"bp":90.188,"d":0.001308,"en":3.44,"rad":60.0,"ab":461000.0,"yr":1774,"cfg":"[He] 2s2 2p4","nat":[[16,99.8],[18,0.204],[17,0.0384]],"desc":"A colourless, odourless gaseous element belonging to group 16 of the periodic table","uses":"Used in steel making, welding, and supporting life. Naturally occuring ozone (O3) in the upper atmosphere shields the earth from ultraviolet radiation."},{"z":9,"s":"F","n":"Fluorine","m":18.9984,"p":2,"g":17,"b":"p","ser":"Halogens","mp":53.48,"bp":85.04,"d":0.001553,"en":3.98,"rad":50.0,"ab":585.0,"yr":1886,"cfg":"[He] 2s2 2p5","nat":[[19,100.0]],"desc":"A poisonous pale yellow gaseous element belonging to group 17 of the periodic table (The halogens)","uses":"Used in refrigerants and other fluorocarbons. Also in toothpaste as sodium fluoride (NaF) and stannous fluoride (SnF2); also in Teflon."},{"z":10,"s":"Ne","n":"Neon","m":20.1797,"p":2,"g":18,"b":"p","ser":"Noble gases","mp":24.56,"bp":27.104,"d":0.000825,"rad":160.0,"ab":0.005,"yr":1898,"cfg":"[He] 2s2 2p6","nat":[[20,90.5],[22,9.25],[21,0.27]],"desc":"Colourless gaseous element of group 18 on the periodic table (noble gases)","uses":"Primarily for lighting."},{"z":11,"s":"Na","n":"Sodium","m":22.9898,"p":3,"g":1,"b":"s","ser":"Alkali metals","mp":370.94,"bp":1156.1,"d":0.97,"en":0.93,"rad":180.0,"ab":23600.0,"yr":1807,"cfg":"[Ne] 3s","nat":[[23,100.0]],"desc":"Soft silvery reactive element belonging to group 1 of the periodic table (alkali metals)","uses":"There are few uses for the pure metal, however its compounds are used in medicine, agriculture and photography. Sodium chloride (NaCl) is table salt. Liquid sod"},{"z":12,"s":"Mg","n":"Magnesium","m":24.305,"p":3,"g":2,"b":"s","ser":"Alkaline earth metals","mp":923.15,"bp":1363.2,"d":1.74,"en":1.31,"rad":150.0,"ab":23300.0,"yr":1808,"cfg":"[Ne] 3s2","nat":[[24,79.0],[26,11.0],[25,10.0]],"desc":"Silvery metallic element belonging to group 2 of the periodic table (alkaline-earth metals)","uses":"Used in alloys to make airplanes, missiles and other uses for light metals. Has structural properties similar to aluminium. But since it is flammable at tempera"},{"z":13,"s":"Al","n":"Aluminum","m":26.9815,"p":3,"g":13,"b":"p","ser":"Poor metals","mp":933.47,"bp":2792.2,"d":2.7,"en":1.61,"rad":125.0,"ab":82300.0,"yr":1825,"cfg":"[Ne] 3s2 3p","nat":[[27,100.0]],"desc":"Silvery-white lustrous metallic element of group 13 of the periodic table","uses":"Used for many purposes from airplanes to beverage cans. Too soft in its pure form so less than 1% of silicon or iron is added, which hardens and strengthens it."},{"z":14,"s":"Si","n":"Silicon","m":28.085,"p":3,"g":14,"b":"p","ser":"Metalloids","mp":1687.2,"bp":3538.2,"d":2.33,"en":1.9,"rad":110.0,"ab":282000.0,"yr":1824,"cfg":"[Ne] 3s2 3p2","nat":[[28,92.3],[29,4.67],[30,3.07]],"desc":"Metalloid element belonging to group 14 of the periodic table","uses":"Used in glass as silicon dioxide (SiO2). Silicon carbide (SiC) is one of the hardest substances known and used in polishing. Also the crystalline form is used i"},{"z":15,"s":"P","n":"Phosphorus","m":30.9738,"p":3,"g":15,"b":"p","ser":"Nonmetals","mp":317.3,"bp":553.65,"d":1.823,"en":2.19,"rad":100.0,"ab":1050.0,"yr":1669,"cfg":"[Ne] 3s2 3p3","nat":[[31,100.0]],"desc":"Non-metallic element belonging to group 15 of the periodic table","uses":"Used in the production of fertilizers and detergents. Some is used in fireworks, safety matches, and incendiary weapons. Also some applications for it and some "},{"z":16,"s":"S","n":"Sulfur","m":32.06,"p":3,"g":16,"b":"p","ser":"Nonmetals","mp":368.35,"bp":717.76,"d":2.07,"en":2.58,"rad":100.0,"ab":350.0,"cfg":"[Ne] 3s2 3p4","nat":[[32,94.8],[34,4.37],[33,0.763],[36,0.0158]],"desc":"Yellow, nonmetallic element belonging to group 16 of the periodic table","uses":"Used in matches, gunpowder, medicines, rubber and pesticides, dyes and insecticides. Also for making sulfuric acid (H2SO4)."},{"z":17,"s":"Cl","n":"Chlorine","m":35.45,"p":3,"g":17,"b":"p","ser":"Halogens","mp":171.65,"bp":239.11,"d":0.002898,"en":3.16,"rad":100.0,"ab":145.0,"yr":1774,"cfg":"[Ne] 3s2 3p5","nat":[[35,75.8],[37,24.2]],"desc":"Halogen element","uses":"Used in water purification, bleaches, acids and many, many other compounds such as chlorofluorocarbons (CFC)."},{"z":18,"s":"Ar","n":"Argon","m":39.948,"p":3,"g":18,"b":"p","ser":"Noble gases","mp":83.81,"bp":87.302,"d":0.001633,"rad":71.0,"ab":3.5,"yr":1894,"cfg":"[Ne] 3s2 3p6","nat":[[40,99.6],[36,0.334],[38,0.0629]],"desc":"Monatomic noble gas","uses":"Used in lighting products. It is often used in filling incandescent light bulbs. Some is mixed with krypton in fluorescent lamps. Crystals in the semiconductor "},{"z":19,"s":"K","n":"Potassium","m":39.0983,"p":4,"g":1,"b":"s","ser":"Alkali metals","mp":336.65,"bp":1032.2,"d":0.89,"en":0.82,"rad":220.0,"ab":20900.0,"yr":1807,"cfg":"[Ar] 4s","nat":[[39,93.3],[41,6.73],[40,0.0117]],"desc":"Soft silvery metallic element belonging to group 1 of the periodic table (alkali metals)","uses":"Used as potash in making glass & soap. Also as saltpeter, potassium nitrate (KNO3) to make explosives and to color fireworks in mauve. Formerly called kalium (K"},{"z":20,"s":"Ca","n":"Calcium","m":40.078,"p":4,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1115.2,"bp":1757.2,"d":1.54,"en":1.0,"rad":180.0,"ab":41500.0,"yr":1808,"cfg":"[Ar] 4s2","nat":[[40,96.9],[44,2.09],[42,0.647],[48,0.187]],"desc":"Soft grey metallic element belonging to group 2 of the periodic table","uses":"Used by many forms of life to make shells and bones. Virtually no use for the pure metal, however two of its compounds are, lime (CaO) and gypsum (CaSO4), are i"},{"z":21,"s":"Sc","n":"Scandium","m":44.9559,"p":4,"g":3,"b":"d","ser":"Transition metals","mp":1814.2,"bp":3109.2,"d":2.99,"en":1.36,"rad":160.0,"ab":22.0,"yr":1879,"cfg":"[Ar] 3d 4s2","nat":[[45,100.0]],"desc":"Rare soft silvery metallic element belonging to group 3 of the periodic table","uses":"Scandium metal is used in some aerospace applications. Scandum oxide (Sc2O3) is used in the manufacture of high-intensity electric lamps. Scandium iodide (ScI3)"},{"z":22,"s":"Ti","n":"Titanium","m":47.867,"p":4,"g":4,"b":"d","ser":"Transition metals","mp":1943.2,"bp":3560.2,"d":4.506,"en":1.54,"rad":140.0,"ab":5650.0,"yr":1791,"cfg":"[Ar] 3d2 4s2","nat":[[48,73.7],[46,8.25],[47,7.44],[49,5.41]],"desc":"White metallic transition element","uses":"Since it is strong and resists acids it is used in many alloys. Titanium dioxide (TiO2), a white pigment that covers surfaces very well, is used in paint, rubbe"},{"z":23,"s":"V","n":"Vanadium","m":50.9415,"p":4,"g":5,"b":"d","ser":"Transition metals","mp":2183.2,"bp":3680.2,"d":6.0,"en":1.63,"rad":135.0,"ab":120.0,"yr":1830,"cfg":"[Ar] 3d3 4s2","nat":[[51,99.8],[50,0.25]],"desc":"Soft and ductile, bright white metal","uses":"It is mixed with other metals to make very strong and durable alloys. Vanadium pentoxide (V2O5) is used as a catalyst, dye and color-fixer."},{"z":24,"s":"Cr","n":"Chromium","m":51.9961,"p":4,"g":6,"b":"d","ser":"Transition metals","mp":2180.2,"bp":2944.2,"d":7.15,"en":1.66,"rad":140.0,"ab":102.0,"yr":1797,"cfg":"[Ar] 3d5 4s","nat":[[52,83.8],[53,9.5],[50,4.34],[54,2.37]],"desc":"Hard silvery transition element","uses":"Used to make stainless steel. It gives the color to rubies and emeralds. Iron-nickel-chromium alloys in various percentages yield an incredible variety of the m"},{"z":25,"s":"Mn","n":"Manganese","m":54.938,"p":4,"g":7,"b":"d","ser":"Transition metals","mp":1519.2,"bp":2334.2,"d":7.3,"en":1.55,"rad":140.0,"ab":950.0,"yr":1774,"cfg":"[Ar] 3d5 4s2","nat":[[55,100.0]],"desc":"Grey brittle metallic transition element","uses":"Used in steel, batteries and ceramics. The steel in railroad tracks can contain as much as 1.2% manganese. It is crucial to the effectiveness of vitamin B1."},{"z":26,"s":"Fe","n":"Iron","m":55.845,"p":4,"g":8,"b":"d","ser":"Transition metals","mp":1811.2,"bp":3134.2,"d":7.87,"en":1.83,"rad":140.0,"ab":56300.0,"cfg":"[Ar] 3d6 4s2","nat":[[56,91.8],[54,5.84],[57,2.12],[58,0.282]],"desc":"Silvery malleable and ductile metallic transition element","uses":"Used in steel and other alloys. Essential for humans. It is the chief constituent of hemoglobin which carries oxygen in blood vessels. Its oxides are used in ma"},{"z":27,"s":"Co","n":"Cobalt","m":58.9332,"p":4,"g":9,"b":"d","ser":"Transition metals","mp":1768.2,"bp":3200.2,"d":8.86,"en":1.88,"rad":135.0,"ab":25.0,"yr":1739,"cfg":"[Ar] 3d7 4s2","nat":[[59,100.0]],"desc":"Light grey transition element","uses":"Used in many hard alloys; for magnets, ceramics and special glasses. Remains hard up to 982°C. Radioactive cobalt-60 is used in cancer therapy."},{"z":28,"s":"Ni","n":"Nickel","m":58.6934,"p":4,"g":10,"b":"d","ser":"Transition metals","mp":1728.2,"bp":3186.2,"d":8.9,"en":1.91,"rad":135.0,"ab":84.0,"yr":1751,"cfg":"[Ar] 3d8 4s2","nat":[[58,68.1],[60,26.2],[62,3.63],[61,1.14]],"desc":"Malleable ductile silvery metallic transition element","uses":"Used in electroplating and metal alloys because of its resistance to corrosion. Also in nickel-cadmium batteries; as a catalyst and for coins."},{"z":29,"s":"Cu","n":"Copper","m":63.546,"p":4,"g":11,"b":"d","ser":"Transition metals","mp":1357.8,"bp":2833.2,"d":8.96,"en":1.9,"rad":135.0,"ab":60.0,"cfg":"[Ar] 3d10 4s","nat":[[63,69.2],[65,30.9]],"desc":"Red-brown transition element","uses":"Most often used as an electrical conductor. Also used in the manufacture of water pipes. Its alloys are used in jewelry and for coins."},{"z":30,"s":"Zn","n":"Zinc","m":65.38,"p":4,"g":12,"b":"d","ser":"Transition metals","mp":692.68,"bp":1180.2,"d":7.134,"en":1.65,"rad":135.0,"ab":70.0,"cfg":"[Ar] 3d10 4s2","nat":[[64,49.2],[66,27.7],[68,18.4],[67,4.04]],"desc":"Blue-white metallic element","uses":"Used to coat other metal (galvanizing) to protect them from rusting. Also used in alloys such as brass, bronze, nickel. Also in solder, cosmetics and pigments."},{"z":31,"s":"Ga","n":"Gallium","m":69.723,"p":4,"g":13,"b":"p","ser":"Poor metals","mp":302.91,"bp":2502.2,"d":5.91,"en":1.81,"rad":130.0,"ab":19.0,"yr":1875,"cfg":"[Ar] 3d10 4s2 4p","nat":[[69,60.1],[71,39.9]],"desc":"Soft silvery metallic element, belongs to group 13 of the periodic table","uses":"Used in semiconductor production. It us used in making LEDs (light-emitting diodes) and GaAs laser diodes."},{"z":32,"s":"Ge","n":"Germanium","m":72.63,"p":4,"g":14,"b":"p","ser":"Metalloids","mp":1211.4,"bp":3106.2,"d":5.323,"en":2.01,"rad":125.0,"ab":1.5,"yr":1886,"cfg":"[Ar] 3d10 4s2 4p2","nat":[[74,36.5],[72,27.4],[70,20.5],[73,7.76]],"desc":"Lustrous hard metalloid element, belongs to group 14 of the periodic table","uses":"Widely used in semiconductors. It is a good semiconductor when combined with tiny amounts of phosphorus, arsenic, gallium, and antimony."},{"z":33,"s":"As","n":"Arsenic","m":74.9216,"p":4,"g":15,"b":"p","ser":"Metalloids","mp":1090.2,"bp":889.15,"sub":true,"d":5.75,"en":2.18,"rad":115.0,"ab":1.8,"cfg":"[Ar] 3d10 4s2 4p3","nat":[[75,100.0]],"desc":"Metalloid element of group 15","uses":"Many of its compounds are deadly poison and used as weed killer and rat poison. Conducts electricity. Used in semiconductors. Some compounds, called arsenides, "},{"z":34,"s":"Se","n":"Selenium","m":78.971,"p":4,"g":16,"b":"p","ser":"Nonmetals","mp":453.15,"bp":958.15,"d":4.809,"en":2.55,"rad":115.0,"ab":0.05,"yr":1818,"cfg":"[Ar] 3d10 4s2 4p4","nat":[[80,49.8],[78,23.7],[76,9.23],[82,8.82]],"desc":"Grey nonmetal of group 16 of the periodic table, with metalloid-like properties","uses":"Light causes it to conduct electricity more easily. It is used in photoelectric cells, TV cameras, xerography machines and as a semiconductor in solar batteries"},{"z":35,"s":"Br","n":"Bromine","m":79.904,"p":4,"g":17,"b":"p","ser":"Halogens","mp":265.95,"bp":331.95,"d":3.103,"en":2.96,"rad":115.0,"ab":2.4,"yr":1826,"cfg":"[Ar] 3d10 4s2 4p5","nat":[[79,50.6],[81,49.4]],"desc":"Halogen element","uses":"It was once used in large quantities to make a compound that removed lead compound build up in engines burning leaded gasoline. Now it is primarily used in dyes"},{"z":36,"s":"Kr","n":"Krypton","m":83.798,"p":4,"g":18,"b":"p","ser":"Noble gases","mp":115.78,"bp":119.73,"d":0.003425,"ab":0.0001,"yr":1898,"cfg":"[Ar] 3d10 4s2 4p6","nat":[[84,57.0],[86,17.3],[82,11.6],[83,11.5]],"desc":"Colorless gaseous element, belongs to the noble gases","uses":"Used in lighting products. Some is used as inert filler-gas in incandescent bulbs. Some is mixed with argon in fluorescent lamps. The most important use is in f"},{"z":37,"s":"Rb","n":"Rubidium","m":85.4678,"p":5,"g":1,"b":"s","ser":"Alkali metals","mp":312.45,"bp":961.15,"d":1.53,"en":0.82,"rad":235.0,"ab":90.0,"yr":1861,"cfg":"[Kr] 5s","nat":[[85,72.2],[87,27.8]],"desc":"Soft silvery metallic element, belongs to group 1 of the periodic table","uses":"Used as a catalyst, photocells, and vacuum and cathode-ray tubes."},{"z":38,"s":"Sr","n":"Strontium","m":87.62,"p":5,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1050.2,"bp":1650.2,"d":2.64,"en":0.95,"rad":200.0,"ab":370.0,"yr":1790,"cfg":"[Kr] 5s2","nat":[[88,82.6],[86,9.86],[87,7.0],[84,0.56]],"desc":"Soft yellowish metallic element, belongs to group 2 of the periodic table","uses":"Used in flares and fireworks for crimson color. Strontium-90 is a long lived highly radioactive fallout product of atomic-bomb explosions."},{"z":39,"s":"Y","n":"Yttrium","m":88.9058,"p":5,"g":3,"b":"d","ser":"Transition metals","mp":1795.2,"bp":3618.2,"d":4.47,"en":1.22,"rad":180.0,"ab":33.0,"yr":1789,"cfg":"[Kr] 4d 5s2","nat":[[89,100.0]],"desc":"Silvery-grey metallic element of group 3 on the periodic table","uses":"Combined with europium to make red phosphors for color TV's. Yttrium oxide and iron oxide combine to form a crystal garnet used in radar."},{"z":40,"s":"Zr","n":"Zirconium","m":91.224,"p":5,"g":4,"b":"d","ser":"Transition metals","mp":2127.2,"bp":4679.1,"d":6.52,"en":1.33,"rad":155.0,"ab":165.0,"yr":1789,"cfg":"[Kr] 4d2 5s2","nat":[[90,51.5],[94,17.4],[92,17.1],[91,11.2]],"desc":"Grey-white metallic transition element","uses":"Used in alloys such as zircaloy which is used in nuclear applications since it does not readily absorb neutrons. Also baddeleyite is used in lab crucibles. Used"},{"z":41,"s":"Nb","n":"Niobium","m":92.9064,"p":5,"g":5,"b":"d","ser":"Transition metals","mp":2750.2,"bp":5014.1,"d":8.57,"en":1.6,"rad":145.0,"ab":20.0,"yr":1801,"cfg":"[Kr] 4d4 5s","nat":[[93,100.0]],"desc":"Soft, ductile grey-blue metallic transition element","uses":"Used as an alloy with iron and nickel. It can be used in nuclear reactors and is known to be superconductive when alloyed with tin, aluminum or zirconium."},{"z":42,"s":"Mo","n":"Molybdenum","m":95.95,"p":5,"g":6,"b":"d","ser":"Transition metals","mp":2895.2,"bp":4912.1,"d":10.2,"en":2.16,"rad":145.0,"ab":1.2,"yr":1778,"cfg":"[Kr] 4d5 5s","nat":[[98,24.3],[96,16.7],[95,15.9],[92,14.6]],"desc":"Silvery-white, hard metallic transition element","uses":"Its alloys are used in aircraft, missiles, and protective coatings in boiler plate."},{"z":43,"s":"Tc","n":"Technetium","m":97.9072,"p":5,"g":7,"b":"d","ser":"Transition metals","mp":2430.2,"bp":4535.1,"d":11.0,"en":2.1,"rad":135.0,"yr":1937,"cfg":"[Kr] 4d5 5s2","rad_":true,"hl":132900000000000.0,"hlm":97,"mode":"EC","desc":"Radioactive metallic transition element","uses":"Added to iron in quantities as low as 55 part-per-million transforms the iron into a corrosion-resistant alloy."},{"z":44,"s":"Ru","n":"Ruthenium","m":101.07,"p":5,"g":8,"b":"d","ser":"Transition metals","mp":2606.2,"bp":4420.1,"d":12.1,"en":2.2,"rad":130.0,"ab":0.001,"yr":1844,"cfg":"[Kr] 4d7 5s","nat":[[102,31.6],[104,18.6],[101,17.1],[99,12.8]],"desc":"Hard white metallic transition element","uses":"Used to harden platinum and palladium. Aircraft magnetos use platinum alloy with 10% ruthenium."},{"z":45,"s":"Rh","n":"Rhodium","m":102.906,"p":5,"g":9,"b":"d","ser":"Transition metals","mp":2236.2,"bp":3968.2,"d":12.4,"en":2.28,"rad":135.0,"ab":0.001,"yr":1803,"cfg":"[Kr] 4d8 5s","nat":[[103,100.0]],"desc":"Silvery white metallic transition element","uses":"Used as a coating to prevent wear on high quality science equipment and with platinum to make thermocouples."},{"z":46,"s":"Pd","n":"Palladium","m":106.42,"p":5,"g":10,"b":"d","ser":"Transition metals","mp":1827.9,"bp":3236.2,"d":12.0,"en":2.2,"rad":140.0,"ab":0.015,"yr":1803,"cfg":"[Kr] 4d10","nat":[[106,27.3],[108,26.5],[105,22.3],[110,11.7]],"desc":"Soft white ductile transition element","uses":"Used as a substitue for silver in dental items and jewelry. The pure metal is used as the delicate mainsprings in analog wristwatches. Also used in surgical ins"},{"z":47,"s":"Ag","n":"Silver","m":107.868,"p":5,"g":11,"b":"d","ser":"Transition metals","mp":1234.9,"bp":2435.2,"d":10.5,"en":1.93,"rad":160.0,"ab":0.075,"cfg":"[Kr] 4d10 5s","nat":[[107,51.8],[109,48.2]],"desc":"White lustrous soft metallic transition element","uses":"Used in alloys for jewelry and in other compounds for photography. It is also a good conductor, but expensive."},{"z":48,"s":"Cd","n":"Cadmium","m":112.414,"p":5,"g":12,"b":"d","ser":"Transition metals","mp":594.22,"bp":1040.2,"d":8.69,"en":1.69,"rad":155.0,"ab":0.15,"yr":1817,"cfg":"[Kr] 4d10 5s2","nat":[[114,28.8],[112,24.1],[111,12.8],[110,12.5]],"desc":"Soft bluish metal belonging to group 12 of the periodic table","uses":"Used in nickel-cadmium batteries. Also in electroplating steel and in the manufacture of berings. Its compounds are found in paint pigments and a wide variety o"},{"z":49,"s":"In","n":"Indium","m":114.818,"p":5,"g":13,"b":"p","ser":"Poor metals","mp":429.75,"bp":2300.2,"d":7.31,"en":1.78,"rad":155.0,"ab":0.25,"yr":1863,"cfg":"[Kr] 4d10 5s2 5p","nat":[[115,95.7],[113,4.28]],"desc":"Soft silvery element belonging to group 13 of the periodic table","uses":"Used to coat high speed bearings and as an alloy that lowers the melting point of other metals. Relativly small amounts are used in dental items and in electron"},{"z":50,"s":"Sn","n":"Tin","m":118.71,"p":5,"g":14,"b":"p","ser":"Poor metals","mp":505.08,"bp":2859.2,"d":7.287,"en":1.96,"rad":145.0,"ab":2.3,"cfg":"[Kr] 4d10 5s2 5p2","nat":[[120,32.6],[118,24.2],[116,14.5],[119,8.59]],"desc":"Silvery malleable metallic element belonging to group 14 of the periodic table","uses":"Used as a coating for steel cans since it is nontoxic and noncorrosive. Also in solder (33%Sn:67%Pb), bronze (20%Sn:80%Cu), and pewter. Stannous fluoride (SnF2)"},{"z":51,"s":"Sb","n":"Antimony","m":121.76,"p":5,"g":15,"b":"p","ser":"Metalloids","mp":903.78,"bp":1860.2,"d":6.68,"en":2.05,"rad":145.0,"ab":0.2,"cfg":"[Kr] 4d10 5s2 5p3","nat":[[121,57.2],[123,42.8]],"desc":"Element of group 15","uses":"It is alloyed with other metals to increase their hardness. Also in the manufacture of a few special types of semiconductor devices. Also in plastics and chemic"},{"z":52,"s":"Te","n":"Tellurium","m":127.6,"p":5,"g":16,"b":"p","ser":"Metalloids","mp":722.66,"bp":1261.2,"d":6.232,"en":2.1,"rad":140.0,"ab":0.001,"yr":1782,"cfg":"[Kr] 4d10 5s2 5p4","nat":[[130,34.1],[128,31.7],[126,18.8],[125,7.07]],"desc":"Silvery metalloid element of group 16","uses":"Used to improve the machining quality of copper and stainless steel products and to color glass and ceramics. Also in thermoelectric devices. Some is used in th"},{"z":53,"s":"I","n":"Iodine","m":126.904,"p":5,"g":17,"b":"p","ser":"Halogens","mp":386.85,"bp":457.55,"d":4.933,"en":2.66,"rad":140.0,"ab":0.45,"yr":1811,"cfg":"[Kr] 4d10 5s2 5p5","nat":[[127,100.0]],"desc":"Dark violet nonmetallic element, belongs to group 17 of the periodic table","uses":"Required in small amounts by humans. Once used as an antiseptic, but no longer due to its poisonous nature."},{"z":54,"s":"Xe","n":"Xenon","m":131.293,"p":5,"g":18,"b":"p","ser":"Noble gases","mp":161.4,"bp":165.05,"d":0.005366,"en":2.6,"ab":3e-05,"yr":1898,"cfg":"[Kr] 4d10 5s2 5p6","nat":[[132,26.9],[129,26.4],[131,21.2],[134,10.4]],"desc":"Colourless, odourless gas belonging to group 18 on the periodic table (the noble gases.) Nine natural isotopes and seven radioactive isotopes are known","uses":"Used for filling flash lamps and other powerful lamps. Electrical excitation of xenon produces a burst of brilliant whtie light. Also used in bubble chambers an"},{"z":55,"s":"Cs","n":"Cesium","m":132.905,"p":6,"g":1,"b":"s","ser":"Alkali metals","mp":301.65,"bp":944.15,"d":1.873,"en":0.79,"rad":260.0,"ab":3.0,"yr":1860,"cfg":"[Xe] 6s","nat":[[133,100.0]],"desc":"Soft silvery-white metallic element belonging to group 1 of the periodic table","uses":"Used as a 'getter' to remove air traces in vacuum and cathode-ray tubes. Also used in producing photoelectric devices and atomic clocks. Since it ionizes readil"},{"z":56,"s":"Ba","n":"Barium","m":137.327,"p":6,"g":2,"b":"s","ser":"Alkaline earth metals","mp":1000.1,"bp":2118.2,"d":3.62,"en":0.89,"rad":215.0,"ab":425.0,"yr":1808,"cfg":"[Xe] 6s2","nat":[[138,71.7],[137,11.2],[136,7.85],[135,6.59]],"desc":"Silvery-white reactive element, belonging to group 2 of the periodic table","uses":"Barite, or barium sulfate (BaSO4), when ground is used as a filter for rubber, plastics, and resins. It is insoluable in water and so is used in X-rays of the d"},{"z":57,"s":"La","n":"Lanthanum","m":138.905,"p":6,"g":3,"b":"d","ser":"Lanthanides","mp":1193.2,"bp":3737.2,"d":6.15,"en":1.1,"rad":195.0,"ab":39.0,"yr":1839,"cfg":"[Xe] 5d 6s2","nat":[[139,99.9],[138,0.0888]],"desc":"(From the Greek word lanthanein, to line hidden) Silvery metallic element belonging to group 3 of the periodic table and oft considered to be one of the lanthanoids","uses":"It is used in the electodes of high-intensity, carbon-arc lights. Also used in the production of high-grade europium metal. Because it gives glass refractive pr"},{"z":58,"s":"Ce","n":"Cerium","m":140.116,"p":6,"b":"f","ser":"Lanthanides","mp":1072.2,"bp":3716.2,"d":6.77,"en":1.12,"rad":185.0,"ab":66.5,"yr":1803,"cfg":"[Xe] 4f 5d 6s2","nat":[[140,88.4],[142,11.1],[138,0.251],[136,0.186]],"desc":"Silvery metallic element, belongs to the lanthanoids","uses":"Its oxides are used in the optics and glass-making industries. Its salts are used in the photography and textile industry. Used in high-intensity carbon lamps a"},{"z":59,"s":"Pr","n":"Praseodymium","m":140.908,"p":6,"b":"f","ser":"Lanthanides","mp":1204.2,"bp":3793.2,"d":6.773,"en":1.13,"rad":185.0,"ab":9.2,"yr":1885,"cfg":"[Xe] 4f3 6s2","nat":[[141,100.0]],"desc":"Soft silvery metallic element, belongs to the lanthanoids","uses":"Used with neodymium to make lenses for glass maker's goggles since it filters out the yellow light present in glass blowing. Alloyed with magnesium creates a hi"},{"z":60,"s":"Nd","n":"Neodymium","m":144.242,"p":6,"b":"f","ser":"Lanthanides","mp":1289.2,"bp":3347.2,"d":7.01,"en":1.14,"rad":185.0,"ab":41.5,"yr":1925,"cfg":"[Xe] 4f4 6s2","nat":[[142,27.2],[144,23.8],[146,17.2],[143,12.2]],"desc":"Soft bright silvery metallic element, belongs to the lanthanoids","uses":"Used in making artificial ruby for lasers. Also in ceramics and for a special lens with praseodymium. Also to produce bright purple glass and special glass that"},{"z":61,"s":"Pm","n":"Promethium","m":144.913,"p":6,"b":"f","ser":"Lanthanides","mp":1315.2,"bp":3273,"d":7.26,"rad":185.0,"yr":1945,"cfg":"[Xe] 4f5 6s2","rad_":true,"hl":558600000.0,"hlm":145,"mode":"EC","desc":"Soft silvery metallic element, belongs to the lanthanoids","uses":"It has been used as a source of radioactivity for thickness-measuring gages."},{"z":62,"s":"Sm","n":"Samarium","m":150.36,"p":6,"b":"f","ser":"Lanthanides","mp":1345.2,"bp":2067.2,"d":7.52,"en":1.17,"rad":185.0,"ab":7.05,"yr":1879,"cfg":"[Xe] 4f6 6s2","nat":[[152,26.7],[154,22.7],[147,15.0],[149,13.8]],"desc":"Soft silvery metallic element, belongs to the lanthanoids","uses":"It is used in the electronics and ceramics industries.  It is easily magnetized and very difficult to demagnetize. This suggests important future applications i"},{"z":63,"s":"Eu","n":"Europium","m":151.964,"p":6,"b":"f","ser":"Lanthanides","mp":1095.2,"bp":1802.2,"d":5.24,"rad":185.0,"ab":2.0,"yr":1901,"cfg":"[Xe] 4f7 6s2","nat":[[153,52.2],[151,47.8]],"desc":"Soft silvery metallic element belonging to the lanthanoids","uses":"Used with yttrium oxide to make red phosphors for color televisions."},{"z":64,"s":"Gd","n":"Gadolinium","m":157.25,"p":6,"b":"f","ser":"Lanthanides","mp":1586.2,"bp":3546.2,"d":7.9,"en":1.2,"rad":180.0,"ab":6.2,"yr":1880,"cfg":"[Xe] 4f7 5d 6s2","nat":[[158,24.8],[160,21.9],[156,20.5],[157,15.7]],"desc":"Soft silvery metallic element belonging to the lanthanoids","uses":"Used in steel alloying agents and the manufacture of electronic components."},{"z":65,"s":"Tb","n":"Terbium","m":158.925,"p":6,"b":"f","ser":"Lanthanides","mp":1632.2,"bp":3503.2,"d":8.23,"rad":175.0,"ab":1.2,"yr":1843,"cfg":"[Xe] 4f9 6s2","nat":[[159,100.0]],"desc":"Silvery metallic element belonging to the lanthanoids","uses":"It is used in modest amounts in special lasers and solid-state devices."},{"z":66,"s":"Dy","n":"Dysprosium","m":162.5,"p":6,"b":"f","ser":"Lanthanides","mp":1685.2,"bp":2840.2,"d":8.55,"en":1.22,"rad":175.0,"ab":5.2,"yr":1886,"cfg":"[Xe] 4f10 6s2","nat":[[164,28.3],[162,25.5],[163,24.9],[161,18.9]],"desc":"Metallic with a bright silvery-white lustre","uses":"Its uses are limited to the experimental and esoteric."},{"z":67,"s":"Ho","n":"Holmium","m":164.93,"p":6,"b":"f","ser":"Lanthanides","mp":1745.2,"bp":2973.2,"d":8.8,"en":1.23,"rad":175.0,"ab":1.3,"yr":1878,"cfg":"[Xe] 4f11 6s2","nat":[[165,100.0]],"desc":"Relatively soft and malleable silvery-white metallic element, which is stable in dry air at room temperature","uses":"It has very few practical applications; however, it has some unusual magnetic properties that offer some hope for future applications."},{"z":68,"s":"Er","n":"Erbium","m":167.259,"p":6,"b":"f","ser":"Lanthanides","mp":1802.2,"bp":3141.2,"d":9.07,"en":1.24,"rad":175.0,"ab":3.5,"yr":1843,"cfg":"[Xe] 4f12 6s2","nat":[[166,33.5],[168,27.0],[167,22.9],[170,14.9]],"desc":"Soft silvery metallic element which belongs to the lanthanoids","uses":"Erbium oxide is used in ceramics to obtain a pink glaze. Also a few uses in the nuclear industry and as an alloying agent for other exotic metals. For example, "},{"z":69,"s":"Tm","n":"Thulium","m":168.934,"p":6,"b":"f","ser":"Lanthanides","mp":1818.2,"bp":2223.2,"d":9.321,"en":1.25,"rad":175.0,"ab":0.52,"yr":1879,"cfg":"[Xe] 4f13 6s2","nat":[[169,100.0]],"desc":"Soft grey metallic element that belongs to the lanthanoids","uses":"Radioactive thulium is used to power portable x-ray machines, eliminating the need for electrical equipment."},{"z":70,"s":"Yb","n":"Ytterbium","m":173.045,"p":6,"b":"f","ser":"Lanthanides","mp":1097.2,"bp":1469.2,"d":6.9,"rad":175.0,"ab":3.2,"yr":1878,"cfg":"[Xe] 4f14 6s2","nat":[[174,32.0],[172,21.7],[173,16.1],[171,14.1]],"desc":"Silvery metallic element of the lanthanoids","uses":"Used in metallurgical and chemical experiments."},{"z":71,"s":"Lu","n":"Lutetium","m":174.967,"p":6,"b":"f","ser":"Transition metals","mp":1936.2,"bp":3675.2,"d":9.84,"en":1.0,"rad":175.0,"ab":0.8,"yr":1907,"cfg":"[Xe] 4f14 5d 6s2","nat":[[175,97.4],[176,2.6]],"desc":"Silvery-white rare-earth metal which is relatively stable in air","uses":"It has no practical applications."},{"z":72,"s":"Hf","n":"Hafnium","m":178.49,"p":6,"g":4,"b":"d","ser":"Transition metals","mp":2506.2,"bp":4873.1,"d":13.3,"en":1.3,"rad":155.0,"ab":3.0,"yr":1923,"cfg":"[Xe] 4f14 5d2 6s2","nat":[[180,35.1],[178,27.3],[177,18.6],[179,13.6]],"desc":"Silvery lustrous metallic transition element","uses":"Used in reactor control rods because of its ability to absorb neutrons."},{"z":73,"s":"Ta","n":"Tantalum","m":180.948,"p":6,"g":5,"b":"d","ser":"Transition metals","mp":3290.2,"bp":5728.1,"d":16.4,"en":1.5,"rad":145.0,"ab":2.0,"yr":1802,"cfg":"[Xe] 4f14 5d3 6s2","nat":[[181,100.0]],"desc":"Heavy blue-grey metallic transition element","uses":"Often used as an economical substitute for platinum. Tantalum pentoxide is used in capacitors and in camera lenses to increase refracting power. It and its allo"},{"z":74,"s":"W","n":"Tungsten","m":183.84,"p":6,"g":6,"b":"d","ser":"Transition metals","mp":3687.2,"bp":5828.1,"d":19.3,"en":1.7,"rad":135.0,"ab":1.25,"yr":1783,"cfg":"[Xe] 4f14 5d4 6s2","nat":[[184,30.6],[186,28.4],[182,26.5],[183,14.3]],"desc":"White or grey metallic transition element,formerly called Wolfram","uses":"Made into filaments for vacuum tubes and electric lights. Also as contact points in cars. Combined with calcium or magnesium it makes phosphors. Tungsten carbid"},{"z":75,"s":"Re","n":"Rhenium","m":186.207,"p":6,"g":7,"b":"d","ser":"Transition metals","mp":3458.2,"bp":5863.1,"d":20.8,"en":1.9,"rad":135.0,"ab":0.0007,"yr":1925,"cfg":"[Xe] 4f14 5d5 6s2","nat":[[187,62.6],[185,37.4]],"desc":"Silvery-white metallic transition element","uses":"Mixed with tungsten or platinum to make filaments for mass spectrographs. Its main value is as a trace alloying agent for hardening metal components that are su"},{"z":76,"s":"Os","n":"Osmium","m":190.23,"p":6,"g":8,"b":"d","ser":"Transition metals","mp":3306.2,"bp":5281.1,"d":22.59,"en":2.2,"rad":130.0,"ab":0.0015,"yr":1804,"cfg":"[Xe] 4f14 5d6 6s2","nat":[[192,40.8],[190,26.3],[189,16.1],[188,13.2]],"desc":"Hard blue-white metallic transition element","uses":"Used to tip gold pen points, instrument pivots, to make electric light filaments. Used for high temp. alloys and pressure bearings. Very hard and resists corros"},{"z":77,"s":"Ir","n":"Iridium","m":192.217,"p":6,"g":9,"b":"d","ser":"Transition metals","mp":2719.2,"bp":4701.1,"d":22.56,"en":2.2,"rad":135.0,"ab":0.001,"yr":1804,"cfg":"[Xe] 4f14 5d7 6s2","nat":[[193,62.7],[191,37.3]],"desc":"Very hard and brittle, silvery metallic transition element","uses":"Used with osmium to tip gold pen points, to make crucible and special containers. Also to make alloys used for standard weights and measures, and heat-resistant"},{"z":78,"s":"Pt","n":"Platinum","m":195.084,"p":6,"g":10,"b":"d","ser":"Transition metals","mp":2041.3,"bp":4098.1,"d":21.5,"en":2.2,"rad":135.0,"ab":0.005,"yr":1735,"cfg":"[Xe] 4f14 5d9 6s","nat":[[195,33.8],[194,32.9],[196,25.2],[198,7.36]],"desc":"Attractive greyish-white metal","uses":"Used in jewelry, to make crucible and special containers and as a catalyst. Used with cobalt to produce very strong magnets. Also to make standard weights and m"},{"z":79,"s":"Au","n":"Gold","m":196.967,"p":6,"g":11,"b":"d","ser":"Transition metals","mp":1337.3,"bp":3109.2,"d":19.3,"en":2.4,"rad":135.0,"ab":0.004,"cfg":"[Xe] 4f14 5d10 6s","nat":[[197,100.0]],"desc":"Gold is gold colored","uses":"Very malleable. Used in electronics, jewelry and coins. It is a good reflector of infrared radiation, so a thin film of gold is applied to the glass of skyscrap"},{"z":80,"s":"Hg","n":"Mercury","m":200.592,"p":6,"g":12,"b":"d","ser":"Transition metals","mp":234.32,"bp":629.77,"d":13.53,"en":1.9,"rad":150.0,"ab":0.085,"cfg":"[Xe] 4f14 5d10 6s2","nat":[[202,29.7],[200,23.1],[199,16.9],[201,13.2]],"desc":"Heavy silvery liquid metallic element, belongs to the zinc group","uses":"Used in thermometers, barometers, and batteries. Also used in electrical switches and mercury-vapor lighting products."},{"z":81,"s":"Tl","n":"Thallium","m":204.38,"p":6,"g":13,"b":"p","ser":"Poor metals","mp":577.15,"bp":1746.2,"d":11.8,"en":1.8,"rad":190.0,"ab":0.85,"yr":1861,"cfg":"[Xe] 4f14 5d10 6s2 6p","nat":[[205,70.5],[203,29.5]],"desc":"Pure, unreacted thallium appears silvery-white and exhibits a metallic lustre","uses":"Its compounds are used in rat and ant poisons. Also for detecting infrared radiation."},{"z":82,"s":"Pb","n":"Lead","m":207.2,"p":6,"g":14,"b":"p","ser":"Poor metals","mp":600.61,"bp":2022.2,"d":11.3,"en":1.8,"rad":180.0,"ab":14.0,"cfg":"[Xe] 4f14 5d10 6s2 6p2","nat":[[208,52.4],[206,24.1],[207,22.1],[204,1.4]],"desc":"Heavy dull grey ductile metallic element, belongs to group 14","uses":"Used in solder, shielding against radiation and in batteries."},{"z":83,"s":"Bi","n":"Bismuth","m":208.98,"p":6,"g":15,"b":"p","ser":"Poor metals","mp":544.55,"bp":1837.2,"d":9.79,"en":1.9,"rad":160.0,"ab":0.0085,"cfg":"[Xe] 4f14 5d10 6s2 6p3","hl":6.343e+26,"hlm":209,"mode":"A","nat":[[209,100.0]],"desc":"White crystalline metal with a pink tinge, belongs to group 15","uses":"Main use is in pharmaceuticals and low melting point alloys used as fuses."},{"z":84,"s":"Po","n":"Polonium","m":209.0,"p":6,"g":16,"b":"p","ser":"Metalloids","mp":527.15,"bp":1235.2,"d":9.2,"en":2.0,"rad":190.0,"ab":2e-10,"yr":1898,"cfg":"[Xe] 4f14 5d10 6s2 6p4","rad_":true,"hl":3913000000.0,"hlm":209,"mode":"A","desc":"Rare radioactive metallic element, belongs to group 16 of the periodic table","uses":"Used in industrial equipment that eliminates static electricity caused by such processes as rolling paper, wire, and sheet metal."},{"z":85,"s":"At","n":"Astatine","m":210.0,"p":6,"g":17,"b":"p","ser":"Halogens","mp":575.15,"bp":610,"d":7.0,"en":2.2,"yr":1940,"cfg":"[Xe] 4f14 5d10 6s2 6p5","rad_":true,"hl":29160.0,"hlm":210,"mode":"B+","desc":"Radioactive halogen element","uses":"Since its isotopes have such short half-lives there are no commercially significant compounds of astatine.","mp_est":1},{"z":86,"s":"Rn","n":"Radon","m":222.0,"p":6,"g":18,"b":"p","ser":"Noble gases","mp":202.15,"bp":211.45,"d":0.009074,"ab":4e-13,"yr":1898,"cfg":"[Xe] 4f14 5d10 6s2 6p6","rad_":true,"hl":330200.0,"hlm":222,"mode":"A","desc":"Colorless radioactive gaseous element, belongs to the noble gases","uses":"Used to treat some forms of cancer."},{"z":87,"s":"Fr","n":"Francium","m":223.0,"p":7,"g":1,"b":"s","ser":"Alkali metals","mp":294.15,"bp":950,"d":1.87,"en":0.7,"yr":1939,"cfg":"[Rn] 7s","rad_":true,"hl":1320.0,"hlm":223,"mode":"B-","desc":"Radioactive element, belongs to group 1 of the periodic table","uses":"Since its isotopes have such short half-lives there are no commercially significant compounds of francium.","mp_est":1},{"z":88,"s":"Ra","n":"Radium","m":226.0,"p":7,"g":2,"b":"s","ser":"Alkaline earth metals","mp":969.15,"bp":2010,"d":5.0,"en":0.9,"rad":215.0,"ab":9e-07,"yr":1898,"cfg":"[Rn] 7s2","rad_":true,"hl":50490000000.0,"hlm":226,"mode":"A","desc":"Radioactive metallic element, the heaviest of group 2 (alkaline earth metals)","uses":"Used in treating cancer because of the gamma rays it gives off."},{"z":89,"s":"Ac","n":"Actinium","m":227.0,"p":7,"g":3,"b":"d","ser":"Actinides","mp":1323.2,"bp":3473.2,"d":10.0,"en":1.1,"rad":195.0,"ab":5.5e-10,"yr":1899,"cfg":"[Rn] 6d 7s2","rad_":true,"hl":687100000.0,"hlm":227,"mode":"B-","desc":"Silvery radioactive metallic element, belongs to group 3 of the periodic table","uses":"It has no significant commercial applications."},{"z":90,"s":"Th","n":"Thorium","m":232.038,"p":7,"b":"f","ser":"Actinides","mp":2023.2,"bp":5058.1,"d":11.7,"en":1.3,"rad":180.0,"ab":9.6,"yr":1828,"cfg":"[Rn] 6d2 7s2","rad_":true,"hl":4.418e+17,"hlm":232,"mode":"A","nat":[[232,100.0],[230,0.02]],"desc":"Grey radioactive metallic element","uses":"Used in making strong alloys. Also in ultraviolet photoelectric cells. It is a common ingredient in high-quality lenses. Bombarded with neutrons make uranium-23"},{"z":91,"s":"Pa","n":"Protactinium","m":231.036,"p":7,"b":"f","ser":"Actinides","mp":1845.2,"bp":4273,"d":15.4,"en":1.5,"rad":180.0,"ab":1.4e-06,"yr":1917,"cfg":"[Rn] 5f2 6d 7s2","rad_":true,"hl":1030000000000.0,"hlm":231,"mode":"A","nat":[[231,100.0]],"desc":"Radioactive metallic element, belongs to the actinoids","uses":"It has no significant commercial applications."},{"z":92,"s":"U","n":"Uranium","m":238.029,"p":7,"b":"f","ser":"Actinides","mp":1408.2,"bp":4404.1,"d":19.1,"en":1.7,"rad":175.0,"ab":2.7,"yr":1789,"cfg":"[Rn] 5f3 6d 7s2","rad_":true,"hl":1.408e+17,"hlm":238,"mode":"A","nat":[[238,99.3],[235,0.72],[234,0.0054]],"desc":"White radioactive metallic element belonging to the actinoids","uses":"For many centuries it was used as a pigment for glass. Now it is used as a fuel in nuclear reactors and in bombs."},{"z":93,"s":"Np","n":"Neptunium","m":237.0,"p":7,"b":"f","ser":"Actinides","mp":917.15,"bp":4447,"d":20.2,"en":1.3,"rad":175.0,"yr":1940,"cfg":"[Rn] 5f4 6d 7s2","rad_":true,"hl":67660000000000.0,"hlm":237,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"It has no significant commercial applications."},{"z":94,"s":"Pu","n":"Plutonium","m":244.0,"p":7,"b":"f","ser":"Actinides","mp":913.15,"bp":3501.2,"d":19.7,"en":1.3,"rad":175.0,"yr":1940,"cfg":"[Rn] 5f6 7s2","rad_":true,"hl":2566000000000000.0,"hlm":244,"mode":"A","desc":"Dense silvery radioactive metallic transuranic element, belongs to the actinoids","uses":"Used in bombs and reactors. Small quantities are used in thermo-electric generators."},{"z":95,"s":"Am","n":"Americium","m":243.0,"p":7,"b":"f","ser":"Actinides","mp":1449.2,"bp":2880,"d":12.0,"rad":175.0,"yr":1945,"cfg":"[Rn] 5f7 7s2","rad_":true,"hl":231900000000.0,"hlm":243,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"Americium-241 is currently used in smoke detectors."},{"z":96,"s":"Cm","n":"Curium","m":247.0,"p":7,"b":"f","ser":"Actinides","mp":1618.2,"bp":3383,"d":13.51,"yr":1944,"cfg":"[Rn] 5f7 6d 7s2","rad_":true,"hl":492300000000000.0,"hlm":247,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications."},{"z":97,"s":"Bk","n":"Berkelium","m":247.0,"p":7,"b":"f","ser":"Actinides","mp":1259.2,"d":14.78,"yr":1949,"cfg":"[Rn] 5f9 7s2","rad_":true,"hl":43550000000.0,"hlm":247,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications."},{"z":98,"s":"Cf","n":"Californium","m":251.0,"p":7,"b":"f","ser":"Actinides","mp":1173.2,"d":15.1,"yr":1950,"cfg":"[Rn] 5f10 7s2","rad_":true,"hl":28340000000.0,"hlm":251,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications."},{"z":99,"s":"Es","n":"Einsteinium","m":252.0,"p":7,"b":"f","ser":"Actinides","mp":1133.2,"d":8.84,"yr":1952,"cfg":"[Rn] 5f11 7s2","rad_":true,"hl":40750000.0,"hlm":252,"mode":"A","desc":"Appearance is unknown, however it is most probably metallic and silver or gray in color","uses":"It has no significant commercial applications."},{"z":100,"s":"Fm","n":"Fermium","m":257.0,"p":7,"b":"f","ser":"Actinides","mp":1800.2,"d":9.7,"yr":1953,"cfg":"[Rn] 5f12 7s2","rad_":true,"hl":8683000.0,"hlm":257,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"It has no significant commercial applications.","pred":1},{"z":101,"s":"Md","n":"Mendelevium","m":258.0,"p":7,"b":"f","ser":"Actinides","mp":1100.2,"d":10.3,"yr":1955,"cfg":"[Rn] 5f13 7s2","rad_":true,"hl":4457000.0,"hlm":258,"mode":"A","desc":"Radioactive metallic transuranic element","uses":"It has no significant commercial applications.","pred":1},{"z":102,"s":"No","n":"Nobelium","m":259.0,"p":7,"b":"f","ser":"Actinides","mp":1100.2,"d":9.9,"yr":1957,"cfg":"[Rn] 5f14 7s2","rad_":true,"hl":3480.0,"hlm":259,"mode":"A","desc":"Radioactive metallic transuranic element, belongs to the actinoids","uses":"It has no significant commercial applications.","pred":1},{"z":103,"s":"Lr","n":"Lawrencium","m":262.0,"p":7,"b":"f","ser":"Transition metals","mp":1900.2,"d":15.6,"yr":1961,"cfg":"[Rn] 5f14 7s2 7p1","rad_":true,"hl":39600,"hlm":266,"mode":"SF","desc":"Appearance unknown, however it is most likely silvery-white or grey and metallic","uses":"It has no significant commercial applications.","pred":1},{"z":104,"s":"Rf","n":"Rutherfordium","m":267.0,"p":7,"g":4,"b":"d","ser":"Transition metals","d":23.3,"yr":1969,"cfg":"[Rn] 5f14 6d2 7s2","rad_":true,"hl":4700,"hlm":267,"mode":"SF","desc":"Radioactive transactinide element","uses":"It has no significant commercial applications.","pred":1},{"z":105,"s":"Db","n":"Dubnium","m":268.0,"p":7,"g":5,"b":"d","ser":"Transition metals","d":29.3,"yr":1970,"cfg":"[Rn] 5f14 6d3 7s2","rad_":true,"hl":57600,"hlm":268,"mode":"SF","desc":"Also known as Hahnium, Ha","uses":"It has no significant commercial applications.","pred":1},{"z":106,"s":"Sg","n":"Seaborgium","m":271.0,"p":7,"g":6,"b":"d","ser":"Transition metals","d":35.0,"yr":1974,"cfg":"[Rn] 5f14 6d4 7s2","rad_":true,"hl":300.0,"hlm":269,"mode":"A","desc":"Half-life of 0.9 +/- 0.2 s","uses":"It has no significant commercial applications.","pred":1},{"z":107,"s":"Bh","n":"Bohrium","m":274.0,"p":7,"g":7,"b":"d","ser":"Transition metals","d":37.1,"yr":1976,"cfg":"[Rn] 5f14 6d5 7s2","rad_":true,"hl":61,"hlm":270,"mode":"A","desc":"Radioactive transition metal","uses":"It has no significant commercial applications.","pred":1},{"z":108,"s":"Hs","n":"Hassium","m":269.0,"p":7,"g":8,"b":"d","ser":"Transition metals","d":40.7,"yr":1984,"cfg":"[Rn] 5f14 6d6 7s2","rad_":true,"hl":10,"hlm":269,"mode":"A","desc":"Radioactive transition metal first synthesized in 1984 by a German research team led by Peter Armbruster and Gottfried Muenzenberg at the Institute for Heavy Ion Research at Darmstadt.","uses":"It has no significant commercial applications.","pred":1},{"z":109,"s":"Mt","n":"Meitnerium","m":276.0,"p":7,"g":9,"b":"d","ser":"Transition metals","d":37.4,"yr":1982,"cfg":"[Rn] 5f14 6d7 7s2","rad_":true,"hl":4.5,"hlm":278,"mode":"A","desc":"Half-life of approximately 5 ms","uses":"It has no significant commercial applications.","pred":1},{"z":110,"s":"Ds","n":"Darmstadtium","m":281.0,"p":7,"g":10,"b":"d","ser":"Transition metals","d":34.8,"yr":1994,"cfg":"[Rn] 5f14 6d9 7s1","rad_":true,"hl":12.7,"hlm":281,"mode":"SF","uses":"It has no significant commercial applications.","pred":1,"desc":"Synthetic superheavy element, expected to be a dense transition metal"},{"z":111,"s":"Rg","n":"Roentgenium","m":281.0,"p":7,"g":11,"b":"d","ser":"Transition metals","d":28.7,"yr":1994,"cfg":"[Rn] 5f14 6d10 7s1","rad_":true,"hl":100,"hlm":282,"mode":"A","uses":"It has no significant commercial applications.","pred":1,"desc":"Synthetic superheavy element, expected to be a dense metal like gold"},{"z":112,"s":"Cn","n":"Copernicium","m":285.0,"p":7,"g":12,"b":"d","ser":"Transition metals","d":14.0,"yr":1996,"cfg":"[Rn] 5f14 6d10 7s2","rad_":true,"hl":30,"hlm":285,"mode":"A","uses":"It has no significant commercial applications.","pred":1,"desc":"Synthetic superheavy element, predicted to be a volatile metal, possibly a liquid"},{"z":113,"s":"Nh","n":"Nihonium","m":286.0,"p":7,"g":13,"b":"p","ser":"Poor metals","d":16.0,"yr":2015,"cfg":"[Rn] 5f14 6d10 7s2 7p1","rad_":true,"hl":9.5,"hlm":286,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the boron group","uses":"Only a handful of atoms have ever been made, for research."},{"z":114,"s":"Fl","n":"Flerovium","m":289.0,"p":7,"g":14,"b":"p","ser":"Poor metals","d":9.928,"yr":1998,"cfg":"[Rn] 5f14 6d10 7s2 7p2","rad_":true,"hl":1.9,"hlm":289,"mode":"A","pred":1,"desc":"Synthetic superheavy element, predicted to be a volatile metal","uses":"Only a handful of atoms have ever been made, for research."},{"z":115,"s":"Mc","n":"Moscovium","m":288.0,"p":7,"g":15,"b":"p","ser":"Poor metals","d":13.5,"yr":2003,"cfg":"[Rn] 5f14 6d10 7s2 7p3","rad_":true,"hl":0.65,"hlm":290,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the nitrogen group","uses":"Only a handful of atoms have ever been made, for research."},{"z":116,"s":"Lv","n":"Livermorium","m":293.0,"p":7,"g":16,"b":"p","ser":"Poor metals","d":12.9,"yr":2000,"cfg":"[Rn] 5f14 6d10 7s2 7p4","rad_":true,"hl":0.057,"hlm":293,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the oxygen group","uses":"Only a handful of atoms have ever been made, for research."},{"z":117,"s":"Ts","n":"Tennessine","m":294.0,"p":7,"g":17,"b":"p","ser":"Halogens","d":7.2,"yr":2010,"cfg":"[Rn] 5f14 6d10 7s2 7p5","rad_":true,"hl":0.051,"hlm":294,"mode":"A","pred":1,"desc":"Synthetic superheavy element in the halogen group","uses":"Only a handful of atoms have ever been made, for research."},{"z":118,"s":"Og","n":"Oganesson","m":294.0,"p":7,"g":18,"b":"p","ser":"Noble gases","d":7.0,"yr":2002,"cfg":"[Rn] 5f14 6d10 7s2 7p6","rad_":true,"hl":0.0007,"hlm":294,"mode":"A","pred":1,"desc":"Synthetic superheavy element, the heaviest ever made","uses":"Only a handful of atoms have ever been made, for research."}];
 </script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/RenderPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/OutputPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/ShaderPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/MaskPass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/postprocessing/Pass.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/CopyShader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/OutputShader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/shaders/LuminosityHighPassShader.js">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js">
 <script type="module">
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -730,7 +846,7 @@ function buildPanel(){
   if(tr)tr.addEventListener('input',()=>{S.T=s2t(+tr.value,e);onTemp();});
   panel.querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>{S.T=+b.dataset.t+(b.textContent.includes('point')||b.textContent.includes('vaporises')?0.5:0);if(b.textContent==='Curie point')S.T=+b.dataset.t-5;tr.value=t2s(S.T,e);onTemp();}));
   panel.querySelector('#expSeg').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;S.exp=b.dataset.x;resetExp();buildPanel();panel.querySelector(`#expSeg [data-x="${S.exp}"]`)?.focus({preventScroll:true});});
-  buildExp();buildFacts();buildCmp();updateText();markPresets();
+  buildExp();setFam();buildFacts();buildCmp();AVX.build();GLX.build();updateText();markPresets();
 }
 function onTemp(){const o=$('#tOut');if(o)o.innerHTML=fmtTH(S.T);const tr=$('#temp');if(tr)valText(tr);const p=$('#phasePill'),ph=phase(el(),S.T);if(p){p.textContent=phaseLabel(ph);p.dataset.ph=ph;}panel.querySelectorAll('#band span').forEach(x=>x.classList.toggle('on',x.dataset.q===ph));markPresets();updateText();}
 function setT(T){S.T=T;const tr=$('#temp');if(tr)tr.value=t2s(T,el());onTemp();}
@@ -4692,7 +4808,7 @@ function sketch(c){
   let inner='';
   try{inner=c.dr==='mol'?(c.g?molSVG(c.g,W,H):''):latSVG(c,W,H);}catch(_){inner='';}
   if(!inner)return'';
-  return `<figure class="cfig"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.dr==='mol'?'Structure of ':'Crystal sketch of ')}${esc(c.n.toLowerCase())}">${inner}</svg><figcaption>${esc(sketchCaption(c))}</figcaption></figure>`;
+  return `<figure class="cfig"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.dr==='mol'?'Structure of ':'Crystal sketch of ')}${esc(c.n.toLowerCase())}">${inner}</svg><figcaption>${esc(sketchCaption(c))}</figcaption>${FXX.btn()}</figure>`;
 }
 const fmtTemp=t=>`${t<0?'−':''}${Math.abs(t).toLocaleString('en-GB')} °C`;
 function cite(r){
@@ -4715,10 +4831,690 @@ function cmpCard(id,c,z){
 }
 function cjump(z){const n=(ELC[z]||[]).filter(i=>CMP[i]).length;
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>${n?`${n} compound${n>1?'s':''}`:'Compounds'}`;}
+/* ---------- v8: the atom itself. A turning nucleus (protons and neutrons) with electrons on their shells ---------- */
+// electrons per shell (n = 1..7), read from the configuration string
+function shellsOf(e){
+  const sh=[0,0,0,0,0,0,0];
+  const add=cfg=>cfg.split(/\s+/).forEach(t=>{const c=t.match(/^\[(\w+)\]$/);if(c){add(byZ(symZ[c[1]]).cfg);return;}
+    const k=t.match(/^(\d)([spdf])(\d*)$/);if(k)sh[+k[1]-1]+=k[3]?+k[3]:1;});
+  add(e.cfg);while(sh.length>1&&!sh[sh.length-1])sh.pop();return sh;
+}
+// isotopes to offer: the natural ones, or the longest-lived one for elements with no stable isotope
+function isotopesOf(e){
+  if(e.nat&&e.nat.length)return e.nat.map(([a,p])=>({a,p}));
+  return [{a:e.hlm||Math.round(e.m),p:null}];
+}
+// outer (valence) electrons for main-group elements; null where the idea is not clear-cut (d and f block)
+function valenceOf(e){if(e.z===2)return 2;if(e.b==='s')return e.g;if(e.b==='p')return e.g-10;return null;}
+const AVX=(()=>{
+  const A={z:0,iso:0,mode:'atom',yaw:.5,pitch:.6,spin:!RM,t:0,last:0,drawn:0,raf:0,inview:false,drag:null,touch:0,nuc:null,sh:[],col:null,spr:{}};
+  const SHN='KLMNOPQ';
+  const cv=()=>$('#atomCv');
+  // pack A nucleons into a ball: low-discrepancy start, then push overlapping pairs apart
+  function pack(Z,N){
+    const n=Z+N;if(n===1)return {P:[[0,0,0]],s:.62,isP:[true]};
+    const s=Math.cbrt(.6/n),P=[];
+    for(let i=0;i<n;i++){const rr=Math.cbrt((i+.5)/n)*(1-s),u=(i*.7548776662+.37)%1,v=(i*.5698402910+.11)%1,th=Math.acos(1-2*u),ph=6.2831853*v;
+      P.push([rr*Math.sin(th)*Math.cos(ph),rr*Math.cos(th),rr*Math.sin(th)*Math.sin(ph)]);}
+    const min=2*s*.94;
+    for(let it=0;it<26;it++){
+      for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=P[i],b=P[j];let dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],d=Math.hypot(dx,dy,dz);
+        if(d<min){if(d<1e-6){dx=.01;dy=.013;dz=.007;d=.018;}const k=(min-d)/d*.5;a[0]-=dx*k;a[1]-=dy*k;a[2]-=dz*k;b[0]+=dx*k;b[1]+=dy*k;b[2]+=dz*k;}}
+      for(const p of P){const d=Math.hypot(p[0],p[1],p[2]);const k=d>1e-6?.985:1;p[0]*=k;p[1]*=k;p[2]*=k;}
+    }
+    // centre it and scale so the whole cluster fits a unit ball
+    const c=[0,0,0];P.forEach(p=>{c[0]+=p[0]/n;c[1]+=p[1]/n;c[2]+=p[2]/n;});
+    let m=0;P.forEach(p=>{p[0]-=c[0];p[1]-=c[1];p[2]-=c[2];m=Math.max(m,Math.hypot(p[0],p[1],p[2]));});
+    const f=1/(m+s);P.forEach(p=>{p[0]*=f;p[1]*=f;p[2]*=f;});
+    // protons spread evenly through the cluster
+    const r=rng(Z*131+n),idx=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+    const isP=Array(n).fill(false);idx.slice(0,Z).forEach(i=>{isP[i]=true;});
+    return {P,s:s*f,isP};
+  }
+  function sprite(col){
+    if(A.spr[col])return A.spr[col];
+    const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+    const gr=g.createRadialGradient(23,21,2,32,32,31);gr.addColorStop(0,'#ffffff');gr.addColorStop(.28,col);gr.addColorStop(1,'rgba(0,0,0,.55)');
+    g.fillStyle=col;g.beginPath();g.arc(32,32,31,0,6.2832);g.fill();
+    g.globalCompositeOperation='source-atop';g.globalAlpha=.9;g.fillStyle=gr;g.fillRect(0,0,64,64);
+    return A.spr[col]=c;
+  }
+  function colors(){
+    const cs=getComputedStyle(document.querySelector('.wrap')),v=n=>cs.getPropertyValue(n).trim();
+    // --accent may be a var() chain; a probe element resolves it to a plain colour
+    const probe=document.createElement('i');probe.style.cssText='position:absolute;visibility:hidden;color:var(--accent);background:var(--el-in);border-color:var(--line-2);outline-color:var(--muted)';
+    document.querySelector('.wrap').appendChild(probe);const ps=getComputedStyle(probe);
+    A.col={p:v('--nu-p'),n:v('--nu-n'),out:ps.color,inn:ps.backgroundColor,ring:ps.borderTopColor,txt:ps.outlineColor};probe.remove();A.spr={};
+  }
+  function draw(){
+    const c=cv();if(!c||!A.nuc)return;const w=c.clientWidth,h=c.clientHeight;if(!w||!h)return;
+    const dpr=Math.min(2,devicePixelRatio||1);if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}
+    const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+    if(!A.col)colors();const col=A.col;
+    const cx=w/2,cy=h/2+4,R=Math.min(w,h)/2-16;
+    const cyw=Math.cos(A.yaw),syw=Math.sin(A.yaw),cp=Math.cos(A.pitch),sp=Math.sin(A.pitch);
+    const nucleus=(Rn)=>{
+      const {P,s,isP}=A.nuc,items=P.map((p,i)=>{const x1=p[0]*cyw+p[2]*syw,z1=-p[0]*syw+p[2]*cyw,y2=p[1]*cp-z1*sp,z2=p[1]*sp+z1*cp;return [x1,y2,z2,isP[i]];});
+      items.sort((a,b)=>a[2]-b[2]);const rs=Math.max(1.2,s*Rn),sp_=sprite(col.p),sn_=sprite(col.n);
+      for(const [x,y,z,pr] of items){const k=1+z*.06;g.drawImage(pr?sp_:sn_,cx+x*Rn-rs*k,cy-y*Rn-rs*k,rs*2*k,rs*2*k);}
+    };
+    if(A.mode==='nuc'){nucleus(R*.86);return;}
+    const sh=A.sh,n=sh.length,nA=A.nuc.P.length,Rn=R*(.075+.05*Math.cbrt(nA/294));
+    const r0=Rn+Math.max(14,R*.09),rad=k=>n===1?R*.6:r0+(R-r0)*k/(n-1);
+    // shells: rings in one plane, seen at a tilt
+    g.lineWidth=1.2;
+    for(let k=0;k<n;k++){g.strokeStyle=col.ring;g.globalAlpha=k===n-1?.9:.5;g.beginPath();g.ellipse(cx,cy,rad(k),rad(k)*sp,0,0,6.2832);g.stroke();}
+    g.globalAlpha=1;
+    const es=[];
+    for(let k=0;k<n;k++){const m=sh[k],r=rad(k),w0=.55/Math.pow(k+1,.75),off=k*.9;
+      for(let i=0;i<m;i++){const th=i/m*6.2832+off+A.t*w0-A.yaw;es.push([r*Math.cos(th),-r*Math.sin(th)*sp,r*Math.sin(th)*cp,k===n-1,m]);}}
+    const dot=e=>{const rr=(e[4]>18?2.8:e[4]>8?3.3:4)*(1+e[2]/R*.18)*(e[3]?1.12:1);g.drawImage(sprite(e[3]?col.out:col.inn),cx+e[0]-rr,cy+e[1]-rr,rr*2,rr*2);};
+    es.filter(e=>e[2]<0).forEach(dot);nucleus(Rn);es.filter(e=>e[2]>=0).forEach(dot);
+    // electrons in each shell, written at the right-hand end of its ring
+    g.font='600 11px "IBM Plex Sans",system-ui,sans-serif';g.textAlign='left';g.textBaseline='middle';g.fillStyle=col.txt;
+    if(w>=300)for(let k=0;k<n;k++){const x=cx+rad(k)+5;if(x<w-10&&(n<6||k%2===n%2||k===n-1))g.fillText(String(sh[k]),x,cy);}
+  }
+  const visible=()=>rtab==='atom'&&!document.hidden&&A.inview;
+  function tick(now){
+    A.raf=0;if(!visible())return;
+    const dt=Math.min(.06,(now-A.last)/1000||0);A.last=now;
+    if(A.spin&&!A.drag){A.yaw+=dt*.32;A.t+=dt;if(now-A.touch>45000){A.spin=false;paintSpin();}}
+    if(now-A.drawn>30){A.drawn=now;draw();}
+    if(A.spin||A.drag)A.raf=requestAnimationFrame(tick);
+  }
+  function kick(){if(!visible())return;A.touch=performance.now();if(!A.raf){A.last=performance.now();A.raf=requestAnimationFrame(tick);}}
+  function paintSpin(){const b=$('#avSpin');if(b){b.textContent=A.spin?'Pause':'Spin';b.setAttribute('aria-pressed',String(A.spin));}}
+  function side(){
+    const e=el(),iso=isotopesOf(e),it=iso[Math.min(A.iso,iso.length-1)],N=it.a-e.z,sh=A.sh,v=valenceOf(e);
+    const cnt=(k,l,n,sub)=>`<div style="--k:${k}"><dt>${l}</dt><dd>${n}<small>${sub}</small></dd></div>`;
+    let h=`<div class="seg even" id="avMode" role="group" aria-label="What to look at" style="--cols:2"><button data-m="atom" aria-pressed="${A.mode==='atom'}">Whole atom</button><button data-m="nuc" aria-pressed="${A.mode==='nuc'}">Nucleus up close</button></div>`;
+    h+=`<dl class="av-counts">${cnt('var(--nu-p)','Protons',e.z,'positive, in the nucleus')}${cnt('var(--nu-n)','Neutrons',N,'no charge, in the nucleus')}${cnt('var(--accent)','Electrons',e.z,'negative, around it')}</dl>`;
+    h+=`<div><h3 class="av-h" id="avIsoH">Isotope <span style="text-transform:none;letter-spacing:0;font-weight:500">· same protons, different neutrons</span></h3><div class="presets" id="avIso" role="group" aria-labelledby="avIsoH">${iso.map((x,i)=>`<button class="chip" data-i="${i}" aria-pressed="${i===Math.min(A.iso,iso.length-1)}">${e.s}-${x.a}${x.p!=null?` · ${x.p}%`:' · longest-lived'}</button>`).join('')}</div></div>`;
+    h+=`<div><h3 class="av-h">Electron shells</h3><div class="av-shells">${sh.map((m,k)=>`<div class="${k===sh.length-1?'out':''}"><b>Shell ${k+1} <span style="color:var(--muted);font-weight:500">${SHN[k]}</span></b><span class="dots" aria-hidden="true">${'<i></i>'.repeat(m)}</span><span>${m}</span></div>`).join('')}</div></div>`;
+    const outer=sh[sh.length-1];
+    h+=`<p class="note"><b>${e.z} proton${e.z>1?'s':''}</b> ${e.z>1?'are':'is'} what makes this ${esc(e.n.toLowerCase())}: one more or one fewer and it would be a different element. ${v!=null?`Its outer shell holds <b>${outer} electron${outer>1?'s':''}</b>, the ${outer>1?'ones':'one'} that take${outer>1?'':'s'} part in bonding.`:`Its outer shell holds <b>${outer} electron${outer>1?'s':''}</b>; in metals like this, electrons from the shell underneath join in bonding too.`}</p>`;
+    h+=`<div class="av-row"><button class="act ghost" id="avSpin" type="button" aria-pressed="${A.spin}">${A.spin?'Pause':'Spin'}</button></div>`;
+    $('#avSide').innerHTML=h;
+    c_scale();
+  }
+  function c_scale(){const s=$('#avScale');if(s)s.textContent=A.mode==='nuc'?`${A.nuc.P.length} particles packed together`:'Not to scale: a real nucleus is about 100,000 times smaller than its atom';}
+  function setIso(){const e=el(),iso=isotopesOf(e),it=iso[Math.min(A.iso,iso.length-1)];A.nuc=pack(e.z,it.a-e.z);}
+  function build(){
+    const e=el();if(A.z===e.z)return;A.z=e.z;A.iso=0;A.sh=shellsOf(e);A.col=null;setIso();side();draw();kick();
+  }
+  function init(){
+    const box=$('#atom');
+    box.innerHTML=`<div class="av-stage"><canvas id="atomCv" role="img" aria-label="Model of the atom: a nucleus of protons and neutrons with electrons on shells around it"></canvas><div class="av-legend"><span><i style="background:var(--nu-p)"></i>Proton</span><span><i style="background:var(--nu-n)"></i>Neutron</span><span><i style="background:var(--accent)"></i>Outer electron</span><span><i style="background:var(--el-in)"></i>Inner electron</span></div><p class="av-scale" id="avScale"></p><p class="av-hint">Drag to turn</p></div><div class="av-side" id="avSide"></div>`;
+    const c=cv();
+    c.addEventListener('pointerdown',ev=>{A.drag={x:ev.clientX,y:ev.clientY};try{c.setPointerCapture(ev.pointerId);}catch(_){}kick();});
+    c.addEventListener('pointermove',ev=>{if(!A.drag)return;A.yaw+=(ev.clientX-A.drag.x)*.011;A.pitch=clamp(A.pitch+(ev.clientY-A.drag.y)*.008,.14,1.5);A.drag={x:ev.clientX,y:ev.clientY};A.touch=performance.now();if(!A.raf)draw();});
+    const up=()=>{A.drag=null;};c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
+    box.addEventListener('click',ev=>{
+      const m=ev.target.closest('#avMode button');if(m){A.mode=m.dataset.m;side();draw();kick();box.querySelector(`#avMode [data-m="${A.mode}"]`)?.focus({preventScroll:true});return;}
+      const i=ev.target.closest('#avIso .chip');if(i){A.iso=+i.dataset.i;setIso();side();draw();kick();box.querySelector(`#avIso [data-i="${A.iso}"]`)?.focus({preventScroll:true});return;}
+      if(ev.target.closest('#avSpin')){A.spin=!A.spin;paintSpin();kick();if(!A.spin)draw();}
+    });
+    new IntersectionObserver(en=>{A.inview=en[0].isIntersecting;if(A.inview){draw();kick();}}).observe(c);
+    document.addEventListener('visibilitychange',kick);
+    addEventListener('resize',()=>{if(rtab==='atom')draw();});
+    // theme changes repaint the model in the new colours
+    new MutationObserver(()=>{A.col=null;draw();}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{A.col=null;draw();});
+  }
+  return {init,build,kick,draw,state:A,recolor(){A.col=null;draw();}};
+})();
+/* ---------- v8: a glossary for each element. Only the terms its page uses, each with what it means for this element ---------- */
+// atoms in a formula, in the order written: "Ca5(PO4)3(OH)" -> [["Ca",5],["P",3],["O",13],["H",1]]
+function parseF(f){
+  const out={},order=[];
+  String(f).split('^')[0].split('·').forEach(part=>{
+    let mult=1;const lead=part.match(/^(\d+)(?=[A-Z(\[])/);if(lead){mult=+lead[1];part=part.slice(lead[1].length);}
+    const st=[{}];let i=0;
+    while(i<part.length){const ch=part[i];
+      if(ch==='('||ch==='['){st.push({});i++;}
+      else if(ch===')'||ch===']'){i++;let n='';while(/\d/.test(part[i]||''))n+=part[i++];const top=st.pop(),k=n?+n:1,dst=st[st.length-1]||(st[0]={});if(!st.length)st.push(dst);for(const s in top)dst[s]=(dst[s]||0)+top[s]*k;}
+      else{const m=part.slice(i).match(/^([A-Z][a-z]?)(\d*)/);if(!m){i++;continue;}i+=m[0].length;const cur=st[st.length-1];cur[m[1]]=(cur[m[1]]||0)+(m[2]?+m[2]:1);}}
+    while(st.length>1){const top=st.pop();for(const s in top)st[st.length-1][s]=(st[st.length-1][s]||0)+top[s];}
+    for(const s in st[0]){if(!(s in out)){out[s]=0;order.push(s);}out[s]+=st[0][s]*mult;}
+  });
+  return order.filter(s=>symZ[s]).map(s=>[s,out[s]]);
+}
+const enList=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+const cfgH=c=>esc(c).replace(/([spdf])(\d+)/g,'$1<sup>$2</sup>');
+const GLX=(()=>{
+  let gz=0,q='';
+  const FAM={
+    alkali:'The group 1 metals. Soft, low-melting and very reactive: each has a single outer electron that it gives up easily, so they are never found pure in nature.',
+    alkaline:'The group 2 metals. Each has two outer electrons to give away. Reactive, though less so than the alkali metals, and common in rocks, shells and bones.',
+    trans:'The metals in the middle block of the table. Mostly hard, dense and high-melting. They can give up different numbers of electrons, which is why many of their compounds are strongly coloured.',
+    post:'The softer, lower-melting metals that sit to the right of the transition metals.',
+    metalloid:'Elements in between metals and nonmetals. They can look metallic but are brittle, and several are semiconductors.',
+    nonmetal:'Elements that do not behave as metals: poor conductors that tend to gain or share electrons. They include the main elements of living things.',
+    halogen:'The group 17 elements. Each is one electron short of a full outer shell, so halogens react eagerly with metals to make salts.',
+    noble:'The group 18 elements. Their outer shells are already full, so they almost never react.',
+    lanth:'The 15 metals from lanthanum to lutetium, often called rare earths. They are chemically very alike and prized for magnets, lasers and phosphors.',
+    act:'The 15 metals from actinium to lawrencium. All are radioactive; only thorium and uranium are found in large amounts in nature.'};
+  const MODE={
+    A:['Alpha decay','The nucleus throws out an alpha particle (2 protons and 2 neutrons), so the atom becomes the element two places down the table.'],
+    'B-':['Beta decay','A neutron in the nucleus turns into a proton and an electron shoots out, so the atom becomes the next element up the table.'],
+    'B+':['Positron emission','A proton in the nucleus turns into a neutron, so the atom becomes the element one place down the table.'],
+    EC:['Electron capture','The nucleus pulls in one of its own inner electrons, turning a proton into a neutron, so the atom becomes the element one place down the table.'],
+    SF:['Spontaneous fission','The nucleus splits by itself into two smaller nuclei and a few loose neutrons.']};
+  const TYG={
+    ionic:['Ionic solid','A crystal made of positive and negative ions, held together by the pull between opposite charges. Usually hard, brittle and high-melting.'],
+    molecule:['Molecule','A group of atoms joined by shared electrons that moves around as one unit.'],
+    network:['Covalent network','A solid in which every atom is bonded to its neighbours in one continuous web, with no separate molecules. Usually very hard.'],
+    complex:['Metal complex','A metal atom or ion in the middle with other atoms or groups, called ligands, attached around it.'],
+    metallic:['Alloy','Metals joined by a shared “sea” of free-moving electrons. The ones shown here have fixed proportions, which chemists call intermetallic compounds.'],
+    extreme:['Only in extreme conditions','A compound that exists only under enormous pressure or extreme cold and falls apart otherwise.'],
+    'few-atoms':['Made a few atoms at a time','A compound known only from experiments with a handful of atoms, identified one by one as they decay.']};
+  function terms(e){
+    const n=esc(e.n),ln=esc(e.n.toLowerCase()),k=catOf(e),iso=isotopesOf(e),N=iso[0].a-e.z,sh=shellsOf(e),v=valenceOf(e),T=[];
+    const add=(g,t,d,f)=>T.push({g,t,d,f:f||''});
+    const pl=(x,w)=>`${x} ${w}${x===1?'':'s'}`;
+    /* the atom */
+    add('The atom','Atom','The smallest piece of an element that is still that element: a tiny nucleus with electrons around it.',`One ${ln} atom has <b>${pl(e.z,'proton')}</b>, <b>${pl(N,'neutron')}</b> and <b>${pl(e.z,'electron')}</b>.`);
+    add('The atom','Proton','A positively charged particle in the nucleus. The number of protons decides which element an atom is.',`${n} always has <b>${e.z}</b>.`);
+    add('The atom','Neutron','A particle in the nucleus with no charge. It adds mass and helps hold the nucleus together.',`${iso[0].p!=null?'The most common':'The longest-lived'} ${ln} atom, ${e.s}-${iso[0].a}, has <b>${N}</b>.`);
+    add('The atom','Electron','A very light, negatively charged particle that moves around the nucleus. Electrons are what atoms share or hand over when they bond.',`A neutral ${ln} atom has <b>${e.z}</b>.`);
+    add('The atom','Nucleus','The dense centre of an atom, made of protons and neutrons. It holds almost all of the atom’s mass in a space about 100,000 times smaller than the atom.',`${n}’s nucleus has <b>${iso[0].a} particles</b> in it.`);
+    add('The atom','Atomic number','The number of protons in the nucleus. It is also the element’s place in the table.',`${n} is number <b>${e.z}</b>.`);
+    add('The atom','Atomic mass','The average mass of the element’s atoms, in atomic mass units (u). One u is about the mass of a single proton or neutron.',`<b>${e.m} u</b>${e.nat?'':' for its longest-lived isotope, since it has no stable ones'}.`);
+    add('The atom','Isotope','Atoms of one element that have different numbers of neutrons. They behave almost the same in chemistry but differ in mass, and some are radioactive.',
+      e.nat?`Natural ${ln} is ${enList(e.nat.map(([a,p])=>`<b>${p}% ${e.s}-${a}</b>`))}${e.nat.reduce((t,x)=>t+x[1],0)<99.5?', plus traces of others':''}.`:`No isotope of ${ln} is stable. The longest-lived is <b>${e.s}-${iso[0].a}</b>.`);
+    add('The atom','Electron shell','A layer around the nucleus where electrons sit. Shells fill from the inside out, and the outermost one does the chemistry.',`${n}’s electrons sit in <b>${pl(sh.length,'shell')}</b>: ${sh.join(', ')}.`);
+    {const core=e.cfg.match(/^\[(\w+)\]\s*(.*)$/);
+      add('The atom','Electron configuration','Shorthand for where the electrons are. Each part is a shell number, a letter for the kind of sub-shell (s, p, d or f) and how many electrons it holds. A symbol in brackets means “the same as that noble gas, and then…”.',
+        core?`<b>${cfgH(e.cfg)}</b> means: ${esc(byZ(symZ[core[1]]).n.toLowerCase())}’s ${symZ[core[1]]} electrons${core[2]?`, plus ${e.z-symZ[core[1]]} more in ${esc(core[2].replace(/(\d[spdf])\d*/g,'$1').split(/\s+/).join(', '))}`:''}.`:`<b>${cfgH(e.cfg)}</b> means: ${pl(e.z,'electron')} in the first shell’s s sub-shell.`);}
+    if(v!=null)add('The atom','Valence electrons','The electrons in the outermost shell. They decide how an element bonds.',
+      `${n} has <b>${v}</b>${k==='noble'?', a full shell, which is why it barely reacts':v<=2&&METAL.has(e.s)?`, and tends to give ${v===1?'it':'them'} away`:v>=5?`, so it tends to gain or share ${8-v} more to reach a full shell of 8`:e.z===1?', and can share it, give it away or take one more':', and usually shares them'}.`);
+    /* on the table */
+    add('On the table','Period','A row of the periodic table. Every element in a row has the same number of electron shells.',`${n} is in period <b>${e.p}</b>.`);
+    if(e.g){const mates=EL.filter(x=>x.g===e.g&&x.z!==e.z&&!(x.z>=57&&x.z<=71)&&!(x.z>=89&&x.z<=103)).slice(0,3).map(x=>esc(x.n.toLowerCase()));
+      add('On the table','Group','A column of the periodic table. Elements in a column have similar outer electrons, so they behave alike.',`${n} is in group <b>${e.g}</b>${mates.length?`, with ${enList(mates)}`:''}.`);}
+    add('On the table','Block','The part of the table named after the kind of sub-shell being filled: s, p, d or f.',`${n} is in the <b>${e.b}-block</b>.`);
+    add('On the table',CATNAME[k],FAM[k],`${n} is ${/^[AEIOU]/.test(CATNAME[k])?'an':'a'} <b>${CATNAME[k].toLowerCase()}</b>.`);
+    if(e.en)add('On the table','Electronegativity','How strongly an atom pulls on the electrons in a bond, on the Pauling scale from about 0.7 to 4.0.',
+      `${n} scores <b>${e.en}</b>: ${e.z===9?'the highest of any element':e.en<1.3?'low, so it lets electrons go easily':e.en<2.4?'middling, so it tends to share':'high, so it pulls electrons toward itself'}.`);
+    /* physical */
+    const unk=bulkUnknown(e),pt=points(e),ph=phase(e,293.15);
+    add('Physical','Phase','Whether something is a solid, a liquid or a gas. It depends on the temperature.',unk?`${n} has never been collected in an amount large enough to see.`:`At room temperature ${ln} is a <b>${ph}</b>.`);
+    if(pt.mp&&!unk)add('Physical','Melting point','The temperature at which the solid turns to liquid.',`${n} melts at <b>${fmtC(pt.mp)}</b>${e.pred?' (predicted)':''}.`);
+    if(pt.bp&&!unk)add('Physical','Boiling point','The temperature at which the liquid turns to gas.',`${n} boils at <b>${fmtC(pt.bp)}</b>${e.pred?' (predicted)':''}.`);
+    if(e.sub)add('Physical','Sublimation','Turning straight from a solid into a gas, without melting first.',`At normal pressure ${ln} does this instead of melting.`);
+    add('Physical','Kelvin (K)','A temperature scale that starts at absolute zero, the coldest anything can be. 0 °C is 273.15 K.',`Room temperature, 20 °C, is about <b>293 K</b>.`);
+    if(e.d!=null&&!unk)add('Physical','Density','How much mass is packed into a given volume, in grams per cubic centimetre. Water is 1.',
+      `${n}: <b>${e.d} g/cm³</b>${ph==='gas'?', as a gas at room temperature':e.d<1?', so it floats on water':', so it sinks in water'}.`);
+    if(ALLO[e.z])add('Physical','Allotrope','Different forms of the same element, with its atoms arranged in different ways.',`${n}’s forms on this page: <b>${enList(Object.values(ALLO[e.z].opts).map(o=>esc(o.label.toLowerCase())))}</b>.`);
+    if(e.ab)add('Physical','Abundance in the crust','How much of the element there is in the rock of Earth’s crust, in milligrams per kilogram of rock.',`${n}: <b>${e.ab>=1000?(e.ab/1e4).toPrecision(3)+'%':e.ab+' mg/kg'}</b>.`);
+    if(!unk&&Math.abs(S.T-293.15)<2){const m=mechOf(e);if(m==='malleable'||m==='brittle'||m==='soft')
+      add('Physical',m==='brittle'?'Brittle':m==='soft'?'Soft':'Malleable',m==='brittle'?'Breaks or shatters when hit, instead of bending.':m==='soft'?'Easy to dent or cut, even with a knife.':'Can be hammered flat or bent without breaking, as most metals can.',`${n} at room temperature is <b>${m}</b>.`);}
+    /* radioactivity */
+    if(e.rad_){
+      add('Radioactivity','Radioactive','Having a nucleus that is unstable and breaks down by itself, giving off radiation as it does.',`Every isotope of ${ln} is radioactive.`);
+      if(e.hl)add('Radioactivity','Half-life','The time it takes for half of the atoms in a sample to decay. After two half-lives a quarter is left, and so on.',`${e.s}-${e.hlm}: <b>${fmtDur(e.hl)}</b>.`);
+      if(MODE[e.mode]){const d=decayDaughter(e);add('Radioactivity',MODE[e.mode][0],MODE[e.mode][1],d?`${e.s}-${e.hlm} decays this way into <b>${esc(d.n.toLowerCase())}</b>.`:`${e.s}-${e.hlm} decays this way.`);}
+      if(!e.nat&&!e.ab)add('Radioactivity','Synthetic element','An element made in a nuclear reactor or a particle accelerator, because nature holds none, or only the faintest trace.',`${n} is one of them.`);
+      if(e.pred)add('Radioactivity','Predicted value','A figure worked out from theory, because too little of the element has ever been made to measure it.',`${n}’s melting point and density here are predictions.`);
+    }
+    /* experiments on this page */
+    const ex=experiments(e).map(x=>x[0]);
+    if(ex.includes('flame'))add('Experiments','Flame test','Heating a substance in a flame to see the colour it gives. Heat lifts electrons to higher levels, and each element gives out its own colours of light as they drop back.',`${n} has one on this page.`);
+    if(ex.includes('tube'))add('Experiments','Emission spectrum','Run electricity through a gas and it glows. Split with a prism, that glow is a set of sharp coloured lines, a fingerprint no other element shares.',`${n}’s lines are drawn under its glow tube.`);
+    if(ex.includes('air'))add('Experiments','Oxidation','Reacting with oxygen. On a metal it builds a dull or coloured skin called tarnish; on iron the result is rust.',NOBLE_AIR.has(e.z)&&!AIR[e.z]?`${n} resists it, which is why it stays bright in air.`:`The Air experiment shows what it does to ${ln}.`);
+    if(ex.includes('water'))add('Experiments','Reactivity','How readily a substance changes into something else when it meets another, such as water or air.',`The Water experiment shows how ${ln} behaves.`);
+    if(ex.includes('magnet')){
+      const mg=MAG[e.z];
+      if(mg&&mg[0]==='F'){add('Experiments','Ferromagnetic','Strongly pulled by a magnet, and able to become a magnet itself, because the tiny magnets of its atoms line up together.',`${n} is ferromagnetic.`);
+        add('Experiments','Curie temperature','The temperature above which a ferromagnetic material loses its magnetism, because heat scrambles the lined-up atoms.',`For ${ln}: <b>${fmtC(mg[1])}</b>.`);}
+      else if(mg)add('Experiments','Magnetism','How a material responds to a magnet. A few are pulled strongly (ferromagnetic), many are pulled very weakly (paramagnetic) and the rest are pushed away very slightly (diamagnetic).',`The Magnet experiment shows which ${ln} is.`);
+      if(TC[e.z])add('Experiments','Superconductor','A material that carries electricity with no resistance at all once it is cold enough, and pushes magnetic fields out of itself.',`${n} becomes one below <b>${TC[e.z]} K</b> (${fmtC(TC[e.z])}).`);
+    }
+    if(ex.includes('dark'))add('Experiments','Luminescence','Giving off light without being hot, for example from a chemical reaction or from radioactivity.',`Switch the lights off on this page to see ${ln} do it.`);
+    if(ex.includes('decay'))add('Experiments','Decay','An unstable nucleus changing into a different one. Each decay turns one atom into an atom of another element.',`The Decay experiment runs ${ln}’s clock forward.`);
+    /* compounds */
+    const ids=(ELC[e.z]||[]).filter(i=>CMP[i]);
+    if(ids.length){
+      const cs=ids.map(i=>CMP[i]),c0=cs[0],pf=parseF(c0.f);
+      add('Compounds','Compound','A substance made of two or more elements bonded together in fixed proportions. It can look and behave nothing like the elements it is made from.',`<b>${ids.length}</b> of ${ln}’s are on the Compounds tab.`);
+      add('Compounds','Chemical formula','Symbols and small numbers that say which atoms are in a compound and how many of each.',pf.length?`${fml(c0.f)} (${esc(c0.n.toLowerCase())}) means ${enList(pf.map(([s,x])=>`${x} ${esc(byZ(symZ[s]).n.toLowerCase())}`))}.`:'');
+      add('Compounds','Bond','The pull that holds atoms together. It comes from atoms sharing electrons or handing them over.',`Press “How it forms” on any compound to watch it happen.`);
+      if(cs.some(c=>c.ty==='ionic'||c.g&&c.g.q||/\^/.test(c.f)))add('Compounds','Ion','An atom, or a group of atoms, with an electric charge, because it has lost or gained electrons.','');
+      const seen=new Set();cs.forEach(c=>{if(TYG[c.ty]&&!seen.has(c.ty)){seen.add(c.ty);const ex1=cs.filter(x=>x.ty===c.ty).slice(0,2).map(x=>esc(x.n.toLowerCase()));add('Compounds',TYG[c.ty][0],TYG[c.ty][1],`Here: ${enList(ex1)}.`);}});
+      if(seen.has('complex'))add('Compounds','Ligand','An atom or group of atoms that attaches to a metal by lending it a pair of electrons.','');
+      if(cs.some(c=>c.g&&c.g.a.some(a=>a.length===6)))add('Compounds','Skeletal formula','The zig-zag way of drawing carbon compounds. Every corner and line end is a carbon atom, and the hydrogens on carbon are left out.','');
+      if(cs.some(c=>/·/.test(c.f)))add('Compounds','Water of crystallisation','Water molecules locked into a crystal in a fixed number, written after a dot in the formula.','');
+    }
+    return T;
+  }
+  function render(){
+    const e=el(),T=terms(e),ql=q.trim().toLowerCase();
+    const show=ql?T.filter(t=>t.t.toLowerCase().includes(ql)||t.d.toLowerCase().includes(ql)):T;
+    const groups=[...new Set(show.map(t=>t.g))];
+    $('#glBody').innerHTML=show.length?groups.map(g=>`<section class="gl-sec"><h3>${g}</h3><dl class="gl-grid">${show.filter(t=>t.g===g).map(t=>`<div class="gl-i"><dt>${t.t}</dt><dd>${t.d}</dd>${t.f?`<dd class="gl-for">${t.f}</dd>`:''}</div>`).join('')}</dl></section>`).join(''):`<p class="gl-none">No term matches “${esc(q)}”.</p>`;
+    $('#glIntro').textContent=`The ${T.length} terms used on ${e.n.toLowerCase()}’s page, each with what it means for ${e.n.toLowerCase()}.`;
+  }
+  function build(){const e=el();if(gz===e.z)return;gz=e.z;render();}
+  function init(){
+    $('#gloss').innerHTML=`<div class="gl-top"><p id="glIntro"></p><input class="gl-find" id="glFind" type="search" placeholder="Find a term" aria-label="Find a term in the glossary" autocomplete="off"></div><div id="glBody" style="display:grid;gap:14px"></div>`;
+    $('#glFind').addEventListener('input',ev=>{q=ev.target.value;render();});
+  }
+  return {init,build,terms};
+})();
+/* ---------- v8: how a compound forms. Four scenes per compound: the atoms, what their electrons do, the structure, what it is used for ----------
+   A simplified picture of the bonding, built from each compound's formula, type and charges. The real recipe stays in the card's "Forms" line. */
+const FXX=(()=>{
+  const W=320,SUPC={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+  // charges for mixed-metal oxides whose data carries none (each set balances to zero)
+  const CHX={'calcium-titanate':{Ca:'2+',Ti:'4+',O:'2-'},'vanadium-pentoxide':{V:'5+',O:'2-'},'strontium-titanate':{Sr:'2+',Ti:'4+',O:'2-'},'strontium-aluminate':{Sr:'2+',Al:'3+',O:'2-'},
+    'yttrium-aluminium-garnet':{Y:'3+',Al:'3+',O:'2-'},'zirconium-tungstate':{Zr:'4+',W:'6+',O:'2-'},'lithium-niobate':{Li:'+',Nb:'5+',O:'2-'},'cadmium-chloride':{Cd:'2+',Cl:'-'},
+    'lanthanum-cuprate':{La:'3+',Cu:'2+',O:'2-'},'neodymium-nickelate':{Nd:'3+',Ni:'+',O:'2-'},'dysprosium-titanate':{Dy:'3+',Ti:'4+',O:'2-'},'holmium-titanate':{Ho:'3+',Ti:'4+',O:'2-'},
+    'tantalum-pentoxide':{Ta:'5+',O:'2-'},'lithium-tantalate':{Li:'+',Ta:'5+',O:'2-'},'tungsten-trioxide':{W:'6+',O:'2-'},'platinum-dioxide':{Pt:'4+',O:'2-'},'americium-oxychloride':{Am:'3+',O:'2-',Cl:'-'}};
+  const USE=[
+    ['atom','Nuclear and radiation',/\b(nuclear|reactors?|radioactiv|radiation|fission|tracers?|radiotherap|gamma|x-rays?|neutrons?)\b/i],
+    ['battery','Batteries',/\b(batter(y|ies)|electrodes?|cathodes?|anodes?|fuel cells?)\b/i],
+    ['med','Medicine',/\b(medicin|drugs?|cancer|tumou?rs?|treat(s|ed|ment|ing)?|therap|antiseptic|anaesthe|MRI|scans?|imaging|vaccin|tooth|teeth|dental|antacid|laxative|arthritis|infection|patients?|bones?|ulcers?|wounds?)\b/i],
+    ['chip','Electronics',/\b(semiconductors?|chips?|transistors?|solar cells?|solar panels?|electronics?|sensors?|detectors?|superconduct|capacitors?|circuits?|memory|hard dis[ck]s?|touch ?screens?|piezo)\b/i],
+    ['bulb','Light',/\b(lasers?|LEDs?|OLEDs?|lamps?|lighting|phosphors?|displays?|screens?|glow|scintillat|fluoresc|luminesc|lenses|optic)/i],
+    ['magnet','Magnets',/\bmagnet/i],
+    ['leaf','Farming',/\b(fertili[sz]ers?|crops?|soil|pesticides?|fungicides?|herbicides?|farm|plants? grow|insecticides?)\b/i],
+    ['food','Food',/\b(food|seasoning|baking|drinks?|sweeten|flavou?r|nutri|diet|vitamins?|preserv|cooking)\b/i],
+    ['palette','Colour',/\b(pigments?|paints?|dyes?|colou?rs?|glazes?|inks?|stain(s|ing)?)\b/i],
+    ['flame','Fuel and fire',/\b(fuels?|rockets?|burn(s|ed|ing)?|explosives?|propellants?|fireworks?|flame|matches|detonat|welding)\b/i],
+    ['spark','Cleaning',/\b(clean|bleach|disinfect|purif|water treatment|soaps?|detergents?|steril)/i],
+    ['cube','Materials',/\b(cement|concrete|glass|ceramics?|steel|alloys?|plaster|abrasives?|cutting|drill|coatings?|armou?r|plastics?|rubber|metal|ore|refin|smelt|hard|polish|lubric|gem|jewel)/i],
+    ['flask','Chemistry',/./]];
+  const ICON={
+    atom:'<circle cx="12" cy="12" r="1.6" fill="currentColor"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/>',
+    battery:'<rect x="3" y="7.5" width="16" height="9" rx="2"/><path d="M21.5 10.5v3M7 12h3M8.5 10.5v3M13.5 12h3"/>',
+    med:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>',
+    chip:'<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>',
+    bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+    magnet:'<path d="M6 4v8a6 6 0 0 0 12 0V4h-4v8a2 2 0 0 1-4 0V4zM6 8h4M14 8h4"/>',
+    leaf:'<path d="M5 19c0-9 5-14 14-14 0 9-5 14-14 14zM5 19l8-8"/>',
+    food:'<path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10M16 21V3c-2 1.5-3 4-3 8h3"/>',
+    palette:'<path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-2 0-1.4 1-2 2.4-2H18a3 3 0 0 0 3-3c0-5-4-9-9-9z"/><circle cx="8" cy="10.5" r="1" fill="currentColor"/><circle cx="12" cy="7.5" r="1" fill="currentColor"/><circle cx="16" cy="10.5" r="1" fill="currentColor"/>',
+    flame:'<path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/>',
+    spark:'<path d="M11 3l1.9 5.1L18 10l-5.1 1.900L11 17l-1.900-5.100L4 10l5.100-1.900zM18 15l.9 2.100L21 18l-2.100.900L18 21l-.900-2.100L15 18l2.100-.900z"/>',
+    cube:'<path d="M12 3l8 4.500v9L12 21l-8-4.500v-9zM12 12l8-4.500M12 12v9M12 12L4 7.500"/>',
+    flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.800 3h10.400a2 2 0 0 0 1.800-3l-5-9V3M7.500 15h9"/>'};
+  const useOf=c=>{const u=USE.find(x=>x[2].test(c.us));return {k:u[0],l:u[1]};};
+  const nm=s=>byZ(symZ[s]).n.toLowerCase();
+  const sup=q=>(Math.abs(q)>1?String(Math.abs(q)).replace(/\d/g,d=>SUPC[d]):'')+(q>0?'⁺':'⁻');
+  const pl=(x,w)=>`${x} ${w}${x===1?'':'s'}`;
+  const ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const figH=c=>c.dr==='mol'?170:c.dr==='layer'?Math.max(150,Math.min(220,40+c.rows.length*26)):150;
+  const SUB=n=>String(n).replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[+d]);
+  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  // the one compound here where the usual pictures are plain wrong
+  const SPEC={'disodium-helide':{kind:'electride',B:'<b>Electrons are squeezed out.</b> Under enormous pressure each sodium atom lets go of its outer electron, but helium does not take it. The loose electrons pair up in gaps in the crystal, and the helium atoms sit in other gaps without bonding to anything.'}};
+
+  // ---------- element-level summary of the compound (drives the captions) ----------
+  function model(id,c){
+    let toks=parseF(c.f).slice(0,6).map(([s,n])=>({s,n}));
+    if(!toks.length)toks=c.els.filter(s=>symZ[s]).slice(0,6).map(s=>({s,n:1}));
+    const q={},src=c.ch||CHX[id];
+    if(src){for(const s in src){const m=String(src[s]).match(/^(\d*)([+-])$/);if(m)q[s]=(m[1]?+m[1]:1)*(m[2]==='+'?1:-1);}}
+    else if(c.g){const bd=new Set();c.g.b.forEach(b=>{bd.add(b[0]);bd.add(b[1]);});(c.g.c||[]).forEach(x=>bd.add(x[0]));
+      c.g.a.forEach((a,i)=>{if(!bd.has(i)&&a[3])q[a[0]]=a[3];});}
+    toks.forEach(t=>{t.e=byZ(symZ[t.s]);t.q=q[t.s]||0;t.metal=METAL.has(t.s);const v=valenceOf(t.e);t.val=v!=null?v:clamp(t.q>0?t.q:2,1,6);t.role='';});
+    let kind=c.ty==='ionic'?'ionic':c.ty==='metallic'?'metal':c.ty==='complex'?'complex':'share',generic=false,balanced=false;
+    if(kind==='ionic'){
+      let don=toks.filter(t=>t.q>0);
+      if(!don.length){don=toks.filter(t=>t.metal);generic=true;}
+      don.forEach(t=>{t.role='don';if(generic)t.give=Math.min(t.val,3);else{t.val=Math.min(8,valenceOf(t.e)!=null?Math.max(t.val,t.q):t.q);t.give=Math.min(t.q,t.val);}});
+      toks.forEach(t=>{if(t.role)return;t.role=t.q<0?'acc':generic&&!t.metal&&(t.e.en>=2.5||catOf(t.e)==='halogen')?'acc':'grp';});
+      // no charges on record: the metals give what the non-metals need to fill their outer shells
+      if(generic){const acc=toks.filter(t=>t.role==='acc');
+        if(acc.length&&acc.every(t=>valenceOf(t.e)!=null)){let need=acc.reduce((s,t)=>s+t.n*Math.max(1,8-t.val),0)-toks.filter(t=>t.role==='grp'&&valenceOf(t.e)!=null).reduce((s,t)=>s+t.n*Math.min(t.val,8-t.val),0);
+          const mg=don.filter(t=>valenceOf(t.e)!=null),df=don.filter(t=>valenceOf(t.e)==null);
+          mg.forEach(t=>{t.give=Math.min(t.val,3,Math.ceil(need/Math.max(1,don.reduce((s,d)=>s+d.n,0))));if(df.length)t.give=Math.min(t.val,3);need-=t.give*t.n;});
+          const ndf=df.reduce((s,t)=>s+t.n,0);df.forEach(t=>{t.give=clamp(Math.ceil(Math.max(0,need)/Math.max(1,ndf)),1,7);t.val=t.give;});}}
+      if(!don.length||don.length===toks.length)kind='share';
+      balanced=!generic&&toks.every(t=>t.q)&&toks.reduce((s,t)=>s+t.n*t.q,0)===0;
+    }
+    if(kind==='complex'){
+      let cen=toks.filter(t=>t.metal&&!(t.q>0));if(!cen.length)cen=toks.filter(t=>t.metal);
+      if(!cen.length)kind='share';
+      else toks.forEach(t=>{t.role=cen.includes(t)?'cen':t.metal?'ctr':'lig';});
+    }
+    if(kind==='share'||kind==='metal')toks.forEach(t=>{t.role='';});
+    if(SPEC[id])kind=SPEC[id].kind;
+    return {id,c,toks,kind,generic,balanced,H:Math.max(186,figH(c)+20),nx:0,nout:0,multi:false};
+  }
+
+  // ---------- drawing plan: the atoms that are drawn (M.at) and where each outer electron ends up (M.E) ----------
+  // Three levels of detail: every atom of the drawn structure, every atom of a small formula unit, or one token per element.
+  function plan(M){
+    const c=M.c;M.mode='kind';M.err='';
+    if(c.dr==='mol'&&c.g&&c.g.a.length<=24&&c.g.a.every(a=>symZ[a[0]])){
+      const G=geom(c.g,figH(c));
+      if(G.s>=24){try{graph(M,G);if(!(M.kind==='ionic'&&!M.nx)){M.mode='graph';return;}M.nout=0;M.multi=false;}catch(x){M.err=String(x&&x.stack||x);}}
+    }
+    const tot=M.toks.reduce((s,t)=>s+t.n,0);
+    if(M.kind!=='complex'&&tot<=7&&M.toks.length<=3&&M.toks.every(t=>Number.isInteger(t.n))){
+      try{unit(M);M.mode='unit';return;}catch(x){M.err=String(x&&x.stack||x);}
+    }
+    kinds(M);
+  }
+  // same fit as the finished drawing (molSVG), so the atoms land exactly where the drawing appears
+  function geom(g,H){
+    const A=g.a;let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;A.forEach(a=>{x0=Math.min(x0,a[1]);x1=Math.max(x1,a[1]);y0=Math.min(y0,a[2]);y1=Math.max(y1,a[2]);});
+    (g.q||[]).forEach(q=>{x0=Math.min(x0,q[0]-.6);x1=Math.max(x1,q[2]+.9);y0=Math.min(y0,q[1]-.5);y1=Math.max(y1,q[3]+.5);});
+    const pad=26,s=Math.min(A.length<=5?48:38,(W-2*pad)/Math.max(x1-x0,.01),(H-2*pad)/Math.max(y1-y0,.01)),cx=(x0+x1)/2,cy=(y0+y1)/2;
+    return {s,P:A.map(a=>[(a[1]-cx)*s+W/2,(a[2]-cy)*s+H/2])};
+  }
+  // the usual number of bonds a main-group atom makes, allowing for its charge and any hydrogens folded into its label
+  const NV=t=>{if(t.v==null||t.v===8||t.s==='He')return 0;const base=t.s==='H'?1:Math.min(t.v,8-t.v);return Math.max(0,(t.v>=4?base+t.q:base-t.q)-t.h);};
+
+  function graph(M,G){
+    const g=M.c.g,off=(M.H-figH(M.c))/2-6,r0=clamp(G.s*.34,8,16);
+    const at=g.a.map((a,i)=>{const e=byZ(symZ[a[0]]),sk=a.length===6,h=a[4]||0,v=valenceOf(e);
+      return {i,s:a[0],e,q:a[3]||0,h,sk,v,df:v==null,metal:METAL.has(a[0]),B:[G.P[i][0],G.P[i][1]+off],r:sk?r0*.86:r0,lab:a[0]+(h?'H'+(h>1?SUB(h):''):''),bs:[],bo:0,cnt:0,give:0,need:0,want:0,ring:0,xq:0};});
+    at.forEach(t=>{t.cq=t.q;});
+    const bonds=g.b.map(b=>({a:b[0],b:b[1],o:clamp(Math.round(b[2]||1),1,4),sa:0,sb:0,np:0}));
+    bonds.forEach(b=>{at[b.a].bs.push(b);at[b.b].bs.push(b);at[b.a].bo+=b.o;at[b.b].bo+=b.o;b.np=b.o;});
+    const other=(b,t)=>at[b.a===t.i?b.b:b.a];
+    // a bracketed positive charge belongs to the metal inside the bracket
+    (g.q||[]).forEach(([qx0,qy0,qx1,qy1,Q])=>{if(!(Q>0))return;
+      const ins=at.filter(t=>{const a=g.a[t.i];return a[1]>=qx0-.01&&a[1]<=qx1+.01&&a[2]>=qy0-.01&&a[2]<=qy1+.01;});
+      const m=ins.find(t=>t.df&&!t.q)||ins.find(t=>t.metal&&!t.q);if(m)m.xq+=Q;});
+    // rings held face-on to a metal (dashed line in the drawing): each ring atom brings one electron, the metal tops up odd rings
+    const rings=(g.c||[]).map(([mi,ids])=>({m:mi,ids,extra:ids.length===5?1:ids.length===8?2:0,el:[]}));
+    rings.forEach(R=>{R.ids.forEach(i=>{at[i].ring++;});});
+    // how many electrons each end puts into each bond
+    bonds.forEach(b=>{const x=at[b.a],y=at[b.b];b.sa=b.sb=b.o;});
+    bonds.forEach(b=>{const x=at[b.a],y=at[b.b];if(x.metal===y.metal)return;const L=x.metal?y:x,Mt=x.metal?x:y;
+      // carbon monoxide and cyanide-like carbons lend the metal a pair
+      const co=L.s==='C'&&!L.sk&&L.bs.some(k=>k!==b&&other(k,L).s==='O'&&k.o>=2)&&L.bs.filter(k=>!other(k,L).metal).length===1;
+      const rem=NV(L)-L.bs.reduce((s,k)=>s+(other(k,L).metal?0:k.o),0);
+      if(co||rem<1){b.np=co?1:b.o;if(x===Mt){b.sa=0;b.sb=2*b.np;}else{b.sb=0;b.sa=2*b.np;}}});
+    at.forEach(t=>{if(t.s!=='H'||t.bs.length!==2)return;t.bs.forEach((b,k)=>{const mine=b.a===t.i;b.np=1;b.half=1;if(mine){b.sa=k?0:1;b.sb=k?1:0;}else{b.sb=k?0:1;b.sa=k?1:0;}});});
+    at.forEach(t=>{t.want=t.bs.reduce((s,b)=>s+(b.a===t.i?b.sa:b.sb),0);});
+    at.forEach(t=>{t.give=t.q>0?t.q:t.xq;t.need=t.q<0?-t.q:0;
+      if(t.df)t.cnt=t.want+t.give;else{t.cnt=t.sk?Math.min(4,t.bo+t.ring):Math.max(0,t.v-t.h);t.give=Math.min(t.give,t.cnt);}});
+    rings.forEach(R=>{const m=at[R.m];if(m.df)m.cnt+=R.extra;});
+    at.forEach(t=>{t.av=t.cnt-t.give+t.need-(t.sk?t.ring:0);});
+    // an atom short of electrons for its bonds lets a neighbour that has spare ones supply the pair
+    let spare=at.reduce((s,t)=>s+t.give-t.need,0);
+    at.forEach(t=>{let d=t.want-t.av;t.def=0;if(d<=0)return;
+      if(spare>0){const k=Math.min(d,spare);t.def=k;spare-=k;d-=k;if(d<=0)return;}
+      const bs=t.bs.slice().sort((p,q)=>(NV(other(p,t))-other(p,t).bo)-(NV(other(q,t))-other(q,t).bo));
+      for(const b of bs){const mine=b.a===t.i,o=other(b,t);let sp=o.av-o.want;
+        while(d>0&&sp>0&&(mine?b.sa:b.sb)>0){if(mine){b.sa--;b.sb++;}else{b.sb--;b.sa++;}d--;sp--;o.want++;t.want--;}}
+      t.def+=Math.max(0,d);});
+    // who hands electrons to whom
+    const src=[];at.forEach(t=>{for(let k=0;k<t.give;k++)src.push(t);});
+    const snk=[];at.forEach(t=>{for(let k=0;k<t.need;k++)snk.push(t);});at.forEach(t=>{for(let k=0;k<t.def;k++)snk.push(t);});
+    const xf=[];
+    const nearest=(t,L)=>{let bi=0,bd=1e9;L.forEach((o,k)=>{const d=dist(o.B,t.B);if(d<bd){bd=d;bi=k;}});return bi;};
+    while(src.length&&snk.length){const s=src.shift(),k=nearest(s,snk);xf.push([s,snk.splice(k,1)[0]]);}
+    // spare electrons stand in for ones a d- or f-block metal would otherwise put into its bonds
+    while(src.length){const m=at.find(t=>t.df&&t.cnt-t.give>0&&t!==src[0]);if(!m)break;m.cnt--;xf.push([src.shift(),m]);}
+    // an anion still waiting takes its electron from such a metal
+    while(snk.length){const L=at.filter(t=>t.df);if(!L.length)break;const t=snk.shift(),m=L[nearest(t,L)];m.cnt++;m.give++;xf.push([m,t]);}
+    M.nout=src.length;
+    // the electrons themselves
+    const E=[];at.forEach(t=>{t.pool=[];for(let k=0;k<t.cnt;k++){const e={i:t.i,k,n:t.cnt,end:null,mv:0};E.push(e);t.pool.push(e);}});
+    const moved=xf.map(([s,t])=>{const e=s.pool.pop();if(e)e.mv=1;return [e,t];});
+    src.forEach(s=>{const e=s.pool.pop();if(e){e.mv=1;e.end={t:'out'};}});
+    rings.forEach(R=>{R.ids.forEach(i=>{const e=at[i].pool.pop();if(e)R.el.push(e);});for(let k=0;k<R.extra;k++){const e=at[R.m].pool.pop();if(e)R.el.push(e);}
+      R.el.forEach((e,k)=>{e.mv=1;e.end={t:'ring',m:R.m,ids:R.ids,a:k/R.el.length*2*Math.PI,rr:R.el.length>6?7.5:5.5};});});
+    moved.forEach(([e,t])=>{if(e)t.pool.push(e);});
+    M.nx=moved.filter(x=>x[0]).length;
+    bonds.forEach(b=>{const la=at[b.a].pool.splice(0,b.sa),lb=at[b.b].pool.splice(0,b.sb),free=[];
+      if(b.half)free.push([0,0]);else for(let p=0;p<b.np;p++)free.push([p,-1],[p,1]);
+      const put=(e,side)=>{let k=free.findIndex(f=>f[1]===side);if(k<0)k=0;const f=free.splice(k,1)[0];if(!f){at[e.i].pool.push(e);return;}
+        e.end={t:'bond',a:b.a,b:b.b,al:f[1],pp:f[0]-(b.np-1)/2};e.mv=1;};
+      la.forEach(e=>put(e,-1));lb.forEach(e=>put(e,1));if(b.np>1)M.multi=true;});
+    // what is left on each atom settles into pairs, clear of its bonds
+    const adiff=(a,u)=>{const x=Math.abs(a-u)%(2*Math.PI);return x>Math.PI?2*Math.PI-x:x;};
+    at.forEach(t=>{const L=t.pool;if(!L.length)return;
+      const used=t.bs.map(b=>{const o=other(b,t);return Math.atan2(o.B[1]-t.B[1],o.B[0]-t.B[0]);});
+      rings.forEach(R=>{if(R.m===t.i){const cx=R.ids.reduce((s,i)=>s+at[i].B[0],0)/R.ids.length,cy=R.ids.reduce((s,i)=>s+at[i].B[1],0)/R.ids.length;used.push(Math.atan2(cy-t.B[1],cx-t.B[0]));}});
+      const angs=[];
+      for(let p=0;p<Math.ceil(L.length/2);p++){let best=-Math.PI/2,bd=-1;
+        if(used.length||angs.length)for(let k=0;k<16;k++){const a=-Math.PI/2+k*Math.PI/8,d=Math.min(...used.concat(angs).map(u=>adiff(a,u)));if(d>bd+1e-6){bd=d;best=a;}}
+        angs.push(best);}
+      L.forEach((e,k)=>{const pair=(k^1)<L.length;e.end={t:'lone',i:t.i,ang:angs[k>>1],off:pair?(k&1?1:-1):0};});});
+    // scene A: the same arrangement pulled apart, as far as the frame allows
+    const cx=at.reduce((s,t)=>s+t.B[0],0)/at.length,cy=at.reduce((s,t)=>s+t.B[1],0)/at.length;let k=at.length<=6?1.55:1.3;
+    at.forEach(t=>{const dx=t.B[0]-cx,dy=t.B[1]-cy,m=t.r+12;
+      if(dx>1)k=Math.min(k,(W-m-cx)/dx);if(dx<-1)k=Math.min(k,(cx-m)/-dx);if(dy>1)k=Math.min(k,(M.H-m-4-cy)/dy);if(dy<-1)k=Math.min(k,(cy-m)/-dy);});
+    k=Math.max(1,k);at.forEach(t=>{t.A=[cx+(t.B[0]-cx)*k,cy+(t.B[1]-cy)*k];});
+    M.at=at;M.E=E;M.er=r0>=11?2.3:1.9;
+    const uniq=L=>[...new Set(L)];
+    M.ligs=uniq(at.filter(t=>!t.metal&&(t.ring||t.bs.some(b=>other(b,t).metal))).map(t=>t.s));
+    M.ctrs=uniq(at.filter(t=>!t.bs.length&&!t.ring&&t.q&&!rings.some(R=>R.m===t.i)).map(t=>t.s));
+  }
+
+  function unit(M){
+    const at=[];M.toks.forEach(t=>{for(let k=0;k<t.n;k++)at.push({s:t.s,e:t.e,q:t.q,role:t.role,val:Math.min(8,t.val),give:t.give||0,metal:t.metal,lab:t.s,kd:t});});
+    const n=at.length,cy=M.H/2-10,r=n<=2?28:n===3?25:n<=5?19:15;
+    at.forEach((t,i)=>{t.i=i;t.r=r;t.cq=M.kind==='ionic'&&t.role!=='grp'?t.q:0;});
+    const perRow=n<=5?n:Math.ceil(n/2);
+    at.forEach((t,i)=>{const row=Math.floor(i/perRow),inRow=row?n-perRow:perRow,k=i%perRow;t.A=[W*(k+1)/(inRow+1),n<=5?cy:cy+(row-.5)*(2*r+28)];});
+    const adj=[],sp=L=>Math.min(2*r+26,(W-2*r-34)/Math.max(1,L-1));
+    let done=false;
+    if(M.toks.length===2){
+      const a=M.toks[0].n<=M.toks[1].n?M.toks[0]:M.toks[1],b=a===M.toks[0]?M.toks[1]:M.toks[0],mi=at.filter(t=>t.kd===a),ma=at.filter(t=>t.kd===b);
+      if(a.n===1&&b.n>=3){
+        const m=ma.length,R=clamp(Math.max(2*r+18,(2*r+12)*m/(2*Math.PI)),30,cy-r-10);mi[0].B=[W/2,cy];
+        ma.forEach((t,k)=>{const an=-Math.PI/2+(k+(m%2?0:.5))/m*2*Math.PI;t.B=[W/2+Math.cos(an)*R*1.3,cy+Math.sin(an)*R];adj.push([mi[0].i,t.i]);});done=true;
+      }else if(b.n-a.n<=1){
+        const x=b.n>a.n?[ma,mi]:(M.toks[0]===a?[mi,ma]:[ma,mi]),ord=[];for(let k=0;k<x[0].length;k++){ord.push(x[0][k]);if(x[1][k])ord.push(x[1][k]);}
+        ord.forEach((t,k)=>{t.B=[W/2+(k-(ord.length-1)/2)*sp(ord.length),cy];if(k)adj.push([ord[k-1].i,t.i]);});done=true;
+      }
+    }
+    if(!done){
+      const top=at.filter(t=>M.kind==='ionic'?t.role==='don':t.kd===M.toks[0]),bot=at.filter(t=>!top.includes(t));
+      const row=(L,y)=>L.forEach((t,k)=>{t.B=[W/2+(k-(L.length-1)/2)*sp(L.length),y];});
+      if(!top.length||!bot.length){row(at,cy);at.forEach((t,k)=>{if(k)adj.push([k-1,k]);});}
+      else{row(top,cy-r-17);row(bot,cy+r+17);const seen=new Set(),link=(p,L)=>{let bi=L[0],bd=1e9;L.forEach(o=>{const d=dist(o.B,p.B);if(d<bd-1e-6){bd=d;bi=o;}});const key=Math.min(p.i,bi.i)+'-'+Math.max(p.i,bi.i);if(!seen.has(key)){seen.add(key);adj.push([p.i,bi.i]);}};
+        top.forEach(t=>link(t,bot));bot.forEach(t=>link(t,top));}
+    }
+    const E=[];at.forEach(t=>{t.pool=[];for(let k=0;k<t.val;k++){const e={i:t.i,k,n:t.val,end:null,mv:0};E.push(e);t.pool.push(e);}});
+    const SIDE=[-Math.PI/2,0,Math.PI/2,Math.PI];
+    const facing=(t,o)=>{const a=Math.atan2(o.B[1]-t.B[1],o.B[0]-t.B[0]);let bi=-1,bd=9;t.pool.forEach((e,k)=>{let d=Math.abs(SIDE[e.k%4]-a)%(2*Math.PI);if(d>Math.PI)d=2*Math.PI-d;if(d<bd-1e-6){bd=d;bi=k;}});return bi<0?null:t.pool.splice(bi,1)[0];};
+    if(M.kind==='ionic'){
+      const acc=at.filter(t=>t.role!=='don').map(t=>({t,need:t.q<0?-t.q:(valenceOf(t.e)!=null?Math.max(1,8-t.val):2),got:0}));
+      at.filter(t=>t.role==='don').sort((p,q)=>p.B[0]-q.B[0]).forEach(d=>{for(let k=0;k<d.give;k++){
+        const open=acc.filter(a=>a.got<a.need);if(!open.length)break;open.sort((p,q)=>dist(p.t.B,d.B)-dist(q.t.B,d.B)||p.t.B[0]-q.t.B[0]);
+        const a=open[0],e=d.pool.pop();if(!e)break;e.mv=1;e.end={t:'slot',i:a.t.i,k:(a.t.val+a.got)%8,total:8,lift:a.got>=8-a.t.val?7:0};a.got++;M.nx++;}});
+      acc.forEach(a=>{if(a.got)a.t.pool.forEach(e=>{e.end={t:'slot',i:a.t.i,k:e.k,total:8,lift:0};});});
+      // no charges on record: label each ion with what it actually gave or took
+      if(M.generic){at.forEach(t=>{if(t.role==='don')t.cq=t.val-t.pool.length;});acc.forEach(a=>{a.t.cq=-a.got;});}
+    }else if(M.kind==='metal'){
+      E.forEach((e,j)=>{e.mv=1;e.end={t:'sea',ph:j*2.399,sp:.5+((j*37)%10)/14};});
+    }else if(M.kind==='electride'){
+      const na=at.filter(t=>t.metal);na.forEach((t,k)=>{const e=t.pool.pop();if(e){e.mv=1;e.end={t:'pt',x:W/2+(k?3.2:-3.2),y:cy+r+30};}});
+    }else{
+      adj.forEach(([a,b])=>{const ea=facing(at[a],at[b]),eb=facing(at[b],at[a]);const L=[ea,eb].filter(Boolean);
+        if(L.length===1){const o=ea?at[a]:at[b],x=facing(o,ea?at[b]:at[a]);if(x)L.push(x);}
+        L.forEach((e,k)=>{e.mv=1;e.end={t:'bond',a,b,al:k?1:-1,pp:0};});});
+    }
+    M.at=at;M.E=E;M.er=n<=3?3:2.5;
+  }
+
+  function kinds(M){
+    const T=M.toks,n=T.length,H=M.H,cy=H/2-10,r=n<=3?23:n<=4?19:15;M.at=T;
+    T.forEach((t,i)=>{t.i=i;t.r=r;t.lab=t.s;t.A=[W*(i+1)/(n+1),cy];t.cq=(M.kind==='ionic'&&t.role!=='grp')||t.role==='ctr'?t.q:0;});
+    const col=(list,x)=>{const k=list.length,sp=k>1?Math.min(2*r+12,(H-76)/(k-1)):0;list.forEach((t,i)=>{t.B=[x,cy+(i-(k-1)/2)*sp];});};
+    if(M.kind==='ionic'){
+      const don=T.filter(t=>t.role==='don'),rest=T.filter(t=>t.role!=='don');
+      if(don.length>3){col(don.slice(0,Math.ceil(don.length/2)),58);col(don.slice(Math.ceil(don.length/2)),112);}else col(don,92);
+      if(rest.length>3){col(rest.slice(0,Math.ceil(rest.length/2)),206);col(rest.slice(Math.ceil(rest.length/2)),262);}else col(rest,228);
+    }else if(M.kind==='complex'){
+      const cen=T.filter(t=>t.role==='cen'),oth=T.filter(t=>t.role!=='cen');
+      cen.forEach((t,i)=>{t.B=[W/2+(i-(cen.length-1)/2)*(2*r+4),cy];});
+      oth.forEach((t,i)=>{const a=-Math.PI/2+(i+.5)/oth.length*2*Math.PI+(oth.length===2?Math.PI/2:0);t.B=[W/2+Math.cos(a)*100,cy+Math.sin(a)*Math.min(56,cy-r-18)];});
+    }else if(M.kind==='metal'){
+      const per=n>3?Math.ceil(n/2):n;T.forEach((t,i)=>{const row=Math.floor(i/per),k=i%per,inRow=row===0?per:n-per;t.B=[W/2+(k-(inRow-1)/2)*(2*r+12),cy+(n>3?(row-.5)*(2*r+10):0)];});
+    }else{
+      const sp=2*r+20;T.forEach((t,i)=>{t.B=[W/2+(i-(n-1)/2)*Math.min(sp,(W-60)/Math.max(1,n-1)),cy];});
+    }
+    const E=[];T.forEach((t,i)=>{const c=Math.min(8,t.val);for(let k=0;k<c;k++)E.push({i,k,n:c,end:null,mv:0});});
+    const of=i=>E.filter(e=>e.i===i&&!e.end);
+    if(M.kind==='ionic'){
+      const rec=T.map((t,i)=>({t,i,got:0,need:t.q<0?-t.q:(valenceOf(t.e)!=null?Math.max(1,8-t.val):2)})).filter(x=>x.t.role==='acc');
+      const tgt=rec.length?rec:T.map((t,i)=>({t,i,got:0,need:2})).filter(x=>x.t.role==='grp');
+      let p=0;T.forEach((t,i)=>{if(t.role!=='don'||!tgt.length)return;of(i).slice(-t.give).forEach(e=>{const x=tgt[p%tgt.length],v=Math.min(8,x.t.val);
+        e.mv=1;e.end={t:'slot',i:x.i,k:(v+x.got)%8,total:8,lift:x.got>=8-v?7:0};x.got++;M.nx++;if(x.got%x.need===0)p++;});});
+      tgt.forEach(x=>{if(x.got)of(x.i).forEach(e=>{e.end={t:'slot',i:x.i,k:e.k,total:8,lift:0};});});
+    }else if(M.kind==='complex'){
+      const cen=T.filter(t=>t.role==='cen');
+      T.forEach((t,i)=>{if(t.role!=='lig'||t.s==='H')return;let best=cen[0],bd=1e9;cen.forEach(c=>{const d=dist(c.B,t.B);if(d<bd){bd=d;best=c;}});
+        of(i).slice(0,2).forEach((e,j)=>{e.mv=1;e.end={t:'bond',a:i,b:best.i,al:j?1:-1,pp:0};});});
+    }else if(M.kind==='metal'){
+      E.forEach((e,j)=>{e.mv=1;e.end={t:'sea',ph:j*2.399,sp:.5+((j*37)%10)/14};});
+    }else{
+      for(let i=0;i<n-1;i++){const a=of(i).find(e=>e.k%4===1)||of(i)[0],b=of(i+1).find(e=>e.k%4===3)||of(i+1)[0];
+        if(a){a.mv=1;a.end={t:'bond',a:i,b:i+1,al:-1,pp:0};}if(b){b.mv=1;b.end={t:'bond',a:i,b:i+1,al:1,pp:0};}}
+    }
+    M.E=E;M.er=2.5;
+  }
+
+  // Lewis-style positions for an atom's outer electrons: one per side first, then pairs
+  function slot(p,r,k,total){
+    const side=k%4,second=(k%8)>=4,paired=total>4+side,d=r+6+Math.floor(k/8)*6,off=paired?(second?4.2:-4.2):0;
+    const a=[[0,-1],[1,0],[0,1],[-1,0]][side],t=[[1,0],[0,1],[1,0],[0,1]][side];
+    return [p[0]+a[0]*d+t[0]*off,p[1]+a[1]*d+t[1]*off];
+  }
+
+  function captions(M){
+    const c=M.c,T=M.toks,two=T.length<=3,known=T.filter(t=>!bulkUnknown(t.e));
+    const A=`<b>The atoms.</b> One unit of ${fml(c.f)} is made of ${enList(T.map(t=>`${pl(t.n,nm(t.s)+' atom')}`))}.${two&&known.length?` Alone, ${enList(known.map(t=>`${nm(t.s)} is ${({solid:'a solid',liquid:'a liquid',gas:'a gas'})[phase(t.e,293.15)]}`))} at room temperature.`:''} The dots are outer electrons.`;
+    let B;
+    const don=T.filter(t=>t.role==='don'),acc=T.filter(t=>t.role==='acc'),ionic=M.kind==='ionic'&&(M.mode!=='graph'||M.nx>0);
+    const gone=M.nout?` ${M.nout===1?'One electron has':M.nout+' electrons have'} been stripped away altogether, which is why the whole thing carries a positive charge.`:'';
+    if(SPEC[M.id]){
+      B=SPEC[M.id].B;
+    }else if(ionic&&M.balanced){
+      B=`<b>Electrons change hands.</b> ${enList(don.map((t,i)=>`${i?'each':'Each'} ${nm(t.s)} atom gives up ${t.q}`))} electron${don.length===1&&don[0].q===1?'':'s'}; ${enList(acc.map(t=>`each ${nm(t.s)} atom takes ${-t.q}`))}. That leaves ions, ${enList(T.map(t=>t.s+sup(t.q)))}, and opposite charges pull together.`;
+    }else if(ionic&&!M.generic){
+      const rest=T.filter(t=>t.role!=='don');
+      B=`<b>Electrons change hands.</b> ${enList(don.map((t,i)=>`${i?'each':'Each'} ${nm(t.s)} atom gives up ${t.q}`))} electron${don.length===1&&don[0].q===1?'':'s'} to the ${enList(rest.map(t=>nm(t.s)))} atoms, which hold on to each other by sharing electrons. The result is ${enList(don.map(t=>t.s+sup(t.q)))} ions and a negatively charged group, and opposite charges pull together.`;
+    }else if(ionic&&(M.mode==='graph'||T.some(t=>t.role==='grp'))){
+      B=`<b>Electrons change hands, and some are shared.</b> The metal atoms (${enList(don.map(t=>nm(t.s)))}) give up outer electrons to the atoms around them. Those atoms hold on to each other by sharing electrons in pairs, so they act as one charged group, and opposite charges pull together.`;
+    }else if(ionic){
+      const rest=T.filter(t=>t.role!=='don');
+      B=`<b>Electrons change hands.</b> The metal atoms (${enList(don.map(t=>nm(t.s)))}) give up outer electrons and ${enList(rest.map(t=>nm(t.s)))} take${rest.length===1?'s':''} them. That leaves positive and negative ions, which pull together.`;
+    }else if(M.kind==='complex'){
+      const g=M.mode==='graph',cen=T.filter(t=>t.role==='cen'&&!(g&&M.ctrs.includes(t.s))).map(t=>t.s),ctr=g?M.ctrs:T.filter(t=>t.role==='ctr').map(t=>t.s);
+      let lig=g&&M.ligs.length?M.ligs:T.filter(t=>t.role==='lig').map(t=>t.s);lig=lig.filter(x=>!ctr.includes(x)||!g);
+      const cap1=x=>x.replace(/^./,m=>m.toUpperCase());
+      B=`<b>Electrons are lent and shared.</b> ${cap1(enList((cen.length?cen:T.filter(t=>t.role==='cen').map(t=>t.s)).map(nm)))} sits in the middle. The atoms holding on to it (${enList(lig.map(nm))}) do so by lending or sharing pairs of electrons. Groups attached this way are called ligands.${ctr.length?` ${cap1(enList(ctr.map(nm)))} stays alongside as ${ctr.length>1?'charged ions':'a charged ion'}.`:''}${gone}`;
+    }else if(M.kind==='metal'){
+      B=`<b>Electrons are pooled.</b> The metal atoms let their outer electrons roam freely between them. This shared “sea” of electrons is the glue, and it is why alloys carry electricity.`;
+    }else{
+      B=`<b>Electrons are shared.</b> No atom takes electrons outright here. Neighbours share them in pairs, and each shared pair is one bond, drawn as a line.${M.multi?' Two or three pairs between the same two atoms make a double or triple bond.':''}${gone}`;
+    }
+    const sk=sketchCaption(c);
+    const Cc=`<b>The structure.</b> ${c.ty==='molecule'?`Result: one ${esc(c.n.toLowerCase())} molecule.`:c.ty==='network'?'Result: the bonds carry on in every direction, one giant web with no separate molecules.':c.ty==='metallic'?'Result: the atoms settle into a regular, repeating pattern.':c.ty==='complex'?`Result: one unit of ${esc(c.n.toLowerCase())}, built around the metal.`:c.ty==='ionic'?'Result: the ions stack in a repeating pattern, a crystal.':c.ty==='few-atoms'?'Result: a compound made and detected only a few atoms at a time.':'Result: a structure that holds together only in extreme conditions.'} ${esc(sk)}<small>How it is really made: ${esc(c.mk)}</small>`;
+    const D=`<b>What it does.</b> ${esc(c.us)}`;
+    return [A,B,Cc,D];
+  }
+
+  const DUR=[3400,5800,4200,900];
+  let cur=null;
+  function close(){
+    if(!cur)return;cancelAnimationFrame(cur.raf);const fig=cur.fig;cur.box.remove();fig.classList.remove('playing');cur=null;
+  }
+  const lfs=(lab,r)=>((lab.length<=2?.82:lab.length===3?.64:.5)*r).toFixed(1);
+  function open(card,id){
+    close();const c=CMP[id],fig=card.querySelector('.cfig');if(!c||!fig)return;
+    const M=model(id,c);plan(M);M.cap=captions(M);
+    const H=M.H,fh=figH(c),u=useOf(c),km=M.mode==='kind';
+    let inner='';try{inner=c.dr==='mol'?(c.g?molSVG(c.g,W,fh):''):latSVG(c,W,fh);}catch(_){inner='';}
+    const tk=M.at.map((t,i)=>`<g class="tk" data-i="${i}"><circle r="${t.r.toFixed(1)}" style="fill:${tileCol(t.s)}"/><text class="ts" y="${(t.r*.3).toFixed(1)}" font-size="${lfs(t.lab,t.r)}">${t.lab}</text>${km?`<text class="tn" y="${(t.r+23).toFixed(1)}">×${t.n}</text>`:''}</g>`).join('');
+    const ed=M.E.map((e,j)=>`<circle class="ed${e.mv?' mv':''}" data-j="${j}" r="${M.er}"/>`).join('');
+    let gr='';
+    if(km&&M.kind==='ionic'&&!M.balanced&&!M.generic){const grp=M.toks.filter(t=>t.role!=='don');if(grp.length){const xs=grp.map(t=>t.B[0]),ys=grp.map(t=>t.B[1]),p=M.at[0].r+15;
+      gr=`<g class="fx-grp" opacity="0"><rect class="grp" x="${Math.min(...xs)-p}" y="${Math.min(...ys)-p}" width="${Math.max(...xs)-Math.min(...xs)+2*p}" height="${Math.max(...ys)-Math.min(...ys)+2*p+8}" rx="14"/><text x="${Math.max(...xs)+p-3}" y="${Math.min(...ys)-p+13}" font-size="13" text-anchor="end" style="fill:var(--ink);font-weight:700">−</text></g>`;}}
+    const box=document.createElement('div');box.className='fx';
+    box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Animation: how ${esc(c.n.toLowerCase())} forms"><g class="fx-fin" transform="translate(0,${((H-fh)/2-6).toFixed(1)})" opacity="0">${inner}</g>${gr}<g class="fx-tok">${tk}</g><g class="fx-e">${ed}</g><g class="use" opacity="0"><rect x="${W/2-84}" y="${H/2-48}" width="168" height="78" rx="14"/><svg x="${W/2-15}" y="${H/2-40}" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[u.k]}</svg><text x="${W/2}" y="${H/2+17}">${u.l}</text></g></svg>
+      <p class="fx-cap" aria-live="polite"></p>
+      <div class="fx-ctl" role="group" aria-label="Animation steps">${['Atoms','Electrons','Structure','Use'].map((l,i)=>`<button class="fx-st" type="button" data-s="${i}" aria-pressed="false"><i>${i+1}</i> ${l}</button>`).join('')}<button class="fx-ic" type="button" data-a="play" aria-label="Pause"></button><button class="fx-ic" type="button" data-a="close" aria-label="Close the animation"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button></div>`;
+    fig.appendChild(box);fig.classList.add('playing');
+    const fin=box.querySelector('.fx-fin');
+    cur={M,box,fig,sc:-1,el:0,t0:0,play:!RM,raf:0,
+      tk:[...box.querySelectorAll('.tk')],ed:[...box.querySelectorAll('.ed')],fin,grp:box.querySelector('.fx-grp'),use:box.querySelector('.use'),
+      parts:[...fin.querySelectorAll(':scope > g.bonds > *, :scope > g.lat > *, :scope > g:not(.bonds):not(.lat), :scope > circle, :scope > text, :scope > polygon')]};
+    box.addEventListener('click',ev=>{
+      const s=ev.target.closest('.fx-st');if(s){go(+s.dataset.s,!RM);return;}
+      const a=ev.target.closest('.fx-ic');if(!a)return;
+      if(a.dataset.a==='close'){const b=fig.querySelector('.fbtn');close();b&&b.focus({preventScroll:true});return;}
+      if(cur.sc===3&&done()&&!RM){go(0,true);return;}
+      cur.play=!cur.play;if(cur.play){cur.t0=performance.now()-cur.el;loop();}paintCtl();
+    });
+    go(0,!RM);
+  }
+  const done=()=>cur&&cur.el>=DUR[cur.sc];
+  function paintCtl(){
+    const b=cur.box.querySelector('[data-a="play"]'),end=cur.sc===3&&done();
+    b.innerHTML=end?'<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M11.5 7A4.5 4.5 0 1 1 7 2.5h2.5M8 .8l1.8 1.7L8 4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>':cur.play?'<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.5v9M10 2.5v9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>':'<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2v10l8-5z" fill="currentColor"/></svg>';
+    b.setAttribute('aria-label',end?'Play again':cur.play?'Pause':'Play');
+    cur.box.querySelectorAll('.fx-st').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.s===cur.sc)));
+  }
+  function go(sc,play){
+    cur.sc=sc;cur.el=play?0:DUR[sc];cur.t0=performance.now()-cur.el;cur.play=play;
+    cur.box.querySelector('.fx-cap').innerHTML=cur.M.cap[sc];paintCtl();render();if(play)loop();
+  }
+  function loop(){
+    if(!cur||cur.raf)return;
+    const step=now=>{if(!cur)return;cur.raf=0;if(!cur.play)return;
+      cur.el=now-cur.t0;
+      if(cur.el>=DUR[cur.sc]){if(cur.sc<3){go(cur.sc+1,true);return;}cur.el=DUR[3];cur.play=false;render();paintCtl();return;}
+      render();cur.raf=requestAnimationFrame(step);};
+    cur.raf=requestAnimationFrame(step);
+  }
+  // where an electron ends up, given where the atoms are right now
+  function target(M,en,pos,sec){
+    if(en.t==='slot')return slot(pos[en.i],M.at[en.i].r+(en.lift||0),en.k,en.total);
+    if(en.t==='lone'){const d=M.at[en.i].r+M.er+2.4,c=Math.cos(en.ang),s=Math.sin(en.ang),o=en.off*(M.er+.7);return [pos[en.i][0]+c*d-s*o,pos[en.i][1]+s*d+c*o];}
+    if(en.t==='bond'){const a=pos[en.a],b=pos[en.b],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,m=(L+M.at[en.a].r-M.at[en.b].r)/2+en.al*(M.er+.5),p=en.pp*(2*M.er+1.6);
+      return [a[0]+ux*m-uy*p,a[1]+uy*m+ux*p];}
+    if(en.t==='ring'){const m=pos[en.m];let cx=0,cy=0;en.ids.forEach(i=>{cx+=pos[i][0];cy+=pos[i][1];});cx/=en.ids.length;cy/=en.ids.length;
+      return [lerp(m[0],cx,.56)+Math.cos(en.a)*en.rr,lerp(m[1],cy,.56)+Math.sin(en.a)*en.rr*.6];}
+    if(en.t==='pt')return [en.x,en.y];
+    if(en.t==='sea'){const w=sec*en.sp,n=M.at.length,r=M.at[0].r;return [W/2+Math.cos(en.ph+w)*(Math.min(n,4)*r+26),M.H/2-10+Math.sin(en.ph*1.7+w*1.3)*(r+(n>4?44:24))];}
+    return null;
+  }
+  function render(){
+    const {M,sc}=cur,t=clamp(cur.el/DUR[sc],0,1),sec=cur.el/1000;
+    const mvT=sc===1?ease(t/.26):sc>1?1:0,vis=sc<2?1:sc===2?1-ease(t/.3):0;
+    const pos=M.at.map(a=>[lerp(a.A[0],a.B[0],mvT),lerp(a.A[1],a.B[1],mvT)]);
+    const charged=(sc===1&&t>.8)||sc>1,N=M.at.length;
+    cur.tk.forEach((g,i)=>{const a=M.at[i],pop=sc===0?ease(t*3.2-i/N*1.1):1;
+      g.setAttribute('transform',`translate(${pos[i][0].toFixed(1)},${pos[i][1].toFixed(1)}) scale(${pop.toFixed(3)})`);g.setAttribute('opacity',vis.toFixed(2));
+      const lab=charged&&a.cq?a.lab+sup(a.cq):a.lab,tx=g.querySelector('.ts');if(tx.textContent!==lab){tx.textContent=lab;tx.setAttribute('font-size',lfs(lab,a.r));}});
+    cur.ed.forEach((d,j)=>{const e=M.E[j],a=M.at[e.i];let p=slot(pos[e.i],a.r,e.k,e.n),op=sc===0?ease(t*3-1.5):vis;
+      if(e.end&&sc>=1){
+        const u=sc>1?1:ease((t-.3-(j%7)*.03)/.42);
+        if(e.end.t==='out'){p=[p[0]+18*u,p[1]-46*u];op*=1-u;}
+        else{const q=target(M,e.end,pos,sec),hop=e.mv&&(e.end.t==='slot'||e.end.t==='lone'||e.end.t==='pt')?Math.sin(u*Math.PI)*-15:0;p=[lerp(p[0],q[0],u),lerp(p[1],q[1],u)+hop];}
+      }
+      d.setAttribute('cx',p[0].toFixed(1));d.setAttribute('cy',p[1].toFixed(1));d.setAttribute('opacity',op.toFixed(2));});
+    if(cur.grp)cur.grp.setAttribute('opacity',(sc===0?0:sc===1?ease((t-.25)/.2):vis).toFixed(2));
+    // the finished structure draws itself in, piece by piece
+    const fo=sc<2?0:sc===2?1:lerp(1,.2,ease(t/.5));cur.fin.setAttribute('opacity',fo.toFixed(2));
+    if(sc>=2){const n=cur.parts.length,u=sc===2?(t-.18)/.62:2;cur.parts.forEach((el2,i)=>{el2.style.opacity=clamp((u-i/n*.85)/.15,0,1).toFixed(2);});}
+    cur.use.setAttribute('opacity',(sc===3?ease(t/.6):0).toFixed(2));
+  }
+  function init(){
+    $('#cmp').addEventListener('click',ev=>{const b=ev.target.closest('.fbtn');if(!b)return;const card=b.closest('.cc');open(card,card.id.slice(2));});
+  }
+  const btn=()=>`<button class="fbtn" type="button"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.2v9.6L10.6 6z" fill="currentColor"/></svg>How it forms</button>`;
+  return {init,close,btn,model,plan,useOf,captions};
+})();
+function setFam(){const w=document.querySelector('.wrap'),k=catOf(el());if(w.dataset.k!==k)w.dataset.k=k;}
+AVX.init();GLX.init();FXX.init();
 let cmpZ=0,rtab='facts';
-try{const v=localStorage.getItem('es-rtab');if(v==='cmp')rtab='cmp';}catch(_){}
+const RTABS=['facts','atom','cmp','gloss'];
+try{const v=localStorage.getItem('es-rtab');if(RTABS.includes(v))rtab=v;}catch(_){}
 function setRtab(t,save){
-  rtab=t;$('#facts').hidden=t!=='facts';$('#cmp').hidden=t!=='cmp';
+  rtab=t;RTABS.forEach(k=>{$('#'+k).hidden=k!==t;});if(t!=='cmp')FXX.close();if(t==='atom'){AVX.draw();AVX.kick();}
   document.querySelectorAll('.rtab').forEach(b=>{const on=b.dataset.t===t;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});
   if(save)try{localStorage.setItem('es-rtab',t);}catch(_){}
 }
@@ -4726,12 +5522,12 @@ function buildCmp(){
   const e=el();if(cmpZ===e.z)return;cmpZ=e.z;
   const ids=(ELC[e.z]||[]).filter(i=>CMP[i]),note=ELN[e.z];
   $('#cmpN').textContent=ids.length;
-  let h=`<div class="cintro"><p>${ids.length?`Real compounds ${esc(e.n.toLowerCase())} forms, each with one peer-reviewed source.`:`No compounds of ${esc(e.n.toLowerCase())} yet.`}</p>${note?`<p class="cnote">${esc(note)}</p>`:''}</div>`;
+  let h=`<div class="cintro"><p>${ids.length?`Real compounds ${esc(e.n.toLowerCase())} forms, each with one peer-reviewed source. “How it forms” plays a simplified picture of the bonding; the real recipe is on the Forms line.`:`No compounds of ${esc(e.n.toLowerCase())} yet.`}</p>${note?`<p class="cnote">${esc(note)}</p>`:''}</div>`;
   if(ids.length)h+=`<div class="cgrid">${ids.map(i=>cmpCard(i,CMP[i],e.z)).join('')}</div>`;
-  $('#cmp').innerHTML=h;
+  FXX.close();$('#cmp').innerHTML=h;
 }
 document.querySelector('.rtabs').addEventListener('click',ev=>{const b=ev.target.closest('.rtab');if(b)setRtab(b.dataset.t,true);});
-document.querySelector('.rtabs').addEventListener('keydown',ev=>{if(ev.key!=='ArrowLeft'&&ev.key!=='ArrowRight')return;ev.preventDefault();const t=rtab==='facts'?'cmp':'facts';setRtab(t,true);document.querySelector(`.rtab[data-t="${t}"]`).focus();});
+document.querySelector('.rtabs').addEventListener('keydown',ev=>{if(ev.key!=='ArrowLeft'&&ev.key!=='ArrowRight')return;ev.preventDefault();const t=RTABS[(RTABS.indexOf(rtab)+(ev.key==='ArrowRight'?1:RTABS.length-1))%RTABS.length];setRtab(t,true);document.querySelector(`.rtab[data-t="${t}"]`).focus();});
 $('#cmp').addEventListener('click',ev=>{const b=ev.target.closest('.cel');if(!b)return;select(+b.dataset.z);$('.record').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});});
 document.addEventListener('click',ev=>{if(!ev.target.closest('#cmpJump'))return;setRtab('cmp',true);$('.record').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'});});
 setRtab(rtab,false);
