@@ -480,7 +480,7 @@ body{padding-block:14px 48px}
 .wrap:not([data-mode="facts"]) :is(.readings,.toast,#nogl,#panel){display:none}
 .wrap[data-mode="facts"] :is(.mvui,#fxp),.wrap[data-mode="gloss"] .bench{display:none}
 .wrap:not([data-mode="atom"]) :is(#apanel,.callouts){display:none}
-.wrap:not([data-mode="cmp"]) :is(#cpanel,#fxp,.cmph,.leg3,.useo){display:none}
+.wrap:not([data-mode="cmp"]) :is(#cpanel,#fxp,.cmph,.leg3,.useo,.cnt,.ecards){display:none}
 .wrap[data-mode="cmp"] .title{display:none}
 .wrap[data-mode="atom"] .title p{display:none}
 .wrap:not([data-mode="facts"]) .title{z-index:2}
@@ -517,6 +517,44 @@ body{padding-block:14px 48px}
 .ball{flex:none;width:28px;height:28px;border-radius:50%;--b:#ccc;background:radial-gradient(circle at 36% 30%,color-mix(in srgb,var(--b) 62%,#fff),var(--b) 56%,color-mix(in srgb,var(--b) 76%,#4a3550));box-shadow:inset 0 0 0 1px rgba(60,40,30,.08)}
 .lgc .ball{width:16px;height:16px}
 .useo{position:absolute;left:50%;bottom:74px;transform:translateX(-50%);z-index:3;display:inline-flex;align-items:center;gap:9px;padding:9px 16px 9px 12px;border-radius:99px;background:var(--ink);color:var(--bg);font:600 13.5px var(--body);box-shadow:var(--shadow);pointer-events:none;white-space:nowrap}
+.cnt{position:absolute;right:18px;bottom:66px;z-index:3;display:grid;justify-items:end;gap:2px;text-align:right;padding:10px 15px 11px;border-radius:18px;background:var(--panel);box-shadow:var(--shadow);pointer-events:none;max-width:190px}
+.cnt b{font:600 38px/1 var(--display);letter-spacing:-.03em;color:var(--ink);font-variant-numeric:tabular-nums}
+.cnt b.long{font-size:21px;line-height:1.1;letter-spacing:-.02em}
+.cnt span{font:500 12.5px/1.3 var(--body);color:var(--ink-2)}
+.ecards{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;border-radius:inherit}
+.ecards[hidden]{display:none}
+.ecards.gen .ec{transition:transform .35s cubic-bezier(.3,.7,.3,1)}
+.ecards.gen .ec-b b.sh{flex-wrap:wrap;row-gap:3px}
+.ecards.tight .ec{width:158px;padding:9px 11px 10px}
+.ecards.tight .ec-b b{font-size:25px}
+.ecards.tight .ec-b b.sh.long{font-size:15px}
+.ecards.k5 .ec{width:124px;padding:8px 9px 9px}
+.ecards.k5 .ec-b b{font-size:21px}
+.ecards.k5 .ec-b span{font-size:10.5px;line-height:1.25}
+.ec{position:absolute;left:0;top:0;width:188px;padding:10px 14px 12px;border-radius:18px;background:var(--panel);box-shadow:var(--shadow);will-change:transform}
+.ec-h{display:flex;align-items:center;gap:7px;font:600 11.5px/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+.ec-h i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.ec-b b{display:block;font:600 30px/1.05 var(--display);letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ec-b b.sh{display:flex;align-items:baseline;gap:5px}
+.ec-b b.sh i{font-style:normal}
+
+.ec-b b.sh.long{font-size:17px;gap:3px}
+.ec-b b.sh u{text-decoration:none;color:var(--muted);font-weight:500}
+.ec-b b.sh i.d{color:var(--muted);font-weight:500}
+.ec-b b.sh i.o{padding:0 8px;border-radius:9px;background:#FFE3A6;color:#5A3A00}
+.ec-b span{display:block;margin-top:3px;font:500 12.5px/1.32 var(--body);color:var(--ink-2)}
+.ec-bar{height:7px;margin-top:7px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.ec-bar i{display:block;height:100%;border-radius:inherit;background:var(--c)}
+.stage.story .leg3,.stage.story .mvhint{display:none}
+.beats{display:grid;gap:8px;counter-reset:bt}
+.beats .bt{position:relative;display:block;padding-left:30px;color:var(--muted);transition:color .3s;cursor:pointer;border-radius:8px}
+.beats .bt:focus-visible{outline:2px solid var(--fam-deep,var(--ink));outline-offset:3px}
+.beats .bt:not(.on) .x{display:none}
+.beats .bt::before{counter-increment:bt;content:counter(bt);position:absolute;left:0;top:1px;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font:600 11.5px/1 var(--body);background:var(--panel-2);color:var(--ink-2);transition:background .3s,color .3s}
+.beats .bt.done{color:var(--ink-2)}
+.beats .bt.on{color:var(--ink)}
+.beats .bt.on::before{background:var(--fam-deep,var(--ink));color:#fff}
+.beats .bt:not(.on) b{font-weight:600}
 .useo svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .cempty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:var(--ink-2);z-index:2;font-size:15px}
 /* how it forms */
@@ -680,6 +718,38 @@ body{padding-block:14px 48px}
   .leg3{left:12px;bottom:12px;max-width:calc(100% - 24px)}
   .lgc{font-size:11.5px;padding:4px 9px 4px 5px}
   .useo{bottom:50px;font-size:12.5px}
+  .cnt{right:10px;bottom:10px;padding:8px 12px 9px;max-width:150px}
+  .cnt b{font-size:28px}
+  .cnt b.long{font-size:17px}
+  .cnt span{font-size:11.5px}
+  .ec{width:146px;padding:8px 10px 9px;border-radius:15px}
+  .ec-h{font-size:10.5px;margin-bottom:2px}
+  .ec-b b{font-size:23px}
+  .ec-b span{font-size:11.5px;line-height:1.28}
+  .ec-b b.sh i.o{padding:0 6px}
+  .ec-b b.sh.long{font-size:13.5px;gap:2px}
+  .ec-b b.sh.long i.o{padding:0 4px}
+  .ecards.tight .ec{width:108px;padding:7px 7px 8px;border-radius:13px}
+  .ecards.tight .ec-h{font-size:9.5px;letter-spacing:.03em}
+  .ecards.tight .ec-b b{font-size:19px}
+  .ecards.tight .ec-b b.sh{gap:3px}
+  .ecards.tight .ec-b b.sh.long{font-size:11.5px;gap:1px}
+  .ecards.tight .ec-b span{font-size:10.5px;line-height:1.25}
+  .ecards.tight .ec-b b.sh i.o{padding:0 4px}
+  .ecards.k4 .ec{width:82px;padding:6px 6px 7px}
+  .ecards.k4 .ec-h{font-size:8.5px;gap:4px;letter-spacing:0}
+  .ecards.k4 .ec-h i{width:7px;height:7px}
+  .ecards.k4 .ec-b span{font-size:9.5px;line-height:1.2}
+  .ecards.k5 .ec{width:58px;padding:5px 5px 6px;border-radius:11px}
+  .ecards.k5 .ec-h{font-size:9px;gap:3px;letter-spacing:0}
+  .ecards.k5 .ec-h i{width:7px;height:7px}
+  .ecards.k5 .ec-b b{font-size:16px}
+  .ecards.k5 .ec-b span,.ecards.k5 .ec-bar{display:none}
+  .ecards.k5.k6 .ec{width:50px;padding:5px 3px 6px}
+  .ecards.k5.k6 .ec-h{font-size:8.5px;gap:2px}
+  .ecards.k5.k7 .ec{width:43px;padding:5px 2px 6px}
+  .ecards.k5.k7 .ec-h{font-size:8px;gap:2px}
+  .ecards.k5.k7 .ec-h i{width:6px;height:6px}
   .fxp{padding:16px}
   .fxp-top{grid-template-columns:auto minmax(0,1fr);gap:12px}
   .fxp-play{width:48px;height:48px}
@@ -717,6 +787,8 @@ body{padding-block:14px 48px}
       <div class="callouts" aria-hidden="true"><svg><line id="lnN"/><circle id="dtN" r="3"/><line id="lnV"/><circle id="dtV" r="3"/></svg><div class="co nuc" id="coN"></div><div class="co val" id="coV"></div></div>
       <div class="leg3" id="leg3" aria-label="Colours"></div>
       <div class="useo" id="useo" hidden></div>
+      <div class="cnt" id="cnt" hidden></div>
+      <div class="ecards" id="ecards" hidden aria-hidden="true"></div>
       <p class="cempty" id="cempty" hidden></p>
       <p class="mvno" id="mvno" hidden>This view needs WebGL, which this browser has turned off.</p>
       <div class="mvui"><span class="mvhint">Drag to turn · pinch to zoom</span><button class="mvspin" id="mvspin" type="button"></button></div>
@@ -5525,7 +5597,7 @@ const FXX=(()=>{
     return [A,B,Cc,D];
   }
 
-  const DUR=[3400,5800,4200,900];
+  const DUR=[3400,5800,5200,900];
   let cur=null;
   function close(){
     if(!cur)return;cancelAnimationFrame(cur.raf);const fig=cur.fig;cur.box.remove();fig.classList.remove('playing');cur=null;
@@ -5627,7 +5699,7 @@ const FXX=(()=>{
       return [p[0],p[1],op,e.mv?1:0];});
     return {t,pos,pop,charged,E,vis};
   }
-  return {init,close,btn,model,plan,useOf,captions,state,DUR,W,icon:k=>ICON[k]};
+  return {init,close,btn,model,plan,useOf,captions,state,slot,DUR,W,icon:k=>ICON[k]};
 })();
 function setFam(){const w=document.querySelector('.wrap'),k=catOf(el());if(w.dataset.k!==k)w.dataset.k=k;}
 /* ---------- v9: the model view. One small 3D scene that shows an atom, a compound, or a compound forming,
@@ -5640,7 +5712,7 @@ const MV=(()=>{
   function famHex(k){if(FAMHEX[k])return FAMHEX[k];const v=getComputedStyle(document.documentElement).getPropertyValue('--c-'+k).trim();return FAMHEX[k]=v||'#cccccc';}
   const elHex=s=>{if(ECOL[s]!=null)return ECOL[s];const z=symZ[s];if(!z)return 0xBBBBBB;const c=new THREE.Color(famHex(catOf(byZ(z))));c.offsetHSL(0,.04,-.04);return c.getHex();};
   const elR=s=>{const z=symZ[s];if(!z)return .4;const e=byZ(z);if(s==='H')return .25;if(METAL.has(s))return .5;return e.p<=2?.36:e.p===3?.44:.48;};
-  const U={aoK:{value:1}};
+  const U={aoK:{value:1},asm:{value:2}};
   let renderer=null,scene,cam,root,host=null,cvEl=null,ok=true,raf=0,running=false,vis=true,last=0;
   const ST={kind:'',yaw:.5,pitch:.12,vyaw:0,zoom:1,spin:!RM,drag:null,pts:new Map(),pinch:0,dirty:true,fit:3.4,W:1,H:1,view:'atom',viewT:1,tgt:{yaw:null,pitch:null},anch:{},form:null,onFrame:null,onForm:null,idle:0,snapCam:RM,dist:0};
   const SPH_HI=new THREE.SphereGeometry(1,30,22),SPH_LO=new THREE.SphereGeometry(1,16,12);
@@ -5672,18 +5744,19 @@ const MV=(()=>{
   function up(ev){ST.pts.delete(ev.pointerId);ST.pinch=0;}
 
   /* soft matte material: baked contact shading (ao) plus a pale rim, like felt */
-  function clay(extra){
+  function clay(extra,asm){
     const m=new THREE.MeshStandardMaterial(Object.assign({vertexColors:true,roughness:.94,metalness:0},extra||{}));
-    m.onBeforeCompile=sh=>{sh.uniforms.uAoK=U.aoK;
-      sh.vertexShader='attribute float ao;varying float vAo;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvAo=ao;');
+    if(asm)m.defines=Object.assign({},m.defines,{ASM:''});
+    m.onBeforeCompile=sh=>{sh.uniforms.uAoK=U.aoK;sh.uniforms.uAsm=U.asm;
+      sh.vertexShader='attribute float ao;varying float vAo;\n#ifdef ASM\nattribute vec3 bc;attribute vec3 bs;attribute vec3 bt;uniform float uAsm;\n#endif\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvAo=ao;\n#ifdef ASM\nfloat e_=clamp((uAsm-bt.x)/bt.y,0.,1.);float q_=e_-1.;float k_=1.+2.2*q_*q_*q_+1.2*q_*q_;transformed=mix(bs,bc,k_)+(transformed-bc)*(e_<=0.?0.:mix(bt.z,1.,smoothstep(0.,.7,e_)));\n#endif');
       sh.fragmentShader='varying float vAo;uniform float uAoK;\n'+sh.fragmentShader
         .replace('#include <color_fragment>','#include <color_fragment>\nfloat ao_=mix(1.,vAo,uAoK);diffuseColor.rgb*=mix(vec3(.34,.27,.33),vec3(1.),ao_);')
         .replace('#include <opaque_fragment>','float fr_=pow(1.-clamp(dot(normalize(normal),normalize(vViewPosition)),0.,1.),2.4);outgoingLight+=(diffuseColor.rgb*.32+vec3(.07))*fr_*ao_;\n#include <opaque_fragment>');};
     return m;
   }
-  let CLAY=null;const clayM=()=>CLAY||(CLAY=clay());
+  let CLAY=null,CLAYA=null;const clayM=()=>CLAY||(CLAY=clay()),clayA=()=>CLAYA||(CLAYA=clay(null,true));
   // many balls as one mesh; each vertex is darkened where a neighbouring ball sits close to it
-  function balls(list,ao){
+  function balls(list,ao,asm){
     const tpl=list.length>110?SPH_LO:SPH_HI,tp=tpl.attributes.position.array,ti=tpl.index.array,nv=tp.length/3,n=list.length;
     const pos=new Float32Array(n*nv*3),nor=new Float32Array(n*nv*3),cl=new Float32Array(n*nv*3),av=new Float32Array(n*nv).fill(1),idx=new Uint32Array(n*ti.length);
     const nb=list.map(()=>[]);
@@ -5695,18 +5768,28 @@ const MV=(()=>{
       for(let k=0;k<ti.length;k++)idx[i*ti.length+k]=ti[k]+i*nv;}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));
     g.setAttribute('color',new THREE.BufferAttribute(cl,3));g.setAttribute('ao',new THREE.BufferAttribute(av,1));g.setIndex(new THREE.BufferAttribute(idx,1));
-    return new THREE.Mesh(g,clayM());
+    if(!asm)return new THREE.Mesh(g,clayM());
+    const bc=new Float32Array(n*nv*3),bs=new Float32Array(n*nv*3),bt=new Float32Array(n*nv*3);
+    for(let i=0;i<n;i++){const b=list[i],s0=b.s0||[b.x,b.y,b.z],o=i*nv*3;for(let v=0;v<nv;v++){const q=o+v*3;bc[q]=b.x;bc[q+1]=b.y;bc[q+2]=b.z;bs[q]=s0[0];bs[q+1]=s0[1];bs[q+2]=s0[2];bt[q]=b.d||0;bt[q+1]=b.w||.2;bt[q+2]=b.k??.3;}}
+    g.setAttribute('bc',new THREE.BufferAttribute(bc,3));g.setAttribute('bs',new THREE.BufferAttribute(bs,3));g.setAttribute('bt',new THREE.BufferAttribute(bt,3));
+    const me=new THREE.Mesh(g,clayA());me.frustumCulled=false;me.userData={nv,bs0:bs.slice(),bt0:bt.slice()};return me;
   }
   function flat(g,hex){const n=g.attributes.position.count,c=col(hex),cl=new Float32Array(n*3);for(let i=0;i<n;i++){cl[i*3]=c.r;cl[i*3+1]=c.g;cl[i*3+2]=c.b;}
     g.setAttribute('color',new THREE.BufferAttribute(cl,3));g.setAttribute('ao',new THREE.BufferAttribute(new Float32Array(n).fill(1),1));return g;}
   const UP=new V3(0,1,0);
   function stickGeo(a,b,r){const d=new V3().subVectors(b,a),g=new THREE.CylinderGeometry(r,r,d.length(),12,1,true);
     g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(UP,d.clone().normalize()));g.translate((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);return g;}
-  function sticks(list,hex){if(!list.length)return null;const g=mergeGeometries(list.map(s=>stickGeo(s[0],s[1],s[2]||.055)));return new THREE.Mesh(flat(g,hex??PAL.stick),clayM());}
-  function wipe(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH_HI&&x.geometry!==SPH_LO)x.geometry.dispose();if(x.material&&x.material!==CLAY)x.material.dispose();});}
-  function clear(){while(root.children.length){const c=root.children[0];root.remove(c);wipe(c);}ST.anch={};ST.ringA=null;ST.form=null;ST.parts=null;ST.labels=null;}
+  function sticks(list,hex,asm){if(!list.length)return null;const gs=list.map(s=>stickGeo(s[0],s[1],s[2]||.055)),cnt=gs.map(x=>x.attributes.position.count),g=flat(mergeGeometries(gs),hex??PAL.stick);
+    if(!asm)return new THREE.Mesh(g,clayM());
+    const N=g.attributes.position.count,bc=new Float32Array(N*3),bt=new Float32Array(N*3);let o=0;
+    list.forEach((s,i)=>{const mx=(s[0].x+s[1].x)/2,my=(s[0].y+s[1].y)/2,mz=(s[0].z+s[1].z)/2;for(let v=0;v<cnt[i];v++,o+=3){bc[o]=mx;bc[o+1]=my;bc[o+2]=mz;bt[o]=asm[i][0];bt[o+1]=asm[i][1];bt[o+2]=.02;}});
+    g.setAttribute('bc',new THREE.BufferAttribute(bc,3));g.setAttribute('bs',new THREE.BufferAttribute(bc.slice(),3));g.setAttribute('bt',new THREE.BufferAttribute(bt,3));
+    const me=new THREE.Mesh(g,clayA());me.frustumCulled=false;me.userData={cnt};return me;}
+  function wipe(o){o.traverse(x=>{if(x.geometry&&x.geometry!==SPH_HI&&x.geometry!==SPH_LO)x.geometry.dispose();if(x.material&&x.material!==CLAY&&x.material!==CLAYA)x.material.dispose();});}
+  function clear(){while(root.children.length){const c=root.children[0];root.remove(c);wipe(c);}ST.anch={};ST.ringA=null;ST.form=null;ST.parts=null;ST.labels=null;U.asm.value=2;U.aoK.value=1;}
 
   /* ---- labels drawn on a ball ---- */
+  let DOT=null;const dot=()=>{if(DOT)return DOT;const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(25,22,2,32,32,31);g.addColorStop(0,'#fff');g.addColorStop(.7,'#d9d9d9');g.addColorStop(1,'#a9a9a9');x.fillStyle=g;x.beginPath();x.arc(32,32,30,0,TAU);x.fill();DOT=new THREE.CanvasTexture(c);DOT.colorSpace=THREE.SRGBColorSpace;return DOT;};
   const LAB={};
   function label(txt,dark,sub){const k=txt+'|'+dark+'|'+(sub||'');if(LAB[k])return LAB[k];
     const c=document.createElement('canvas');c.width=192;c.height=192;const x=c.getContext('2d');x.textAlign='center';x.textBaseline='middle';
@@ -5765,7 +5848,7 @@ const MV=(()=>{
     const neg=s=>/-/.test(ch[s]||'')||(!ch[s]&&!METAL.has(s)),R=s=>neg(s)?.47:.33,B=[],S=[],[A,Bs,X]=sp;
     const add=(x,y,z,s,r)=>{B.push({x,y,z,r:r||R(s),s});return B.length-1;};
     const near=(d,tol)=>{for(let i=0;i<B.length;i++)for(let j=i+1;j<B.length;j++){if(B[i].s===B[j].s)continue;const l=Math.hypot(B[i].x-B[j].x,B[i].y-B[j].y,B[i].z-B[j].z);if(Math.abs(l-d)<tol)S.push([i,j]);}};
-    if(dr==='ab'){for(let i=0;i<3;i++)for(let j=0;j<3;j++)for(let k=0;k<3;k++)add((i-1)*1.3,(j-1)*1.3,(k-1)*1.3,(i+j+k)%2?Bs:A,(i+j+k)%2?(neg(Bs)?.5:.33):(neg(A)?.5:.33));near(1.3,.05);}
+    if(dr==='ab'){const mid=neg(A)&&!neg(Bs)?Bs:A,oth=mid===A?Bs:A;for(let i=0;i<3;i++)for(let j=0;j<3;j++)for(let k=0;k<3;k++){const sy=(i+j+k)%2?mid:oth;add((i-1)*1.3,(j-1)*1.3,(k-1)*1.3,sy,neg(sy)?.5:.33);}near(1.3,.05);}
     else if(dr==='ab2'||dr==='a2b'){const one=dr==='ab2'?A:Bs,two=dr==='ab2'?Bs:A;
       for(let i=0;i<3;i++)for(let j=0;j<3;j++)for(let k=0;k<3;k++)if((i+j+k)%2===0)add(i-1,j-1,k-1,one);
       for(let i=0;i<2;i++)for(let j=0;j<2;j++)for(let k=0;k<2;k++)add(i-.5,j-.5,k-.5,two);near(.866,.05);B.forEach(b=>{b.x*=1.45;b.y*=1.45;b.z*=1.45;});}
@@ -5814,20 +5897,348 @@ const MV=(()=>{
     const m=c.dr==='mol'&&c.g?molec(c):latt(c);let cx=0,cy=0,cz=0;m.B.forEach(b=>{cx+=b.x;cy+=b.y;cz+=b.z;});const n=m.B.length||1;cx/=n;cy/=n;cz/=n;
     let rad=0;m.B.forEach(b=>{b.x-=cx;b.y-=cy;b.z-=cz;rad=Math.max(rad,Math.hypot(b.x,b.y,b.z)+b.r);});
     const g=new THREE.Group(),off=new V3(cx,cy,cz);
-    g.add(balls(m.B.map(b=>({x:b.x,y:b.y,z:b.z,r:b.r,c:col(elHex(b.s))})),true));
+    const bm=balls(m.B.map(b=>({x:b.x,y:b.y,z:b.z,r:b.r,c:col(elHex(b.s)),s0:b.s0,d:b.d,w:b.w,k:b.k})),true,true);g.add(bm);
     const sl=m.flat?m.S.map(s=>[s[0].clone().sub(off),s[1].clone().sub(off),s[2]]):m.S.map(([i,j])=>[new V3(m.B[i].x,m.B[i].y,m.B[i].z),new V3(m.B[j].x,m.B[j].y,m.B[j].z),.055]);
-    const st=sticks(sl);if(st)g.add(st);
-    const labs=[];if(o&&o.labels&&m.flat&&m.B.length<=60){m.B.forEach(b=>{if(b.s==='H')return;const s=sprite(b.s+(b.q?(Math.abs(b.q)>1?Math.abs(b.q):'')+(b.q>0?'+':'−'):''),elHex(b.s));s.position.set(b.x,b.y,b.z);s.scale.setScalar(b.r*1.45);g.add(s);labs.push({s,c:new V3(b.x,b.y,b.z),r:b.r*1.04});});}
-    const sc=clamp(2.7/rad,.5,1.7);g.scale.setScalar(sc);root.add(g);ST.parts={g,model:g,sc};ST.labels=labs;ST.fit=ST.fitW=ST.fitH=Math.max(1.8,rad*sc);
+    const near=p=>{let bd=1e9,bi=0;m.B.forEach((b,i)=>{const d=(b.x-p.x)**2+(b.y-p.y)**2+(b.z-p.z)**2;if(d<bd){bd=d;bi=i;}});return bi;};
+    const sb=sl.map(x=>[near(x[0]),near(x[1])]),st=sticks(sl,undefined,sl.map(()=>[0,.06]));if(st)g.add(st);
+    const labs=[];if(o&&o.labels&&m.flat&&m.B.length<=60){m.B.forEach((b,bi)=>{if(b.s==='H')return;const s=sprite(b.s+(b.q?(Math.abs(b.q)>1?Math.abs(b.q):'')+(b.q>0?'+':'−'):''),elHex(b.s));s.position.set(b.x,b.y,b.z);s.scale.setScalar(b.r*1.45);g.add(s);labs.push({s,c:new V3(b.x,b.y,b.z),r:b.r*1.04,bi,d:0});});}
+    const sc=clamp(2.7/rad,.5,1.7);g.scale.setScalar(sc);root.add(g);ST.parts={g,model:g,sc,bm,sm:st,sb,B:m.B,rad,flat:m.flat};ST.labels=labs;U.asm.value=2;ST.fit=ST.fitW=ST.fitH=Math.max(1.8,rad*sc);
     ST.tgt.pitch=m.flat?.2:.42;ST.pitch=ST.tgt.pitch;if(!m.flat)ST.yaw=.62;else ST.yaw=.35;U.aoK.value=1;
     cvEl.setAttribute('aria-label',`${c.n} in 3D. Drag to turn it.`);ST.dirty=true;kick();
     return {els:[...new Set(m.B.map(b=>b.s))],flat:m.flat,water:c.g&&c.g.w};
   }
 
   /* ---- a compound forming: the atoms and their outer electrons, from the same plan as the captions ---- */
+  /* ---- steps 1 and 2 told as a story: the nucleus, the shells, who pulls harder, the hand-over.
+     Used for simple salts where one atom hands its outer electrons to the other. ---- */
+  const TAGS={},IB=[[0,.16,.6,.8],[0,.15,.43,.7]];   // where each numbered reason starts, as a share of the step
+  function intro(M,S,g){
+    if(M.mode!=='unit'||M.kind!=='ionic'||M.at.length!==2||!M.E.length)return null;
+    for(const e of M.E){if(!e.end||e.end.t!=='slot'||e.end.total!==8)return null;const a=M.at[e.i],b=M.at[e.end.i];if(e.mv?!(a.role==='don'&&b.role==='acc'):e.end.i!==e.i)return null;}
+    const info=[];
+    for(const a of M.at){const e=a.e;if(!e)return null;const sh=shellsOf(e),ns=sh.length,val=valenceOf(e);
+      if(val==null||ns<2||sh[ns-1]!==val||a.val!==val)return null;
+      if(a.role==='don'?(a.give!==val||a.q!==val):a.role==='acc'?val-a.q!==8:true)return null;
+      info.push({e,sh,ns,val});}
+    const er=M.er*S*1.15,sl=(a,k,tot)=>{const p=FXX.slot([0,0],a.r,k,tot);return [p[0]*S,-p[1]*S];};
+    const cP=col(PAL.P),cN=col(PAL.N),Zmax=Math.max(...info.map(x=>x.e.z)),tAt=q=>.185+.36*q/Math.max(1,Zmax-1);
+    const th=document.documentElement.dataset.theme,dark=th?th==='dark':matchMedia('(prefers-color-scheme: dark)').matches,ink=dark?0xF3ECE6:0x4A4257;
+    const A=M.at.map((a,i)=>{const {e,sh,ns,val}=info[i],R=a.r*S,Ro=(a.r+6)*S,ni=ns-1,nr=R*.3;
+      const nat=e.nat&&e.nat.length?e.nat.slice().sort((x,y)=>y[1]-x[1])[0][0]:Math.round(e.m),N=Math.max(0,nat-e.z);
+      const grp=new THREE.Group(),pk=packN(e.z+N),f=nr/(pk.m||pk.r),isP=pickP(pk.P,e.z);
+      const nuc=balls(pk.P.map((p,j)=>({x:p[0]*f,y:p[1]*f,z:p[2]*f,r:pk.r*f,c:isP[j]?cP:cN})),true);nuc.rotation.set(.3,.5,0);grp.add(nuc);
+      const rb=ni<=2?.044:ni===3?.034:.028,rings=[],bl=[],fill=[];let q=0;
+      for(let k=0;k<ni;k++){const r=ni===1?R*.62:lerp(nr+.1,R-.075,k/(ni-1)),rm=new THREE.Mesh(flat(new THREE.TorusGeometry(r,.0095,6,96),PAL.ring),clayM());grp.add(rm);rings.push({m:rm,r,t:tAt(q)-.022});
+        for(let j=0;j<sh[k];j++){bl.push({r,a:Math.PI/2-j/sh[k]*TAU,k,t:tAt(q)});fill.push({t:tAt(q),k});q++;}}
+      const beads=new THREE.InstancedMesh(SPH_LO,new THREE.MeshStandardMaterial({roughness:.9,color:PAL.E}),Math.max(1,bl.length));beads.count=bl.length;beads.frustumCulled=false;beads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);grp.add(beads);
+      const oring=new THREE.Mesh(flat(new THREE.TorusGeometry(Ro,.0105,6,120),PAL.ringV),clayM());grp.add(oring);
+      const seats=[];for(let k=val;k<8;k++){const p=sl(a,k,8),sm=new THREE.Mesh(flat(new THREE.TorusGeometry(er*.82,er*.2,6,24),PAL.ringV),clayM());sm.position.set(p[0],p[1],.02);grp.add(sm);seats.push({m:sm,k});}
+      g.add(grp);
+      return {grp,nuc,nr,rings,bl,beads,rb,oring,tO:tAt(q)-.022,seats,R,Ro,Z:e.z,N,sh,val,core:val,fill,q0:q,don:a.role==='don',name:e.n,s:a.s};});
+    // each outer electron: where it sits at first, where its seat is, and (for one that moves) the seat it ends in
+    const E=M.E.map(e=>{const a=M.at[e.i],T=A[e.i],t=tAt(T.q0+e.k);T.fill.push({t,k:T.sh.length-1});
+      return {i:e.i,mv:!!e.mv,t,p0:sl(a,e.k,e.n),p1:e.mv?sl(a,e.k,8):sl(a,e.end.k,8),to:e.mv?{i:e.end.i,k:e.end.k,p:sl(M.at[e.end.i],e.end.k,8)}:null};});
+    const d=A.findIndex(x=>x.don),c=1-d,pA=i=>[(M.at[i].A[0]-FXX.W/2)*S,-(M.at[i].A[1]-M.H/2)*S],pB=i=>[(M.at[i].B[0]-FXX.W/2)*S,-(M.at[i].B[1]-M.H/2)*S];
+    if(d<0||!A[c]||A[c].don)return null;
+    const dA=pA(d),cA=pA(c),dx=cA[0]-dA[0],dy=cA[1]-dA[1],dist=Math.hypot(dx,dy)||1,ux=dx/dist,uy=dy/dist;
+    // two arrows on the outer electron: the pull back to its own nucleus and the pull from the other atom
+    const arrow=(L,w)=>{const h=Math.min(L*.5,w*1.7),s=new THREE.Shape();s.moveTo(0,-w/2);s.lineTo(L-h,-w/2);s.lineTo(L-h,-w);s.lineTo(L,0);s.lineTo(L-h,w);s.lineTo(L-h,w/2);s.lineTo(0,w/2);s.closePath();
+      const am=new THREE.Mesh(new THREE.ShapeGeometry(s),new THREE.MeshBasicMaterial({color:ink,depthTest:false}));am.visible=false;am.renderOrder=15;g.add(am);return am;};
+    const gap=dist-A[d].Ro-A[c].Ro,Lb=Math.max(.3,gap-2*er-.09),Ls=clamp(Lb*A[d].core/A[c].core,.14,.24);
+    const tag=t=>{const key=t+'|'+dark;let tx=TAGS[key];
+      if(!tx){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const x=cv.getContext('2d');x.textAlign='center';x.textBaseline='middle';x.font='700 46px Outfit,Inter,system-ui,sans-serif';x.fillStyle=dark?'#F3ECE6':'#2A2530';x.fillText(t,128,50);tx=TAGS[key]=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;}
+      const sm=new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false});sm.userData.keepMap=true;const sp=new THREE.Sprite(sm);sp.renderOrder=21;sp.visible=false;g.add(sp);return sp;};
+    const pull={big:arrow(Lb,.11),small:arrow(Ls,.075),Lb,Ls,ang:Math.atan2(uy,ux),ux,uy,sb:tag('pull +'+A[c].core),ss:tag('pull +'+A[d].core)};
+    return {A,E,d,c,pull,er,nm:E.filter(e=>e.mv).length,yOff:.36,pA,pB};
+  }
+  function introDraw(F){
+    const I=F.intro,sc=F.sc,u=clamp(F.el/F.dur[sc],0,1),sec=F.el/1000,ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x);},P=I.pull;
+    const mvT=sc===0?0:ease((u-.43)/.09),peek=sc===1?ease((u-.025)/.035)*(1-ease((u-.105)/.035)):0,grow=sc===0?ease((u-.62)/.12):1-peek;
+    const seatT=sc===0?ease((u-.81)/.05):1,hop=k=>sc===0?0:ease((u-.54-k*.025)/.1),charged=sc===1&&u>.745,lean=sc===1?Math.sin(clamp((u-.86)/.1,0,1)*Math.PI)*.035:0;
+    const pos=F.toks.map((k,i)=>{const a=I.pA(i),b=I.pB(i),dir=i===I.d?1:-1;return [lerp(a[0],b[0],mvT)+dir*P.ux*lean,lerp(a[1],b[1],mvT)+dir*P.uy*lean];});
+    F.g.position.y=I.yOff=ST.W/ST.H>1.25?.2:.36;   // sit a little high, so the cards fit underneath
+    F.toks.forEach((k,i)=>{const T=I.A[i],p=pos[i],r=T.R*grow;
+      k.m.position.set(p[0],p[1],0);k.m.scale.setScalar(Math.max(r,1e-4));k.m.visible=r>T.nr;k.sp0.scale.setScalar(1.45);
+      if(k.sp1){k.sp1.scale.setScalar(1.45);k.sp1.visible=charged;k.sp0.visible=!charged;}else k.sp0.visible=true;
+      T.grp.visible=T.beads.visible=true;T.grp.position.set(p[0],p[1],0);
+      const ns=sc===0?ease((u-.012-i*.035)/.07):1;T.nuc.visible=ns>.01&&r<T.nr*1.05;T.nuc.scale.setScalar(Math.max(ns*(sc===0?1+1.2*(1-ease((u-.125)/.05)):1),1e-4));T.nuc.rotation.y=.5+sec*.3;
+      T.rings.forEach(R=>{const s=sc===0?ease((u-R.t)/.03):1;R.m.visible=s>.01&&r<R.r+.03;R.m.scale.setScalar(Math.max(s,1e-4));});
+      T.bl.forEach((b,j)=>{const s=(sc===0?ease((u-b.t)/.022):1)*(r>b.r-T.rb?0:1),a=b.a+sec*.2*(b.k%2?-1:1);_p.set(Math.cos(a)*b.r,Math.sin(a)*b.r,0);_s.setScalar(Math.max(1e-4,T.rb*s));_m.compose(_p,_q,_s);T.beads.setMatrixAt(j,_m);});
+      T.beads.instanceMatrix.needsUpdate=true;
+      // the outer shell: a ring that folds away once the atom has given its outer electrons up, or settles once it is full
+      const os=sc===0?ease((u-T.tO)/.03):1,fold=sc===1&&T.don?ease((u-.645)/.05):0,full=sc===1&&!T.don?Math.sin(clamp((u-.64)/.07,0,1)*Math.PI)*.05:0;
+      T.oring.visible=os>.01&&fold<1;T.oring.scale.setScalar(Math.max(1e-4,os*(1-fold*(1-T.R*.9/T.Ro))+full));
+      T.seats.forEach((s,j)=>{let v=sc===0?ease((u-.84-j*.006)/.04):T.don?1-ease(u/.05):1;
+        if(sc===1&&!T.don){const k=I.E.filter(e=>e.mv).findIndex(e=>e.to.k===s.k);if(k>=0)v*=1-ease((hop(k)-.8)/.15);}
+        s.m.visible=v>.01;s.m.scale.setScalar(Math.max(1e-4,v*(T.don?1:1+.22*(.5+.5*Math.sin(sec*5.2)))));});});
+    let mi=0,ex=0,ey=0;
+    I.E.forEach((e,j)=>{const T=I.A[e.i],p=pos[e.i];let x,y,z=.02,s=1;
+      if(sc===0){s=ease((u-e.t)/.022);x=p[0]+lerp(e.p0[0],e.p1[0],seatT);y=p[1]+lerp(e.p0[1],e.p1[1],seatT);}
+      else if(!e.mv){x=p[0]+e.p1[0];y=p[1]+e.p1[1];}
+      else{   // slides round its ring to face the other atom, is tugged towards it, then jumps into the empty seat
+        const k=mi++,fa=P.ang+(k-(I.nm-1)/2)*.36,a0=Math.atan2(e.p1[1],e.p1[0]),r0=Math.hypot(e.p1[0],e.p1[1]);let da=fa-a0;da=((da+Math.PI)%TAU+TAU)%TAU-Math.PI;
+        const sld=ease((u-.165)/.05),aa=a0+da*sld,rr=lerp(r0,T.Ro,sld),w=clamp((u-.3)/.12,0,1),tug=(.5-.5*Math.cos(w*TAU*2))*.055;
+        const sx=p[0]+Math.cos(aa)*rr+P.ux*tug,sy=p[1]+Math.sin(aa)*rr+P.uy*tug,q=pos[e.to.i],h=hop(k);
+        x=lerp(sx,q[0]+e.to.p[0],h);y=lerp(sy,q[1]+e.to.p[1],h)+Math.sin(h*Math.PI)*.15;z=.08;ex+=sx/I.nm;ey+=sy/I.nm;}
+      _p.set(x,y,z);_s.setScalar(Math.max(1e-4,I.er*s*(e.mv?1.2:1)));_m.compose(_p,_q,_s);F.eg.setMatrixAt(j,_m);});
+    F.eg.instanceMatrix.needsUpdate=true;
+    const show=sc===1?ease((u-.225)/.05)*(1-ease((u-.425)/.03)):0,o=I.er*1.3+.035+(I.nm-1)*.1,nx=-P.uy,ny=P.ux,sg=ny<0?-1:1;
+    [[P.big,P.sb,1,P.Lb],[P.small,P.ss,-1,P.Ls]].forEach(([am,sp,dir,L])=>{am.visible=sp.visible=show>.01;if(!am.visible)return;
+      am.position.set(ex+dir*P.ux*o,ey+dir*P.uy*o,.46);am.rotation.z=P.ang+(dir<0?Math.PI:0);am.scale.set(show,.4+.6*show,1);
+      sp.position.set(ex+dir*P.ux*(o+L*.5)+nx*sg*.27,ey+dir*P.uy*(o+L*.5)+ny*sg*.27,.5);sp.scale.set(.76*show,.285*show,1);});
+  }
+  /* ---- the same story for any number of atoms. Step 1 shows one big atom of each element, then as many of each
+     as the compound needs. fam 'give': electrons are handed over. fam 'share': electrons are shared. ---- */
+  let LITE=()=>true;    // the general story, for whatever the stricter stories do not fit
+  let MIX=()=>true;         // which salts with a bonded group get the story (share inside the group, give to the group)
+  const NETOK=new Set(['silicon-dioxide','silicon-carbide']);
+  let NET=id=>NETOK.has(id);         // which shared-electron solids get the story (the group is only the start of a network)
+  let SHARE=()=>true;   // which shared-electron compounds get the story: a test on the compound id, or null for none
+  function introN(M,S,g,id,graph,toks,lite){
+    const no=w=>{ST.why=w;return null;};ST.why=0;
+    if(!M.E.length||(M.generic&&!lite))return no(1);
+    const at=M.at,nT=at.length;let fam=null,DON=null;
+    if(lite){if(!/^(share|ionic|metal|complex|electride)$/.test(M.kind))return no(41);
+      DON=at.map(a=>(a.cq||0)>0||a.role==='don'||(M.generic&&a.give>0)||M.kind==='metal');fam='lite';}
+    else if(!graph&&(M.mode==='unit'||M.mode==='kind')&&M.kind==='ionic'){
+      if(!at.every(a=>a.role==='don'||a.role==='acc'))return no(2);
+      for(const e of M.E){if(!e.end){if(e.mv)return no(3);continue;}if(e.end.t!=='slot')return no(4);
+        if(e.mv?!(at[e.i].role==='don'&&at[e.end.i].role==='acc'):e.end.i!==e.i)return no(5);}
+      fam='give';}
+    else if(graph&&M.kind==='share'&&SHARE&&SHARE(id)){
+      for(const e of M.E){if(!e.end){if(e.mv)return no(6);continue;}
+        if(e.mv?!(e.end.t==='bond'&&(e.end.a===e.i||e.end.b===e.i)):!(e.end.t==='lone'&&e.end.i===e.i))return no(7);}
+      fam='share';}
+    else if(!graph&&M.mode==='unit'&&M.kind==='share'&&NET&&NET(id)){
+      for(const e of M.E){if(!e.end){if(e.mv)return no(20);continue;}if(!(e.mv&&e.end.t==='bond'&&(e.end.a===e.i||e.end.b===e.i)))return no(21);}
+      fam='net';}
+    else if(graph&&M.kind==='ionic'&&MIX&&MIX(id)){
+      if(at.some(a=>a.lab!==a.s))return no(30);
+      for(const e of M.E){const en=e.end;if(!en){if(e.mv)return no(31);continue;}
+        if(e.mv?!((en.t==='bond'&&(en.a===e.i||en.b===e.i))||(en.t==='lone'&&en.i!==e.i)):!(en.t==='lone'&&en.i===e.i))return no(32);}
+      // the atoms that hand electrons over stand outside the bonded group: they must not share as well
+      DON=at.map((a,i)=>M.E.some(e=>e.i===i&&e.mv&&e.end.t==='lone'));const inB=at.map((a,i)=>M.E.some(e=>e.end&&e.end.t==='bond'&&(e.end.a===i||e.end.b===i)));
+      if(!DON.some(x=>x)||DON.some((x,i)=>x&&inB[i]))return no(33);
+      for(let i=0;i<nT;i++){const gv=M.E.filter(e=>e.i===i&&e.mv&&e.end.t==='lone').length,gt=M.E.filter(e=>e.i!==i&&e.end&&e.end.t==='lone'&&e.end.i===i).length;if((at[i].cq||0)!==gv-gt)return no(35);}
+      fam='mix';}
+    else return no(8);
+    const pB=i=>[(at[i].B[0]-FXX.W/2)*S,-(at[i].B[1]-M.H/2)*S],R=i=>at[i].r*S,Ro=i=>(at[i].r+6)*S,dots=i=>M.E.filter(e=>e.i===i).length;
+    // before they join, the atoms stand in the same arrangement as after, only spread apart, so they come straight together
+    const cB=[0,0];at.forEach((a,i)=>{const b=pB(i);cB[0]+=b[0]/nT;cB[1]+=b[1]/nT;});let spr=1;
+    for(let i=0;i<nT;i++)for(let j=i+1;j<nT;j++){const a=pB(i),b=pB(j),d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(d>1e-3)spr=Math.max(spr,(Ro(i)+Ro(j)+(nT>6?.2:nT>3?.34:.55))/d);}
+    spr=Math.min(spr,2.4);const pA=i=>{const b=pB(i);return [cB[0]+(b[0]-cB[0])*spr,cB[1]+(b[1]-cB[1])*spr];};
+    const sl=(a,k,tot)=>{const p=FXX.slot([0,0],a.r,k,tot);return [p[0]*S,-p[1]*S];};
+    // one entry for each element in the compound
+    const K=[];
+    for(let i=0;i<nT;i++){const a=at[i],e=a.e;if(!e)return no(9);let key=e;if(lite){const sh=shellsOf(e),o=sh[sh.length-1],d=dots(i),u=!METAL.has(a.s)&&a.lab===a.s&&o<=8&&o>d&&valenceOf(e)!=null?o-d:0;key=e.z+'|'+(METAL.has(a.s)?a.lab+'|':(u?a.s+'H'+(u>1?'₀₁₂₃₄₅'[u]:''):a.lab)+'|'+d);}let k=K.find(x=>x.key===key);
+      if(!k){k={key,lab:a.lab,e,s:a.s,name:lite&&a.lab!==a.s?e.n+' in '+a.lab:e.n,Z:e.z,toks:[],cnt:0,rep:i,qs:[],don:DON?DON[i]:a.role==='don',metal:METAL.has(a.s)};K.push(k);}
+      k.toks.push(i);k.cnt+=a.n||1;const q=a.cq||0;if(!k.qs.includes(q))k.qs.push(q);}
+    if(K.length>(lite?7:4))return no(10);
+    if(DON&&fam!=='lite'&&K.some(k=>k.toks.some(i=>DON[i]!==k.don)))return no(34);
+    const mx=k=>k.toks.reduce((t,i)=>t+pA(i)[0],0)/k.toks.length;K.sort((x,y)=>mx(x)-mx(y));const kOf=at.map((a,i)=>K.findIndex(k=>k.toks.includes(i)));
+    for(const k of K){const e=k.e,sh=shellsOf(e),ns=sh.length,val=valenceOf(e),nd=lite&&k.metal?Math.max(...k.toks.map(dots)):dots(k.rep),vary=k.toks.some(i=>dots(i)!==nd);
+      if(lite?(!k.metal&&(vary||!nd)):(!nd||vary||k.toks.some(i=>at[i].r!==at[k.rep].r)))return no(11);
+      k.vague=lite&&k.metal&&(vary||!nd);if(k.vague)k.rep=k.toks.find(i=>dots(i)===nd);
+      // the dots are the outer shell, plus (for transition metals) the loosely held electrons just below it
+      const left=sh.slice(),took=sh.map(()=>0);let need=nd;
+      for(let q=ns-1;q>=0&&need>0;q--){const av=q===ns-1&&sh[q]<=8?sh[q]:Math.max(0,sh[q]-(q===0?2:8)),t=Math.min(av,need);took[q]=t;left[q]-=t;need-=t;}
+      const part=!k.vague&&sh[ns-1]<=8&&left[ns-1]>0&&val!=null;if(need>0||(part&&fam!=='lite'))return no(12);k.part=part;k.used=part?left[ns-1]:0;
+      const nat=e.nat&&e.nat.length?e.nat.slice().sort((x,y)=>y[1]-x[1])[0][0]:Math.round(e.m),tot=ns===1?2:8;
+      Object.assign(k,{sh,ns,val,nd,left,took,tot,below:nd-took[ns-1],N:Math.max(0,nat-e.z),octet:val!=null&&val===nd&&sh[ns-1]===nd&&nd<=tot});}
+    const gv=fam==='give'||fam==='mix';
+    K.forEach(k=>{if(k.part&&k.lab===k.s&&K.some(x=>x!==k&&x.e===k.e)){k.hl=k.s+'H'+(k.used>1?'₀₁₂₃₄₅'[k.used]:'');k.name=k.e.n+' in '+k.hl;}
+      if(lite&&M.generic&&M.mode==='kind'&&k.metal&&!k.octet)k.vague=true;});
+    if(fam!=='lite'&&K.some(k=>!k.octet&&(!gv||!k.don)))return no(13);
+    if(fam==='give'&&K.some(k=>k.qs.some(q=>k.don?q<=0:q>=0)))return no(14);
+    const core=fam==='give'&&K.length===2&&K.every(k=>k.octet),qual=!core&&K.some(k=>!(k.e.en>0));if(qual&&fam!=='give'&&fam!=='lite')return no(15);K.forEach(k=>{k.pull=core?k.val:fam==='lite'?(k.e.en||0):qual?(k.don?1:2.6):k.e.en;});
+    // where each electron ends, read off the same plan the flat drawing uses
+    const stE=FXX.state(M,1,FXX.DUR[1]).E,endAbs=j=>[(stE[j][0]-FXX.W/2)*S,-(stE[j][1]-M.H/2)*S],er=M.er*S*1.15;
+    const own=at.map(()=>[]);M.E.forEach(e=>{if(fam==='give'&&e.end&&!e.mv)own[e.i].push(e.end.k);});
+    const seatK=i=>{const k=K[kOf[i]];if(!k.octet)return [];const o=[];for(let q=0;q<k.tot;q++)if(fam==='give'&&!k.don?!own[i].includes(q):q>=k.nd)o.push(q);return o;};
+    if(fam==='share'){   // a shared pair counts for both atoms: check every outer shell really ends full
+      for(const k of K){const i=k.rep;let c=0;M.E.forEach(e=>{if(!e.end)c+=e.i===i?1:0;else if(e.end.t==='lone')c+=e.end.i===i?1:0;else if(e.end.a===i||e.end.b===i)c++;});if(c!==k.tot)return no(16);}
+      // and that every atom makes exactly as many bonds as it is short, one electron from each side
+      for(let i=0;i<nT;i++){const k=K[kOf[i]];if(M.E.filter(e=>e.i===i&&e.mv).length!==k.tot-k.nd)return no(19);}}
+    // a solid that shares: this one group is only the start. Bonds use the plan's places; what is left of each atom's own electrons
+    // is drawn as pairs, and as single electrons that still look for a partner. Each single gets a new neighbour at the end of step 2.
+    const NE=M.E.map(()=>null),GH=[];
+    if(fam==='net'){const SD=[[0,1],[1,0],[0,-1],[-1,0]],dl=(M.er+2.4)*S,of=(M.er+.7)*S;
+      if(K.length!==2)return no(25);
+      for(const k of K){const nbs=k.toks.map(i=>M.E.filter(e=>e.i===i&&e.mv).length);if(nbs.some(x=>x!==nbs[0]))return no(24);k.nb=nbs[0];}
+      for(let i=0;i<nT;i++){const k=K[kOf[i]],b=pB(i),mine=[];M.E.forEach((e,j)=>{if(e.i===i)mine.push(j);});
+        const bd=mine.filter(j=>M.E[j].mv),rest=mine.filter(j=>!M.E[j].mv),nb=bd.length,open=k.tot-k.nd-nb,np=(rest.length-open)/2;
+        if(open<0||np<0||np%1||nb+open+np>4||!nb)return no(22);
+        const free=[0,1,2,3];let pk=-1;
+        bd.forEach(j=>{const en=M.E[j].end,o=en.a===i?en.b:en.a,q=pB(o),dx=q[0]-b[0],dy=q[1]-b[1];if(pk<0)pk=kOf[o];free.sort((x,y)=>(SD[y][0]*dx+SD[y][1]*dy)-(SD[x][0]*dx+SD[x][1]*dy));free.shift();});
+        // single electrons take the sides that face away from the group, where there is room for a new neighbour
+        const ox=b[0]-cB[0],oy=b[1]-cB[1];free.sort((x,y)=>((SD[y][0]*ox+SD[y][1]*oy)-(SD[x][0]*ox+SD[x][1]*oy))||x-y);
+        const spots=[];free.slice(0,open).forEach(sd=>spots.push({sd,o:0,single:true}));free.slice(open,open+np).forEach(sd=>{spots.push({sd,o:-1},{sd,o:1});});
+        const pool=rest.slice();
+        spots.forEach(sp=>{const d=SD[sp.sd],rel=[d[0]*(R(i)+dl)-d[1]*sp.o*of,d[1]*(R(i)+dl)+d[0]*sp.o*of];let bi=0,bq=1e9;
+          pool.forEach((j,n)=>{const r=sl(at[i],M.E[j].k,k.tot),q=Math.hypot(r[0]-rel[0],r[1]-rel[1]);if(q<bq){bq=q;bi=n;}});
+          const j=pool.splice(bi,1)[0];NE[j]=[b[0]+rel[0],b[1]+rel[1]];if(sp.single)GH.push({i,k:pk,d,j,de:R(i)+dl});});}
+      if(!GH.length)return no(23);}
+    let facts=null;
+    if(fam==='lite'){const prs={};M.E.forEach(e=>{const en=e.end;if(!e.mv||!en||en.t!=='bond')return;const key=Math.min(en.a,en.b)+'_'+Math.max(en.a,en.b)+'_'+en.pp;(prs[key]=prs[key]||{a:en.a,b:en.b,from:[]}).from.push(e.i);});
+      const P=Object.values(prs),lent=p=>p.from.length===2&&p.from[0]===p.from[1],cntE=i=>{let c=0;M.E.forEach(e=>{const en=e.end;if(!en)c+=e.i===i?1:0;else if(en.t==='lone'||en.t==='slot')c+=en.i===i?1:0;else if(en.t==='bond')c+=(en.a===i||en.b===i)?1:0;else c+=99;});return c;};
+      K.forEach((k,x)=>{const bn=k.toks.map(i=>P.filter(p=>p.a===i||p.b===i).length);k.bn=[Math.min(...bn),Math.max(...bn)];k.sea=M.E.filter(e=>e.i===k.rep&&e.mv&&e.end&&e.end.t==='sea').length;
+        k.lend=P.filter(p=>lent(p)&&kOf[p.from[0]]===x).length;k.fq=(k.bn[1]>0||k.lab!==k.s)&&!k.metal;if(k.fq)k.don=false;});
+      const mets=K.filter(k=>k.metal),ctr=mets.length?mets.reduce((a,k)=>k.cnt<a.cnt?k:a):null;
+      const par=at.map((a,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));P.forEach(p=>{par[find(p.a)]=find(p.b);});const cq={};at.forEach((a,i)=>{const r=find(i);cq[r]=(cq[r]||0)+(a.cq||0);});const cv=Object.values(cq);
+      facts={split:cv.some(q=>q>0)&&cv.some(q=>q<0)&&P.length>0,gen:!!M.generic,pairs:P.length,lent:P.filter(lent).length,lenders:K.filter(k=>k.lend).map(k=>k.name),full:P.length>0&&at.every((a,i)=>cntE(i)===K[kOf[i]].tot),
+        clent:ctr?P.filter(p=>lent(p)&&(ctr.toks.includes(p.a)||ctr.toks.includes(p.b))&&!ctr.toks.includes(p.from[0])).length:0,
+        clenders:ctr?K.filter((k,x)=>P.some(p=>lent(p)&&(ctr.toks.includes(p.a)||ctr.toks.includes(p.b))&&kOf[p.from[0]]===x&&k!==ctr)).map(k=>k.name):[],
+        ctr:ctr?K.indexOf(ctr):-1,cpairs:ctr?P.filter(p=>ctr.toks.includes(p.a)||ctr.toks.includes(p.b)).length:0,ring:M.E.some(e=>e.end&&e.end.t==='ring')};}
+    let grp=null;
+    if(fam==='mix'){const par=at.map((a,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));M.E.forEach(e=>{if(e.end&&e.end.t==='bond')par[find(e.end.a)]=find(e.end.b);});
+      const comp={};at.forEach((a,i)=>{if(!DON[i])(comp[find(i)]=comp[find(i)]||[]).push(i);});const cs=Object.values(comp);
+      const sig=c=>c.map(i=>at[i].s).sort().join(' ')+'|'+c.reduce((t,i)=>t+(at[i].cq||0),0);if(cs.some(c=>sig(c)!==sig(cs[0])))return no(36);
+      const c0=cs[0],q=c0.reduce((t,i)=>t+(at[i].cq||0),0);if(q>=0)return no(37);if(c0.length<2)return no(39);
+      const cntE=i=>{let c=0;M.E.forEach(e=>{const en=e.end;if(!en)c+=e.i===i?1:0;else if(en.t==='lone')c+=en.i===i?1:0;else if(en.a===i||en.b===i)c++;});return c;};
+      const kin=[...new Set(c0.map(i=>kOf[i]))].sort((x,y)=>K[x].e.en-K[y].e.en),acc=[...new Set(M.E.filter(e=>e.mv&&e.end.t==='lone').map(e=>kOf[e.end.i]))];
+      if(kin.length>1&&K[kin[kin.length-1]].e.en-K[kin[0]].e.en>=1.7)return no(38);
+      grp={n:cs.length,q,kin,acc,pairs:M.E.filter(e=>e.mv&&e.end.t==='bond'&&c0.includes(e.i)).length/2,full:cs.every(c=>c.every(i=>cntE(i)===K[kOf[i]].tot)),
+        f:kin.map(x=>K[x].s+(c0.filter(i=>kOf[i]===x).length>1?'<sub>'+c0.filter(i=>kOf[i]===x).length+'</sub>':'')).join('')};}
+    // step 1 layout: one atom of each element. If the compound needs several of one element they start in a row, bigger
+    const one=K.every(k=>k.toks.length===1),five=!one||at.some(a=>(a.n||1)>1)||fam==='net';let f=1;const pK=K.map(k=>pA(k.rep));
+    if(!one){const gap=.26,sum=K.reduce((t,k)=>t+2*Ro(k.rep),0);f=Math.max(1,Math.min(1.7,(3.5-gap*(K.length-1))/sum,.84/Math.max(...K.map(k=>Ro(k.rep)))));
+      let x=-(sum*f+gap*(K.length-1))/2;K.forEach((k,j)=>{const w=2*Ro(k.rep)*f;pK[j]=[x+w/2,0];x+=w+gap;});
+      // the atom that stays is the one with the shortest way to go; the others swing out over or under it
+      K.forEach((k,j)=>{const d=i=>Math.hypot(pA(i)[0]-pK[j][0],pA(i)[1]-pK[j][1]);k.rep=k.toks.reduce((a,i)=>d(i)<d(a)?i:a,k.toks[0]);});}
+    const arc=at.map(()=>0);K.forEach(k=>{let n=0;k.toks.forEach(i=>{if(i!==k.rep)arc[i]=(n++%2?-1:1)*.5;});});
+    const cP=col(PAL.P),cN=col(PAL.N),Zmax=Math.max(...K.map(k=>k.Z)),tAt=q=>.185+.36*q/Math.max(1,Zmax-1);
+    const th=document.documentElement.dataset.theme,dark=th?th==='dark':matchMedia('(prefers-color-scheme: dark)').matches,ink=dark?0xF3ECE6:0x4A4257;
+    const seatM=(r)=>new THREE.Mesh(flat(new THREE.TorusGeometry(r*.82,r*.2,6,24),PAL.ringV),clayM());
+    K.forEach((k,j)=>{const a=at[k.rep],Rk=R(k.rep)*f,Rok=Ro(k.rep)*f,nr=Rk*.3,u=Math.min(1,Rk/.56),rl=[];for(let q=0;q<k.ns;q++)if(k.left[q]>0)rl.push(q);
+      const ni=rl.length,grp=new THREE.Group(),pk=packN(k.Z+k.N),ff=nr/(pk.m||pk.r),isP=pickP(pk.P,k.Z);
+      const nuc=balls(pk.P.map((p,n)=>({x:p[0]*ff,y:p[1]*ff,z:p[2]*ff,r:pk.r*ff,c:isP[n]?cP:cN})),true);nuc.rotation.set(.3,.5,0);grp.add(nuc);
+      const rb=(ni<=2?.044:ni===3?.034:.028)*u,rings=[],bl=[],fill=[],dt=[];let c=0;
+      for(let q=0;q<k.ns;q++){const x=rl.indexOf(q);
+        if(x>=0){const r=ni===1?Rk*.62:lerp(nr+.1*u,Rk-.075*u,x/(ni-1)),rm=new THREE.Mesh(flat(new THREE.TorusGeometry(r,.0095,6,96),PAL.ring),clayM());grp.add(rm);rings.push({m:rm,r,t:tAt(c)-.022});
+          for(let n=0;n<k.left[q];n++){bl.push({r,a:Math.PI/2-n/k.left[q]*TAU,k:x,t:tAt(c)});fill.push({t:tAt(c),k:q});c++;}}
+        for(let n=0;n<k.took[q];n++){dt.push(tAt(c));fill.push({t:tAt(c),k:q});c++;}}
+      const beads=new THREE.InstancedMesh(SPH_LO,new THREE.MeshStandardMaterial({roughness:.9,color:PAL.E}),Math.max(1,bl.length));beads.count=bl.length;beads.frustumCulled=false;beads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);grp.add(beads);
+      const oring=new THREE.Mesh(flat(new THREE.TorusGeometry(Rok,.0105,6,120),PAL.ringV),clayM());grp.add(oring);
+      const seats=seatK(k.rep).map(q=>{const p=sl(a,q,k.tot),sm=seatM(er*f);sm.position.set(p[0]*f,p[1]*f,.02);grp.add(sm);return {m:sm,k:q};});
+      g.add(grp);Object.assign(k,{fill,dt,rig:{grp,nuc,nr,rings,bl,beads,rb,oring,tO:(dt.length?dt[0]:tAt(c))-.022,seats,Rk,Rok}});});
+    // every atom of the plan gets its own outer ring and empty seats, used once the big atoms have split up
+    const movers=M.E.filter(e=>e.mv),nm=fam==='mix'?M.E.filter(e=>e.mv&&e.end.t==='lone').length:movers.length,stg=Math.min(.025,.09/Math.max(1,nm-1));
+    const TR=at.map((a,i)=>{const k=K[kOf[i]],tg=new THREE.Group(),oring=new THREE.Mesh(flat(new THREE.TorusGeometry(Ro(i),.0105,6,120),PAL.ringV),clayM());tg.add(oring);
+      const seats=seatK(i).map(q=>{const p=sl(a,q,k.tot),sm=seatM(er);sm.position.set(p[0],p[1],.02);tg.add(sm);const m=movers.findIndex(e=>e.end.t==='slot'&&e.end.i===i&&e.end.k===q);return {m:sm,k:q,mi:m};});
+      tg.visible=false;g.add(tg);return {g:tg,oring,seats,don:k.don,allGo:gv&&k.don&&M.E.every(e=>e.i!==i||e.mv)};});
+    toks.forEach((k,i)=>{const a=at[i];if(M.mode==='kind'&&a.n>1){k.spn=sprite(a.lab,elHex(a.s),'');k.spn.scale.setScalar(1.45);k.spn.visible=false;k.m.add(k.spn);}});
+    let mi=0;
+    const E=M.E.map((e,j)=>{const a=at[e.i],k=K[kOf[e.i]],rank=M.E.filter(x=>x.i===e.i&&x.k<e.k).length,r0=sl(a,e.k,e.n),end=NE[j]||endAbs(j);let cls,r1,to=null;
+      if(!e.end&&!NE[j]){cls='stay';r1=k.octet?sl(a,e.k,k.tot):r0;}
+      else if(!e.mv&&fam==='give'){cls='stay';const b=pB(e.i);r1=[end[0]-b[0],end[1]-b[1]];}
+      else{r1=k.octet?sl(a,e.k,k.tot):r0;
+        if(fam==='give'||(fam==='mix'&&e.end.t==='lone'&&e.end.i!==e.i)){cls='hop';const b=pB(e.end.i);to={i:e.end.i,rel:[end[0]-b[0],end[1]-b[1]]};}else cls='move';}
+      return {i:e.i,mv:!!e.mv,cls,t:k.dt[Math.min(rank,k.dt.length-1)],r0,r1,to,end,m:cls==='hop'?mi++:0,dyn:fam==='lite'&&cls==='move',out:!!(e.end&&e.end.t==='out')};});
+    // the one electron the pull arrows are drawn on: the mover that best faces the atom it goes to
+    let fo=null;
+    {const low=Math.min(...K.map(k=>k.e.en));let best=-9;
+      if(!(fam==='lite'&&qual))E.forEach((e,j)=>{if(e.cls==='stay'||!M.E[j].mv)return;if(fam==='mix'?e.cls!=='hop':fam!=='give'&&K[kOf[e.i]].e.en>low+1e-6)return;const en=M.E[j].end,o=e.cls==='hop'?en.i:en.t==='bond'?(en.a===e.i?en.b:en.b===e.i?en.a:null):en.t==='slot'||en.t==='lone'?en.i:null;if(o===e.i||o==null||(fam==='lite'&&kOf[o]===kOf[e.i]))return;
+        const a=pA(e.i),b=pA(o),dx=b[0]-a[0],dy=b[1]-a[1],d=Math.hypot(dx,dy)||1,l=Math.hypot(e.r1[0],e.r1[1])||1,sc_=(e.r1[0]*dx+e.r1[1]*dy)/(d*l);
+        if(sc_>best){best=sc_;fo={j,i:e.i,o,ux:dx/d,uy:dy/d,d};}});}
+    if(!fo&&fam!=='lite')return no(17);
+    const arrow=(L,w)=>{const h=Math.min(L*.5,w*1.7),s=new THREE.Shape();s.moveTo(0,-w/2);s.lineTo(L-h,-w/2);s.lineTo(L-h,-w);s.lineTo(L,0);s.lineTo(L-h,w);s.lineTo(L-h,w/2);s.lineTo(0,w/2);s.closePath();
+      const am=new THREE.Mesh(new THREE.ShapeGeometry(s),new THREE.MeshBasicMaterial({color:ink,depthTest:false}));am.visible=false;am.renderOrder=15;g.add(am);return am;};
+    const tag=t=>{const key=t+'|'+dark;let tx=TAGS[key];
+      if(!tx){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const x=cv.getContext('2d');x.textAlign='center';x.textBaseline='middle';x.font='700 46px Outfit,Inter,system-ui,sans-serif';x.fillStyle=dark?'#F3ECE6':'#2A2530';x.fillText(t,128,50);tx=TAGS[key]=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;}
+      const sm=new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false});sm.userData.keepMap=true;const sp=new THREE.Sprite(sm);sp.renderOrder=21;sp.visible=false;g.add(sp);return sp;};
+    let pull=null;if(fo){const kO=K[kOf[fo.i]],kX=K[kOf[fo.o]],gap=fo.d-Ro(fo.i)-Ro(fo.o),Lb=clamp(gap-2*er-.09,.3,.95),sCap=R(fo.i)>=.45?.26:Math.max(.1,Ro(fo.i)-R(fo.i)*.5-er*1.3-.035),sMin=Math.min(.14,sCap),Ls=clamp(Lb*kO.pull/kX.pull,sMin,Math.max(sMin,Math.min(sCap,Lb*.9)));
+    const pt=k=>qual?(k.don?'weak':'strong'):'pull '+(core?'+'+k.pull:k.pull.toFixed(1));
+    pull={big:arrow(Lb,.11),small:arrow(Ls,.075),Lb,Ls,ang:Math.atan2(fo.uy,fo.ux),ux:fo.ux,uy:fo.uy,sb:tag(pt(kX)),ss:tag(pt(kO))};}
+    // the next atoms of the network, drawn small and pale: they arrive at the end of step 2, one for every single electron
+    const bgc=col(dark?0x2A2530:0xFBF1EA),gh=GH.map((q,n)=>{const kd=K[q.k],pale=col(elHex(kd.s)).lerp(bgc,.42),r=R(kd.rep)*.62,m=balls([{x:0,y:0,z:0,r:1,c:pale}],false),sp=sprite(kd.s,pale.getHex(),'');
+      sp.scale.setScalar(1.45);m.add(sp);m.visible=false;g.add(m);const em=new THREE.Mesh(SPH_LO,new THREE.MeshStandardMaterial({roughness:.9,color:PAL.V}));em.visible=false;g.add(em);
+      const de=q.de+2*er+.035;return {i:q.i,j:q.j,d:q.d,m,sp,e:em,r,de,dc:de+er*1.2+.05+r,t:.755+n*.03};});
+    // how much room the camera must show: the big atoms first, then the whole plan
+    let tw=0,th_=0,bw=0,bh=0;at.forEach((a,i)=>{const p=pA(i),b=pB(i);tw=Math.max(tw,Math.abs(p[0])+Ro(i),Math.abs(b[0])+Ro(i));th_=Math.max(th_,Math.abs(p[1])+Ro(i),Math.abs(b[1])+Ro(i));bw=Math.max(bw,Math.abs(b[0])+Ro(i));bh=Math.max(bh,Math.abs(b[1])+Ro(i));});
+    const two=0,tall=h=>Math.max(h+.68+two,2*(h-.3)+two),fitT=[tw+.16,tall(th_)],fitB=[Math.max(1.5,bw+.3),Math.max(1.36,tall(bh))],fitK=one?fitT:[Math.max(...K.map((k,j)=>Math.abs(pK[j][0])+k.rig.Rok))+.16,Math.max(...K.map(k=>k.rig.Rok))+.68+two];
+    let gw=bw,gh_=bh;gh.forEach(q=>{const b=pB(q.i);gw=Math.max(gw,Math.abs(b[0]+q.d[0]*q.dc)+q.r);gh_=Math.max(gh_,Math.abs(b[1]+q.d[1]*q.dc)+q.r);});
+    const fitG=[Math.max(1.5,gw+.3),Math.max(1.36,tall(gh_))];
+    const tH=fam==='mix'?.6:.54,tF=Math.max(tH+.105,tH+.08+(nm-1)*stg),I={gen:true,fam,two,mix:fam==='mix',grp,tH,lite:fam==='lite',facts,kind:M.kind,mode:M.mode,net:fam==='net',gh:gh.length?gh:null,fitG,cE:col(PAL.E),cV:col(PAL.V),tc:new THREE.Color(),core,qual,K,kOf,E,TR,pull,er,nm,stg,f,one,five,pK,pA,pB,Ro,fo,arc,fitT,fitK,fitB,tF,tQ:Math.max(.745,tF+.07),yOff:.36,cur:null,
+      B:[five?[0,.134,.504,.672,.84]:IB[0],fam==='mix'?[0,.15,.43,.72]:IB[1]],
+      off(){gh.forEach(q=>{q.m.visible=q.e.visible=false;});K.forEach(k=>{k.rig.grp.visible=false;});TR.forEach(t=>{t.g.visible=false;});if(pull)pull.big.visible=pull.small.visible=pull.sb.visible=pull.ss.visible=false;toks.forEach(k=>{if(k.spn)k.spn.visible=false;if(!k.sp1)k.sp0.visible=true;});},
+      // where on the page the card for element j belongs: under its atom while the atoms stand in a row, otherwise nowhere in particular
+      px(j){const C=I.cur;if(!C||!ST.W||(!one&&(C.sc===1||C.mu>.5)))return null;const k=K[j],p=C.pos[k.rep];_v.set(p[0],p[1]-Ro(k.rep)*C.s,0);g.updateWorldMatrix(true,false);_v.applyMatrix4(g.matrixWorld).project(cam);return [(_v.x*.5+.5)*ST.W,(-_v.y*.5+.5)*ST.H];}};
+    return I;
+  }
+  function introDrawN(F){
+    const I=F.intro,sc=F.sc,u=clamp(F.el/F.dur[sc],0,1),sec=F.el/1000,ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x);},P=I.pull,share=I.fam==='share'||I.fam==='net';
+    const v=sc===0&&I.five?Math.min(1,u/.84):u,mu=sc===0?(I.one?0:ease((u-.865)/.09)):1,xn=sc===1||!I.five||u>.86;   // v: the four-beat timeline. mu: the big atoms splitting into the plan
+    const mvT=sc===1?ease((v-.43)/.09):0,peek=sc===1?ease((v-.025)/.035)*(1-ease((v-.105)/.035)):0,grow=sc===0?ease((v-.62)/.12):1-peek;
+    const seatT=sc===0?ease((v-.81)/.05):1,charged=sc===1&&!share&&v>I.tQ,s=lerp(I.f,1,mu),rs=s/I.f;
+    F.g.position.y=I.yOff=(ST.W/ST.H>1.25?.2:.36)+I.two*.5;{const a=sc===0?I.fitK:I.fitT,b=sc===0?I.fitT:I.fitB,t=sc===0?mu:mvT;ST.fitW=lerp(a[0],b[0],t);ST.fitH=lerp(a[1],b[1],t);}
+    if(I.gh&&sc===1){const t=ease((v-.74)/.1);ST.fitW=lerp(ST.fitW,I.fitG[0],t);ST.fitH=lerp(ST.fitH,I.fitG[1],t);}
+    const pos=F.toks.map((k,i)=>{const a=sc===0?I.pK[I.kOf[i]]:I.pA(i),b=sc===0?I.pA(i):I.pB(i),t=sc===0?mu:mvT;return [lerp(a[0],b[0],t),lerp(a[1],b[1],t)+(sc===0?Math.sin(mu*Math.PI)*I.arc[i]:0)];});
+    I.cur={pos,s,mu,sc};
+    const hopH=m=>ease((v-I.tH-m*I.stg)/.1),split=sc===1||mu>0;
+    F.toks.forEach((k,i)=>{const kd=I.K[I.kOf[i]],rep=kd.rep===i,p=pos[i],r=k.r*s*(sc===1&&!rep?1:grow),plain=!!k.spn&&!xn;
+      k.m.position.set(p[0],p[1],rep?0:-.01);k.m.scale.setScalar(Math.max(r,1e-4));k.m.visible=(rep||mu>0)&&r>kd.rig.nr*rs;
+      k.sp0.scale.setScalar(1.45);if(k.spn)k.spn.visible=plain;
+      if(k.sp1){k.sp1.scale.setScalar(1.45);k.sp1.visible=charged;k.sp0.visible=!charged&&!plain;}else k.sp0.visible=!plain;
+      // its own outer ring and empty seats
+      const T=I.TR[i];T.g.visible=split;if(!split)return;T.g.position.set(p[0],p[1],0);T.g.scale.setScalar(s);
+      const shr=share||I.lite||(I.mix&&!T.allGo),fold=sc===0?0:shr?ease((v-.47)/.06):T.allGo?ease((v-I.tF)/.05):0,full=sc===1&&!share&&!T.don?Math.sin(clamp((v-I.tF)/.07,0,1)*Math.PI)*.05:0,ro=I.Ro(i);
+      T.oring.visible=fold<1;T.oring.scale.setScalar(Math.max(1e-4,1-fold*(1-k.r*.9/ro)+full));
+      T.seats.forEach(q=>{let w=sc===0?1:shr?1-ease((v-.45)/.04):T.don?1-ease(v/.05):1;if(sc===1&&q.mi>=0)w*=1-ease((hopH(q.mi)-.8)/.15);
+        q.m.visible=w>.01;q.m.scale.setScalar(Math.max(1e-4,w*(T.don?1:1+.22*(.5+.5*Math.sin(sec*5.2)))));});});
+    // the big atom of each element: nucleus, inner shells, and (until it splits up) its outer ring and seats
+    I.K.forEach((kd,j)=>{const T=kd.rig,p=pos[kd.rep],on=sc===0||peek>.01;T.grp.visible=on;if(!on)return;T.grp.position.set(p[0],p[1],0);T.grp.scale.setScalar(rs);
+      const r=T.Rk*grow,ns=sc===0?ease((v-.012-j*.035)/.07):1;
+      T.nuc.visible=ns>.01&&r<T.nr*1.05;T.nuc.scale.setScalar(Math.max(ns*(sc===0?1+1.2*(1-ease((v-.125)/.05)):1),1e-4));T.nuc.rotation.y=.5+sec*.3;
+      T.rings.forEach(Rg=>{const q=sc===0?ease((v-Rg.t)/.03):1;Rg.m.visible=q>.01&&r<Rg.r+.03;Rg.m.scale.setScalar(Math.max(q,1e-4));});
+      T.bl.forEach((b,n)=>{const q=(sc===0?ease((v-b.t)/.022):1)*(r>b.r-T.rb?0:1),a=b.a+sec*.2*(b.k%2?-1:1);_p.set(Math.cos(a)*b.r,Math.sin(a)*b.r,0);_s.setScalar(Math.max(1e-4,T.rb*q));_m.compose(_p,_q,_s);T.beads.setMatrixAt(n,_m);});
+      T.beads.instanceMatrix.needsUpdate=true;
+      const os=sc===0&&!split?ease((v-T.tO)/.03):0;T.oring.visible=os>.01;T.oring.scale.setScalar(Math.max(1e-4,os));
+      T.seats.forEach((q,n)=>{const w=sc===0&&!split?ease((v-.84-n*.006)/.04):0;q.m.visible=w>.01;q.m.scale.setScalar(Math.max(1e-4,w*(kd.don?1:1+.22*(.5+.5*Math.sin(sec*5.2)))));});});
+    let ex=0,ey=0;const LS=I.lite&&sc===1?FXX.state(F.M,2,F.el).E:null;
+    I.E.forEach((e,j)=>{const kd=I.K[I.kOf[e.i]],rep=kd.rep===e.i,p=pos[e.i];let x,y,z=.02,q=1;
+      if(sc===0){q=(rep||mu>0?ease((v-e.t)/.022):0)*s;x=p[0]+lerp(e.r0[0],e.r1[0],seatT)*s;y=p[1]+lerp(e.r0[1],e.r1[1],seatT)*s;}
+      else if(e.cls==='stay'){x=p[0]+e.r1[0];y=p[1]+e.r1[1];}
+      else{let sx=p[0]+e.r1[0],sy=p[1]+e.r1[1];
+        if(I.fo&&j===I.fo.j){   // slides round its ring to face the other atom and is tugged towards it
+          const a0=Math.atan2(e.r1[1],e.r1[0]),r0=Math.hypot(e.r1[0],e.r1[1]);let da=P.ang-a0;da=((da+Math.PI)%TAU+TAU)%TAU-Math.PI;
+          const sld=ease((v-.165)/.05),aa=a0+da*sld,rr=lerp(r0,I.Ro(e.i),sld),w=clamp((v-.3)/.12,0,1),tug=(.5-.5*Math.cos(w*TAU*2))*.055;
+          sx=p[0]+Math.cos(aa)*rr+P.ux*tug;sy=p[1]+Math.sin(aa)*rr+P.uy*tug;ex=sx;ey=sy;}
+        if(e.cls==='hop'){const t=pos[e.to.i],h=hopH(e.m);x=lerp(sx,t[0]+e.to.rel[0],h);y=lerp(sy,t[1]+e.to.rel[1],h)+Math.sin(h*Math.PI)*.15;z=.08;}
+        else{const h=ease((v-.47-(j%5)*.012)/.14),en=e.dyn?[(LS[j][0]-FXX.W/2)*F.S,-(LS[j][1]-F.M.H/2)*F.S]:e.end;x=lerp(sx,en[0],h);y=lerp(sy,en[1],h);z=e.mv?.08:.02;if(e.out)q*=1-h;}}
+      e.px=x;e.py=y;_p.set(x,y,z);_s.setScalar(Math.max(1e-4,I.er*q*(e.mv?1.2:1)));_m.compose(_p,_q,_s);F.eg.setMatrixAt(j,_m);});
+    F.eg.instanceMatrix.needsUpdate=true;
+    // the single electrons that still look for a partner beat, then each meets a new neighbour and becomes a shared pair
+    if(I.gh){I.gh.forEach(q=>{const a=sc===1?ease((v-q.t)/.07):0,p=pos[q.i],e=I.E[q.j],w=sc===1&&v>.69?(1-a)*.3*(.5+.5*Math.sin(sec*6.5)):0;
+        I.tc.copy(I.cE).lerp(I.cV,a);F.eg.setColorAt(q.j,I.tc);
+        if(sc===1){_p.set(e.px,e.py,.08);_s.setScalar(I.er*(1+.2*a+w));_m.compose(_p,_q,_s);F.eg.setMatrixAt(q.j,_m);}
+        q.m.visible=q.e.visible=a>.01;if(a<=.01)return;
+        q.m.position.set(p[0]+q.d[0]*q.dc,p[1]+q.d[1]*q.dc,-.01);q.m.scale.setScalar(Math.max(1e-4,q.r*a));q.e.position.set(p[0]+q.d[0]*q.de,p[1]+q.d[1]*q.de,.08);q.e.scale.setScalar(Math.max(1e-4,I.er*1.2*a));});
+      if(F.eg.instanceColor)F.eg.instanceColor.needsUpdate=true;F.eg.instanceMatrix.needsUpdate=true;}
+    const show=sc===1?ease((v-.225)/.05)*(1-ease((v-.425)/.03)):0,o=I.er*1.3+.035,nx=P?-P.uy:0,ny=P?P.ux:0,sg=ny<0?-1:1;
+    (P?[[P.big,P.sb,1,P.Lb],[P.small,P.ss,-1,P.Ls]]:[]).forEach(([am,sp,dir,L])=>{am.visible=sp.visible=show>.01;if(!am.visible)return;
+      am.position.set(ex+dir*P.ux*o,ey+dir*P.uy*o,.46);am.rotation.z=P.ang+(dir<0?Math.PI:0);am.scale.set(show,.4+.6*show,1);
+      const ti=dir>0?I.fo.o:I.fo.i,tp=pos[ti],td=I.Ro(ti)+.26;if(I.mix&&dir>0)sp.position.set(ex+P.ux*(o+L*.55)+nx*sg*.2,ey+P.uy*(o+L*.55)+ny*sg*.2,.5);else sp.position.set(tp[0]+nx*sg*td,tp[1]+ny*sg*td,.5);sp.scale.set(.76*show,.285*show,1);});   // each pull is named above its own atom
+  }
+  // where on the page the bottom of atom i's outer ring is, for the card under it
+  function formPx(i){const F=ST.form;if(!F||!F.intro||!ST.W)return null;if(F.intro.gen)return F.intro.px(i);const T=F.intro.A[i];_v.set(0,-T.Ro,0);T.grp.updateWorldMatrix(true,false);_v.applyMatrix4(T.grp.matrixWorld).project(cam);return [(_v.x*.5+.5)*ST.W,(-_v.y*.5+.5)*ST.H];}
+  // a salt with a bonded group: turn the group so that the atoms which receive electrons face the atom that gives them
+  function mixTurn(M){
+    const at=M.at,inB=at.map(()=>false),rec=at.map(()=>0),don=at.map(()=>false);if(M.turned)return;
+    M.E.forEach(e=>{const en=e.end;if(!en)return;if(en.t==='bond'){inB[en.a]=inB[en.b]=true;}else if(en.t==='lone'&&en.i!==e.i&&e.mv){rec[en.i]++;don[e.i]=true;}});
+    const G=[],D=[];at.forEach((a,i)=>{if(inB[i])G.push(i);else if(don[i])D.push(i);});if(!G.length||!D.length)return;
+    const par=at.map((a,i)=>i),find=i=>par[i]===i?i:(par[i]=find(par[i]));M.E.forEach(e=>{if(e.end&&e.end.t==='bond')par[find(e.end.a)]=find(e.end.b);});
+    if(G.some(i=>find(i)!==find(G[0])))return;   // one group only
+    ['A','B'].forEach(key=>{const c=[0,0];G.forEach(i=>{c[0]+=at[i][key][0]/G.length;c[1]+=at[i][key][1]/G.length;});
+      let ax=0,ay=0,bx=0,by=0;G.forEach(i=>{ax+=rec[i]*(at[i][key][0]-c[0]);ay+=rec[i]*(at[i][key][1]-c[1]);});D.forEach(i=>{bx+=at[i][key][0]-c[0];by+=at[i][key][1]-c[1];});
+      if(Math.hypot(ax,ay)<4||Math.hypot(bx,by)<4)return;
+      const th=Math.atan2(by,bx)-Math.atan2(ay,ax),cs=Math.cos(th),sn=Math.sin(th);
+      G.forEach(i=>{const x=at[i][key][0]-c[0],y=at[i][key][1]-c[1];at[i][key]=[c[0]+x*cs-y*sn,c[1]+x*sn+y*cs];});
+      if(key==='B')M.E.forEach(e=>{const en=e.end;if(en&&en.t==='lone'&&G.includes(en.i))en.ang+=th;});});
+    M.turned=true;
+  }
   function form(id){
     const c=CMP[id];if(!c||!ST.parts||ST.kind!=='cmp')return null;
-    const M=FXX.model(id,c);FXX.plan(M);M.cap=FXX.captions(M);
+    const M=FXX.model(id,c);FXX.plan(M);M.cap=FXX.captions(M);if(MIX&&MIX(id)&&M.mode==='graph'&&M.kind==='ionic'&&c.g)mixTurn(M);
     const S=6.4/FXX.W,g=new THREE.Group(),toks=[],graph=M.mode==='graph'&&c.g;
     M.at.forEach(a=>{const hex=elHex(a.s),m=balls([{x:0,y:0,z:0,r:1,c:col(hex)}],false),sp0=sprite(a.lab,hex,M.mode==='kind'&&a.n>1?'×'+a.n:''),sp1=a.cq?sprite(a.lab+(Math.abs(a.cq)>1?Math.abs(a.cq):'')+(a.cq>0?'+':'−'),hex,M.mode==='kind'&&a.n>1?'×'+a.n:''):null;
       m.add(sp0);sp0.scale.setScalar(1.45);if(sp1){m.add(sp1);sp1.scale.setScalar(1.45);sp1.visible=false;}g.add(m);toks.push({m,sp0,sp1,r:a.r*S});});
@@ -5838,27 +6249,88 @@ const MV=(()=>{
       c.g.b.forEach(([i,j,o])=>{if(!P[i]||!P[j])return;const d=new V3().subVectors(P[j],P[i]).normalize(),nrm=new V3(-d.y,d.x,0);
         if(o===2)[-1,1].forEach(k=>sl.push([P[i].clone().addScaledVector(nrm,k*.07),P[j].clone().addScaledVector(nrm,k*.07),.04]));else if(o>=3)[-1,0,1].forEach(k=>sl.push([P[i].clone().addScaledVector(nrm,k*.1),P[j].clone().addScaledVector(nrm,k*.1),.034]));else sl.push([P[i],P[j],.055]);});
       (c.g.c||[]).forEach(([mi,ids])=>{const q=new V3();ids.forEach(i=>q.add(P[i]));q.divideScalar(ids.length);sl.push([P[mi],q,.03]);});
-      bonds=sticks(sl);if(bonds){bonds.visible=false;g.add(bonds);}}
-    root.add(g);ST.form={M,S,g,toks,eg,bonds,graph,sc:0,el:0,play:false,t0:0,id};ST.parts.model.visible=false;
+      bonds=sticks(sl,undefined,sl.map((x,k)=>[.08+Math.min(.62,.1*(sl.length-1))*k/Math.max(1,sl.length-1),.25]));if(bonds){bonds.visible=false;g.add(bonds);}}
+    const claim=[];let tale=null;
+    {const Pm=ST.parts,B=Pm.B,bm=Pm.bm,nv=bm.userData.nv,ga=bm.geometry.attributes,used=new Set(),D=B.map(()=>0),n=B.length;
+      // who touches whom (from the bonds), the best-connected atom nearest the middle, and how many bonds away everything else is
+      const adj=B.map(()=>[]);(Pm.sb||[]).forEach(([a,b])=>{if(a!==b&&!adj[a].includes(b)){adj[a].push(b);adj[b].push(a);}});
+      const r0=j=>Math.hypot(B[j].x,B[j].y,B[j].z);let hub=0;for(let j=1;j<n;j++){const dj=adj[j].length,dh=adj[hub].length;if(dj>dh||(dj===dh&&r0(j)<r0(hub)-1e-6))hub=j;}
+      const lv=B.map(()=>-1);lv[hub]=0;let q=[hub];while(q.length){const nx=[];q.forEach(a=>adj[a].forEach(b=>{if(lv[b]<0){lv[b]=lv[a]+1;nx.push(b);}}));q=nx;}
+      const mx=Math.max(...lv);for(let j=0;j<n;j++)if(lv[j]<0)lv[j]=mx+1;
+      const H=B[hub],hd=j=>Math.hypot(B[j].x-H.x,B[j].y-H.y,B[j].z-H.z),by=(i,j)=>(lv[i]-lv[j])||(hd(i)-hd(j));
+      const story=!graph&&!Pm.flat&&adj[hub].length>=3&&n>=adj[hub].length+4;
+      // each atom from step 2 takes a place of its own kind: the middle one first, the others right beside it
+      if(!graph)M.at.forEach((a,i)=>{let best=-1;for(let j=0;j<n;j++){if(B[j].s!==a.s||used.has(j))continue;if(best<0||by(j,best)<0)best=j;}
+        if(best<0){claim.push(null);return;}used.add(best);const b=B[best],f=i/Math.max(1,M.at.length-1);
+        claim.push({j:best,p:new V3(b.x,b.y,b.z).multiplyScalar(Pm.sc),r:b.r*Pm.sc,tl:story?.03+.04*f:.08+.08*f});});
+      const put=(j,s0,d,w,k)=>{for(let v=0;v<nv;v++){const o=(j*nv+v)*3;ga.bs.array[o]=s0[0];ga.bs.array[o+1]=s0[1];ga.bs.array[o+2]=s0[2];ga.bt.array[o]=d;ga.bt.array[o+1]=w;ga.bt.array[o+2]=k;}D[j]=d+w;};
+      claim.forEach(c=>{if(c){const b=B[c.j];put(c.j,[b.x,b.y,b.z],c.tl,.0005,1);D[c.j]=c.tl;}});
+      // everything else arrives from outside, along the line from the middle
+      const far=Pm.rad*1.15,from=(j,k)=>{const b=B[j],l=hd(j),u=l>.05?[(b.x-H.x)/l,(b.y-H.y)/l,(b.z-H.z)/l]:[Math.cos(k*2.4)*.5,.8,Math.sin(k*2.4)*.5];return [b.x+u[0]*far,b.y+u[1]*far,b.z+u[2]*far];};
+      const rest=B.map((b,j)=>j).filter(j=>!used.has(j)).sort(by);
+      if(story){   // told in beats: the first ring one by one, then the next ring, then the rest
+        const s1=rest.filter(j=>lv[j]===1),s2=rest.filter(j=>lv[j]===2),s3=rest.filter(j=>lv[j]>2);
+        s1.forEach((j,k)=>put(j,from(j,k),.10+.17*k/Math.max(1,s1.length-1),.05,.3));
+        s2.forEach((j,k)=>put(j,from(j,k),.41+.11*k/Math.max(1,s2.length-1),.07,.3));
+        s3.forEach((j,k)=>put(j,from(j,k),.61+.07*k/Math.max(1,s3.length-1),.07,.3));
+        const nbs={};adj[hub].forEach(j=>{nbs[B[j].s]=(nbs[B[j].s]||0)+1;});const nb=Object.keys(nbs).sort((a,b)=>nbs[b]-nbs[a])[0],nbj=adj[hub].find(j=>B[j].s===nb),bond=adj[hub].reduce((t,j)=>t+hd(j),0)/adj[hub].length;
+        // one more of the same kind tries the roomiest gap and is pushed back out
+        let ub=[0,1,0],best=-9;for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){if(!x&&!y&&!z)continue;const l=Math.hypot(x,y,z),u=[x/l,y/l,z/l];let mn=9;
+          adj[hub].forEach(j=>{const c=((B[j].x-H.x)*u[0]+(B[j].y-H.y)*u[1]+(B[j].z-H.z)*u[2])/hd(j);mn=Math.min(mn,Math.acos(clamp(c,-1,1)));});const sc_=mn+.08*(u[0]*.4+u[1]*.5+u[2]*.4);if(sc_>best){best=sc_;ub=u;}}
+        const im=balls([{x:0,y:0,z:0,r:1,c:col(elHex(nb))}],false),isp=sprite('✕',elHex(nb));isp.scale.setScalar(1.3);im.add(isp);im.visible=false;g.add(im);
+        tale={hub,hs:H.s,nbs,nb,n1:adj[hub].length,ring:adj[hub].slice(),D,total:n,grain:null,
+          in:{m:im,sp:isp,u:ub,near:bond*1.34*Pm.sc,far:Pm.rad*1.3*Pm.sc,r:B[nbj].r*Pm.sc,hp:new V3(H.x,H.y,H.z).multiplyScalar(Pm.sc)}};
+        if(c.dr==='ab'){   // a cubic sketch can be carried on: an outline round the sample, then the same pattern far beyond it
+          const lo=[9,9,9],hi=[-9,-9,-9];let rm=0;B.forEach(b=>{[b.x,b.y,b.z].forEach((v,a)=>{lo[a]=Math.min(lo[a],v);hi[a]=Math.max(hi[a],v);});rm=Math.max(rm,b.r);});
+          const e=[hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2]],pad=rm*1.12,P3=(a,b,cc)=>new V3(a?hi[0]+pad:lo[0]-pad,b?hi[1]+pad:lo[1]-pad,cc?hi[2]+pad:lo[2]-pad),ed=[];
+          for(let a=0;a<2;a++)for(let b=0;b<2;b++)ed.push([P3(0,a,b),P3(1,a,b),.045],[P3(a,0,b),P3(a,1,b),.045],[P3(a,b,0),P3(a,b,1),.045]);
+          const box=sticks(ed,0x5A5262);box.material=clay({transparent:true,opacity:0});box.visible=false;Pm.g.add(box);
+          const eu=new THREE.Euler(.42,.62,0),sg=[1,1,1];let bz=-9;for(let a=-1;a<=1;a+=2)for(let b=-1;b<=1;b+=2)for(let cc=-1;cc<=1;cc+=2){const v=new V3(a,b,cc).applyEuler(eu);if(v.z>bz){bz=v.z;sg[0]=a;sg[1]=b;sg[2]=cc;}}
+          const key=(x,y,z)=>Math.round(x*20)+'|'+Math.round(y*20)+'|'+Math.round(z*20),seen=new Set(B.map(b=>key(b.x,b.y,b.z))),byEl={},NT=4;
+          for(let i=0;i<NT;i++)for(let j=0;j<NT;j++)for(let k=0;k<NT;k++)B.forEach(b=>{const x=b.x-sg[0]*i*e[0],y=b.y-sg[1]*j*e[1],z=b.z-sg[2]*k*e[2],kk=key(x,y,z);if(seen.has(kk))return;seen.add(kk);(byEl[b.s]=byEl[b.s]||{r:b.r,p:[]}).p.push(x,y,z);});
+          const pts=Object.keys(byEl).map(sy=>{const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(byEl[sy].p),3));
+            const m=new THREE.Points(geo,new THREE.PointsMaterial({color:elHex(sy),map:dot(),alphaTest:.2,transparent:true,opacity:.5,sizeAttenuation:true,size:.01}));m.userData.r=byEl[sy].r;m.visible=false;m.frustumCulled=false;Pm.g.add(m);return m;});
+          tale.grain={box,pts,cen:new V3(-sg[0]*e[0]*(NT-1)/2,-sg[1]*e[1]*(NT-1)/2,-sg[2]*e[2]*(NT-1)/2),fit:(e[0]*NT/2+rm)*1.5*Pm.sc,count:seen.size};}
+      } else rest.forEach((j,k)=>put(j,from(j,k),.17+Math.min(.6,.06*(rest.length-1))*k/Math.max(1,rest.length-1),.2,.3));
+      ga.bs.needsUpdate=ga.bt.needsUpdate=true;
+      if(Pm.sm){const sa=Pm.sm.geometry.attributes.bt,cnt=Pm.sm.userData.cnt;let o=0;Pm.sb.forEach((e,i)=>{const d=Math.max(0,Math.min(.93,Math.max(D[e[0]],D[e[1]])-.03));for(let v=0;v<cnt[i];v++,o+=3)sa.array[o]=d;});sa.needsUpdate=true;}
+      if(ST.labels)ST.labels.forEach(l=>{l.d=D[l.bi];});}
+    root.add(g);const dur=FXX.DUR.slice();if(tale)dur[2]=tale.grain?14500:11000;const g0=g.children.length;let intr=(graph?null:intro(M,S,g))||introN(M,S,g,id,graph,toks);if(!intr&&LITE&&LITE(id)){while(g.children.length>g0)g.remove(g.children[g.children.length-1]);toks.forEach(k=>{if(k.spn){k.m.remove(k.spn);k.spn=null;}});intr=introN(M,S,g,id,graph,toks,true);if(!intr)while(g.children.length>g0)g.remove(g.children[g.children.length-1]);}if(intr){dur[0]=intr.gen&&intr.five?19000:16000;dur[1]=17000;}ST.form={M,S,g,toks,eg,bonds,graph,claim,tale,intro:intr,dur,sc:0,el:0,play:false,t0:0,id};ST.parts.model.visible=false;
     ST.tgt.yaw=0;ST.tgt.pitch=.1;ST.fitKeep=ST.fit;let bx=0,by=0;M.at.forEach(t=>[t.A,t.B].forEach(q=>{bx=Math.max(bx,Math.abs(q[0]-FXX.W/2)+t.r+16);by=Math.max(by,Math.abs(q[1]-M.H/2)+t.r+16);}));
-    ST.fitW=Math.max(1.5,Math.min(3.35,bx*S*1.08));ST.fitH=Math.max(1.2,by*S*1.12,graph?0:ST.fit*.92);ST.dirty=true;kick();
+    ST.fitW=Math.max(1.5,Math.min(3.35,bx*S*1.08));ST.fitH=Math.max(1.2,by*S*1.12,graph?0:ST.fit*.92);if(intr&&!intr.gen){ST.fitW=Math.max(...M.at.map((a,i)=>Math.abs(intr.pA(i)[0])+intr.A[i].Ro))+.16;ST.fitH=1.36;}ST.form.fw=ST.fitW;ST.form.fh=ST.fitH;ST.dirty=true;kick();
     return M;
   }
   const _m=new THREE.Matrix4(),_q=new THREE.Quaternion(),_s=new V3(),_p=new V3();
   function formDraw(){
-    const F=ST.form,M=F.M,S=F.S,sc=F.sc,st=FXX.state(M,sc,F.el),t=st.t,ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
-    const out=sc<2?0:sc===2?ease(t/.45):1;                       // 0 = loose atoms, 1 = finished structure
-    F.toks.forEach((k,i)=>{const p=st.pos[i];let r=k.r*st.pop[i];if(F.graph)r*=1-.4*out;else r*=1-out;
-      k.m.position.set((p[0]-FXX.W/2)*S,-(p[1]-M.H/2)*S,0);k.m.scale.setScalar(Math.max(r,1e-4));k.m.visible=r>.002;
-      if(k.sp1){k.sp1.visible=st.charged;k.sp0.visible=!st.charged;}});
-    const er=M.er*S*1.15;st.E.forEach((e,j)=>{const op=e[2]*(1-out);_p.set((e[0]-FXX.W/2)*S,-(e[1]-M.H/2)*S,.02+(e[3]?.06:0));_s.setScalar(Math.max(1e-4,er*op*(e[3]?1.2:1)));_m.compose(_p,_q,_s);F.eg.setMatrixAt(j,_m);});
+    const F=ST.form,M=F.M,S=F.S,sc=F.sc,T=F.tale,st=FXX.state(M,sc,sc===2?F.el/F.dur[2]*FXX.DUR[2]:F.el),t=st.t,ease=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
+    const P=sc<2?0:sc===2?clamp((t-.03)/.94,0,1):1,outE=sc<2?0:sc===2?ease(t/(F.graph?.45:T?.04:.1)):1;   // P: how far the structure has assembled
+    U.asm.value=sc===2?P:2;U.aoK.value=!F.graph&&sc===2?.3+.7*ease((P-(T?.35:.5))/.45):1;
+    const I=F.intro;
+    if(I&&sc<2)(I.gen?introDrawN:introDraw)(F);
+    else{
+    if(I){F.g.position.y=sc===2?I.yOff*(1-ease(P/.03)):0;if(I.gen)I.off();else I.pull.big.visible=I.pull.small.visible=I.pull.sb.visible=I.pull.ss.visible=false;}
+    F.toks.forEach((k,i)=>{const p=st.pos[i],c=F.claim[i];let x=(p[0]-FXX.W/2)*S,y=-(p[1]-M.H/2)*S,z=0,r=k.r*st.pop[i],ls=1;
+      if(F.graph)r*=1-.4*ease(P/.4);
+      else if(c){const e=ease(P/c.tl);x+=(c.p.x-x)*e;y+=(c.p.y-y)*e;z=c.p.z*e;r+=(c.r-r)*e;ls=1-ease((e-.4)/.5);if(P>=c.tl)r=0;}   // this atom takes its own place in the structure
+      else r*=1-ease(P/.12);
+      k.m.position.set(x,y,z);k.m.scale.setScalar(Math.max(r,1e-4));k.m.visible=r>.002;ls=1.45*Math.max(ls,1e-3);k.sp0.scale.setScalar(ls);
+      if(k.sp1){k.sp1.scale.setScalar(ls);k.sp1.visible=st.charged;k.sp0.visible=!st.charged;}
+      if(I&&!I.gen){const T=I.A[i],on=sc===2&&!T.don&&outE<1;T.grp.visible=on;if(on){T.grp.position.copy(k.m.position);T.nuc.visible=false;T.rings.forEach(R=>{R.m.visible=false;});T.beads.visible=false;T.seats.forEach(s=>{s.m.visible=false;});T.oring.visible=true;T.oring.scale.setScalar(1-outE*(1-T.R*.9/T.Ro));}}});
+    const er=M.er*S*1.15;st.E.forEach((e,j)=>{const op=e[2]*(1-outE);_p.set((e[0]-FXX.W/2)*S,-(e[1]-M.H/2)*S,.02+(e[3]?.06:0));_s.setScalar(Math.max(1e-4,er*op*(e[3]?1.2:1)));_m.compose(_p,_q,_s);F.eg.setMatrixAt(j,_m);});
     F.eg.instanceMatrix.needsUpdate=true;
-    if(F.bonds){F.bonds.visible=out>.02;}
-    const mdl=ST.parts.model;if(!F.graph){mdl.visible=out>.01;mdl.scale.setScalar(ST.parts.sc*(.55+.45*out)*(out>.01?1:1e-4));}
+    }
+    if(F.bonds)F.bonds.visible=sc>=2;
+    const mdl=ST.parts.model;if(!F.graph){mdl.visible=sc>=2;mdl.scale.setScalar(ST.parts.sc);if(ST.labels)ST.labels.forEach(l=>{l.s.visible=sc!==2||P>=l.d;});}
+    if(T){const I=T.in,a=sc===2?(P-.30)/.075:-1;I.m.visible=a>0&&a<1;      // the one that does not fit
+      if(I.m.visible){const k=a<.4?ease(a/.4):a<.6?1:1-ease((a-.6)/.4),d=I.far+(I.near-I.far)*k+(a>=.4&&a<.6?Math.sin(a*130)*.025:0);
+        I.m.position.set(I.hp.x+I.u[0]*d,I.hp.y+I.u[1]*d,I.hp.z+I.u[2]*d);I.m.scale.setScalar(I.r*(a<.6?1:1-.5*ease((a-.6)/.4)));}
+      if(T.grain){const G=T.grain,o=sc===2?ease((P-.72)/.06):0,z=sc===2?ease((P-.79)/.11):0,tan=Math.tan(cam.fov*Math.PI/360);   // outline, then pull back to the bigger crystal
+        G.box.visible=o>.01;G.box.material.opacity=o;G.pts.forEach(p=>{p.visible=z>.05;p.material.size=2*p.userData.r*ST.parts.sc*.92*z/tan;});
+        ST.parts.g.position.copy(G.cen).multiplyScalar(-ST.parts.sc*z);if(sc===2)ST.fitW=ST.fitH=ST.fitKeep+(G.fit-ST.fitKeep)*z;}}
   }
-  function formGo(sc,play){const F=ST.form;if(!F)return;F.sc=sc;F.el=play?0:FXX.DUR[sc];F.t0=performance.now()-F.el;F.play=!!play;
-    if(!F.graph&&sc>=2){ST.tgt.yaw=.62;ST.tgt.pitch=.42;}else{ST.tgt.yaw=0;ST.tgt.pitch=.1;}ST.dirty=true;kick();}
-  function formEnd(){const F=ST.form;if(!F)return;root.remove(F.g);wipe(F.g);ST.form=null;const m=ST.parts.model;m.visible=true;m.scale.setScalar(ST.parts.sc);ST.fit=ST.fitW=ST.fitH=ST.fitKeep||ST.fit;ST.tgt.yaw=null;ST.dirty=true;kick();}
+  function formGo(sc,play){const F=ST.form;if(!F)return;F.sc=sc;F.el=play?0:F.dur[sc];F.t0=performance.now()-F.el;F.play=!!play;
+    if(!F.graph&&sc>=2){ST.tgt.yaw=ST.parts.flat?.35:.62;ST.tgt.pitch=ST.parts.flat?.2:.42;ST.fitW=ST.fitH=ST.fitKeep;}else{ST.tgt.yaw=0;ST.tgt.pitch=.1;ST.fitW=F.fw;ST.fitH=F.fh;}ST.dirty=true;kick();}
+  function formEnd(){const F=ST.form;if(!F)return;root.remove(F.g);wipe(F.g);if(F.tale&&F.tale.grain){const G=F.tale.grain;[G.box,...G.pts].forEach(o=>{ST.parts.g.remove(o);o.geometry.dispose();o.material.dispose();});ST.parts.g.position.set(0,0,0);}ST.form=null;U.asm.value=2;U.aoK.value=1;if(ST.labels)ST.labels.forEach(l=>{l.s.visible=true;});const m=ST.parts.model;m.visible=true;m.scale.setScalar(ST.parts.sc);ST.fit=ST.fitW=ST.fitH=ST.fitKeep||ST.fit;ST.tgt.yaw=null;ST.dirty=true;kick();}
 
   /* ---- drawing ---- */
   function size(){if(!host)return;const r=host.getBoundingClientRect(),w=Math.max(1,Math.round(r.width)),h=Math.max(1,Math.round(r.height));if(w===ST.W&&h===ST.H)return;ST.W=w;ST.H=h;renderer.setSize(w,h,false);cam.aspect=w/h;ST.dirty=true;}
@@ -5889,14 +6361,15 @@ const MV=(()=>{
       const sv=ST.view==='nucleus'?1-k:Math.min(1,(P.sv??1)+dt*3);P.sv=sv;P.shells.visible=sv>.02;P.shells.scale.setScalar(.6+.4*sv+(ST.view==='nucleus'?(1-sv)*.9:0));
       P.nuc.rotation.y+=live?dt*.25:0;
     }
-    if(ST.form){const F=ST.form;if(F.play){F.el=now-F.t0;moving=true;if(F.el>=FXX.DUR[F.sc]){if(F.sc<3){formGo(F.sc+1,true);}else{F.el=FXX.DUR[3];F.play=false;}if(ST.onForm)ST.onForm(F);}}
+    if(ST.form){const F=ST.form;if(F.play){F.el=now-F.t0;moving=true;if(F.el>=F.dur[F.sc]){if(F.sc<3){formGo(F.sc+1,true);}else{F.el=F.dur[3];F.play=false;}if(ST.onForm)ST.onForm(F);}}
       formDraw();if(ST.onForm&&F.play)ST.onForm(F);}
     _q.copy(root.quaternion).invert();_p.set(0,0,1).applyQuaternion(_q);
     if(ST.labels&&!ST.form)ST.labels.forEach(l=>l.s.position.copy(l.c).addScaledVector(_p,l.r));
-    if(ST.form)ST.form.toks.forEach(k=>{k.sp0.position.copy(_p).multiplyScalar(1.04);if(k.sp1)k.sp1.position.copy(k.sp0.position);});
+    if(ST.form){ST.form.toks.forEach(k=>{k.sp0.position.copy(_p).multiplyScalar(1.04);if(k.sp1)k.sp1.position.copy(k.sp0.position);if(k.spn)k.spn.position.copy(k.sp0.position);});if(ST.form.tale)ST.form.tale.in.sp.position.copy(_p).multiplyScalar(1.04);if(ST.form.intro&&ST.form.intro.gh)ST.form.intro.gh.forEach(q=>q.sp.position.copy(_p).multiplyScalar(1.04));}
     _q.identity();
     frameCam();renderer.render(scene,cam);
     if(ST.onFrame)ST.onFrame(project);
+    if(ST.form&&ST.onPlace)ST.onPlace();
     ST.lazy=!ST.pts.size&&!ST.form&&ST.viewT>=1&&ST.tgt.yaw==null&&Math.abs(ST.vyaw)<.0004;
     if(moving||ST.dirty||ST.pts.size||(ST.form&&ST.form.play))raf=requestAnimationFrame(tick);
   }
@@ -5915,7 +6388,7 @@ const MV=(()=>{
     renderer.setPixelRatio(1);renderer.setSize(w,h,false);cam.aspect=w/h;ST.W=w;ST.H=h;root.rotation.set(ST.pitch,ST.yaw,0);if(ST.form)formDraw();frameCam();renderer.render(scene,cam);
     let u='';try{u=cvEl.toDataURL('image/png');}catch(_){}
     if(pad===undefined)delete host.dataset.pad;else host.dataset.pad=pad;renderer.setPixelRatio(pr);renderer.setSize(W0,H0,false);cam.aspect=W0/H0;ST.W=W0;ST.H=H0;ST.dirty=true;kick();return u;}
-  return {ok:()=>ok,ringNear,mount,start,stop,atom,setView,compound,form,formGo,formEnd,snap,kick,ST,elHex,PAL,
+  return {ok:()=>ok,ringNear,mount,start,stop,atom,setView,compound,form,formGo,formEnd,formPx,IB,share:f=>{SHARE=f;},net:f=>{NET=f;},mix:f=>{MIX=f;},lite:f=>{LITE=f;},snap,kick,ST,elHex,PAL,
     clear:()=>{if(!ensure())return;clear();ST.kind='';ST.dirty=true;kick();},
     spin:v=>{ST.spin=v;ST.dirty=true;kick();},redraw:()=>{ST.dirty=true;kick();}};
 })();
@@ -6050,7 +6523,7 @@ const V9=(()=>{
       <div>${sketch(c)}</div></div>`;
   }
   function cmpShow(){
-    const e=el(),c=CMP[st.cid],h=$('#cmph'),lg=$('#leg3');st.form=null;$('#useo').hidden=true;
+    const e=el(),c=CMP[st.cid],h=$('#cmph'),lg=$('#leg3');st.form=null;$('#useo').hidden=true;if($('#cnt')){$('#cnt').hidden=true;st.cntK='';}ecOff();
     $('#cempty').hidden=!!c;$('#fxp').hidden=!c;
     if(!c){MV.clear();h.innerHTML='';lg.innerHTML='';$('#cempty').textContent=`No compounds of ${e.n.toLowerCase()} on record here yet.`;return;}
     const info=MV.compound(st.cid,{labels:true})||{els:c.els};
@@ -6077,25 +6550,222 @@ const V9=(()=>{
     st.capSc=-1;
   }
   function fxPaint(F){
-    if(!F||!st.form)return;const sc=F.sc,end=sc===3&&F.el>=FXX.DUR[3],pb=$('#fxPlay');if(!pb)return;
-    if(st.capSc!==sc){st.capSc=sc;$('#fxH').textContent=`How it forms · step ${sc+1} of 4`;$('#fxCap').innerHTML=linkTerms(F.M.cap[sc]);
+    if(!F||!st.form)return;const sc=F.sc,end=sc===3&&F.el>=F.dur[3],pb=$('#fxPlay');if(!pb)return;
+    if(st.capSc!==sc){st.capSc=sc;st.beat=-1;st.cntK='';$('#fxH').textContent=`How it forms · step ${sc+1} of 4`;const cap=linkTerms(F.M.cap[sc]),bl=sc===2&&F.tale?beats(F):sc<2&&F.intro?(F.intro.gen?ibeatsN:ibeats)(F,sc):null;
+      $('#fxCap').innerHTML=bl?`<span class="beats">${bl.map((b,i)=>{const m=linkTerms(b).match(/^(<b>[\s\S]*?<\/b>)([\s\S]*)$/);return `<span class="bt" role="button" tabindex="0" data-b="${i}">${m?m[1]+'<span class="x">'+m[2]+'</span>':b}</span>`;}).join('')}</span>${(cap.match(/<small>[\s\S]*<\/small>/)||[''])[0]}`:cap;
       document.querySelectorAll('#fxp .fxp-st').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.s===sc)));
       const u=FXX.useOf(F.M.c),uo=$('#useo');uo.hidden=sc!==3;if(sc===3)uo.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${FXX.icon(u.k)}</svg>${esc(u.l)}`;}
-    $('#fxBar').style.width=((sc+clamp(F.el/FXX.DUR[sc],0,1))/4*100).toFixed(1)+'%';
+    $('#fxBar').style.width=((sc+clamp(F.el/F.dur[sc],0,1))/4*100).toFixed(1)+'%';
+    const cn=$('#cnt');
+    if(sc===2&&F.tale){const T=F.tale,P=clamp((F.el/F.dur[2]-.03)/.94,0,1),bi=P<.08?0:P<.385?1:P<.6?2:P<.79?3:4,c=CMP[st.cid],w=c.ty==='ionic'?'ion':'atom',nm=s=>byZ(symZ[s]).n.toLowerCase();
+      if(st.beat!==bi){st.beat=bi;document.querySelectorAll('#fxCap .bt').forEach((x,i)=>{x.classList.toggle('on',i===bi);x.classList.toggle('done',i<bi);});}
+      let big='',lab='';
+      if(bi===1){const k=T.ring.filter(j=>T.D[j]<=P).length,one=Object.keys(T.nbs).length===1;big=k;lab=P>.33?(REAL.has(st.cid)?'is the limit. No room for one more':'is the limit in this model'):`${one?nm(T.nb)+' ':''}${w}${k===1?'':'s'} around one ${nm(T.hs)}`;}
+      else if(bi===2||bi===3){const k=T.D.filter(d=>d<=P).length;big=k;lab=`${w}s in place`;}
+      else if(bi===4){const g=T.grain&&P>.86?GRAIN[st.cid]||[T.grain.count+'+','and the pattern keeps going']:null;if(g){big=g[0];lab=g[1];}else{big=T.total;lab=`${w}s in this sample`;}}
+      const k=big+'|'+lab;if(st.cntK!==k){st.cntK=k;cn.hidden=big==='';cn.innerHTML=`<b${String(big).length>5?' class="long"':''}>${big}</b><span>${lab}</span>`;}
+    }else if(cn&&!cn.hidden){cn.hidden=true;st.cntK='';}
+    if(sc<2&&F.intro){const t=clamp(F.el/F.dur[sc],0,1),B=(F.intro.B||MV.IB)[sc];let bi=0;for(let i=1;i<B.length;i++)if(t>=B[i])bi=i;
+      if(st.beat!==bi){st.beat=bi;document.querySelectorAll('#fxCap .bt').forEach((x,i)=>{x.classList.toggle('on',i===bi);x.classList.toggle('done',i<bi);});}
+      (F.intro.gen?ecPaintN:ecPaint)(F,sc,bi,t);
+    }else ecOff();
     const k=end?'again':F.play?'pause':'play';if(pb.dataset.k!==k){pb.dataset.k=k;pb.innerHTML=IC[k];pb.setAttribute('aria-label',end?'Play again':F.play?'Pause':'Play');}
+  }
+  // steps 1 and 2 as numbered reasons: where the electrons sit, who gives, who takes, and how it ends
+  function ibeats(F,sc){
+    const I=F.intro,D=I.A[I.d],C=I.A[I.c],Dn=D.name,Cn=C.name,dn=Dn.toLowerCase(),cn=Cn.toLowerCase(),n=D.val,short=8-C.val,ms=Math.max(D.sh.length,C.sh.length),fillS=ms<=2?'The first shell holds 2':ms===3?'The first shell holds 2 and the next holds 8':'The inner shells fill first';
+    if(sc===0)return [
+      `<b>Every atom is a nucleus with electrons around it.</b> ${Dn}'s nucleus holds ${D.Z} protons (red), ${cn}'s holds ${C.Z}. That number is what makes it ${dn} or ${cn}.`,
+      `<b>Electrons fill shells from the inside out,</b> one electron for each proton. ${fillS}, and what is left goes in the outer shell: ${D.val} for ${dn}, ${C.val} for ${cn}.`,
+      `<b>Only the outer shell meets other atoms.</b> So from here each ball stands for the nucleus and the inner shells, and only the outer electrons are drawn as dots.`,
+      `<b>An outer shell is settled when it holds 8.</b> ${Cn} has ${C.val}, so it is ${short} short. ${Dn} has only ${n}, sitting outside a settled shell of ${D.sh[D.sh.length-2]}.`];
+    return [
+      `<b>Only electrons move.</b> Protons and neutrons stay locked in the nucleus, deep inside. They never pass from one atom to another in chemistry.`,
+      `<b>Who gives? The atom with the weaker grip.</b> ${Dn}'s outer electron${n===1?' feels':'s feel'} ${D.Z} protons, but ${D.Z-D.val} inner electrons shield ${n===1?'it':'them'}: a pull of about +${D.core}. ${Cn}'s outer shell feels ${C.Z} − ${C.Z-C.val}: about +${C.core}.`,
+      `<b>So the electron${n===1?' jumps':'s jump'} to ${cn},</b> into ${short===1?'its one empty seat':'its empty seats'}.`,
+      `<b>How it ends.</b> Count again. ${Dn} has ${D.Z} protons and ${D.Z-n} electrons, so its charge is ${n}+. ${Cn} has ${C.Z} protons and ${C.Z+short} electrons, so its charge is ${short}−. Both outer shells are now full, so nothing more moves, and the opposite charges pull the two together.`];
+  }
+  // a small card under each atom that keeps count while steps 1 and 2 play
+  function ecOff(){const ec=$('#ecards');if(ec&&!ec.hidden){ec.hidden=true;ec.innerHTML='';}st.ecK='';if(ec)ec.classList.remove('gen','tight','k4','k5','k6','k7');$('#stage').classList.remove('story');MV.ST.onPlace=null;}
+  function ecPlace(){const F=MV.ST.form,ec=$('#ecards');if(!F||!F.intro||ec.hidden)return;const W=ec.clientWidth,H=ec.clientHeight,cs=[...ec.children],n=cs.length,ws=cs.map(c=>c.offsetWidth);let ps=cs.map((c,i)=>MV.formPx(i));
+    if(F.intro.gen){const ok=ps.every(p=>p),ys=ok?ps.map(p=>p[1]):[];
+      if(!ok||n>4||Math.max(...ys)-Math.min(...ys)>44){   // no clear place under the atoms: a row along the bottom
+        const gp=n>4?4:8;let x=(W-ws.reduce((a,b)=>a+b,0)-gp*(n-1))/2;const y=H-Math.max(...cs.map(c=>c.offsetHeight))-22;ps=ws.map(w=>{const p=[x+w/2,y];x+=w+gp;return p;});}
+      else{const y=Math.max(...ys);ps=ps.map(p=>[p[0],y]);}}
+    else if(ps.some(p=>!p))return;
+    const xs=ps.map((p,i)=>clamp(p[0],ws[i]/2+6,W-ws[i]/2-6));
+    if(n===2){const a=xs[0]<xs[1]?0:1,b=1-a,need=(ws[a]+ws[b])/2+8-(xs[b]-xs[a]);if(need>0){xs[a]-=need/2;xs[b]+=need/2;}}   // keep the two cards from touching when the atoms are close
+    else if(n>2){const o=xs.map((x,i)=>i).sort((a,b)=>xs[a]-xs[b]),push=()=>{for(let q=1;q<n;q++){const need=(ws[o[q-1]]+ws[o[q]])/2+4-(xs[o[q]]-xs[o[q-1]]);if(need>0)xs[o[q]]+=need;}};push();
+      const over=xs[o[n-1]]+ws[o[n-1]]/2+4-W;if(over>0)o.forEach(q=>{xs[q]-=over;});const und=ws[o[0]]/2+4-xs[o[0]];if(und>0){xs[o[0]]+=und;push();}}
+    cs.forEach((c,i)=>{c.style.transform=`translate(${(xs[i]-ws[i]/2).toFixed(1)}px,${(ps[i][1]+12).toFixed(1)}px)`;});}
+  function ecPaint(F,sc,bi,t){
+    const I=F.intro,ec=$('#ecards');
+    if(ec.hidden||ec.childElementCount!==I.A.length){ec.hidden=false;$('#stage').classList.add('story');st.ecK='';
+      ec.innerHTML=I.A.map(T=>`<div class="ec" style="--c:${hex(MV.elHex(T.s))}"><div class="ec-h"><i></i>${esc(T.name)}</div><div class="ec-b"></div></div>`).join('');MV.ST.onPlace=ecPlace;}
+    const body=I.A.map(T=>{const ns=T.sh.length,q=T.don?T.val:T.val-8,chips=(cnt,hi)=>`<b class="sh${ns>4?' long':''}">${cnt.map((n,k)=>`<i class="${hi?(k===ns-1?'o':'d'):''}">${n}</i>`).join('<u>·</u>')}</b>`;
+      if(sc===0){
+        if(bi===0)return `<b>${T.Z}</b><span>protons in the nucleus${T.N?`, with ${T.N} neutrons`:''}</span>`;
+        if(bi===1){const cnt=T.sh.map(()=>0);let n=0;T.fill.forEach(f=>{if(f.t<=t){cnt[f.k]++;n++;}});while(cnt.length>1&&!cnt[cnt.length-1])cnt.pop();
+          return `${n?chips(cnt,false):'<b>0</b>'}<span>${n} of ${T.Z} electrons placed</span>`;}
+        if(bi===2)return `${chips(T.sh,true)}<span>${pl(T.val,'outer electron')}</span>`;
+        return `${chips(T.sh,true)}<span>${T.val} of 8 outer seats filled</span>`;}
+      if(bi===0)return `<b>${T.Z}</b><span>protons, locked in the nucleus</span>`;
+      if(bi<3)return `<b>+${T.core}</b><span>pull on its outer electron${T.val===1?'':'s'}: ${T.Z} protons − ${T.Z-T.val} inner electrons</span><div class="ec-bar"><i style="width:${(T.core/8*100).toFixed(0)}%"></i></div>`;
+      return `<b>${Math.abs(q)}${q>0?'+':'−'}</b><span>${T.Z} protons, ${T.Z-q} electrons</span>`;});
+    const k=sc+'|'+bi+'|'+body.join('|');if(st.ecK!==k){st.ecK=k;[...ec.children].forEach((c,i)=>{c.querySelector('.ec-b').innerHTML=body[i];});ecPlace();}
+  }
+  // the same reasons for any number of atoms: one line of facts for each element, read off the plan
+  function ibeatsN(F,sc){
+    const I=F.intro,K=I.K,c=CMP[st.cid],fm=fml(c.f),lst=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1],cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+    const lo=k=>k.name.replace(/^[A-Z]/,x=>x.toLowerCase()),U=K.filter((k,i)=>K.findIndex(x=>x.e===k.e)===i),ln=k=>k.e.n.toLowerCase(),sco=k=>k.e.en.toFixed(1),chg=q=>Math.abs(q)+(q>0?'+':'−'),D=K.filter(k=>k.don),A=K.filter(k=>!k.don);
+    const ms=Math.max(...K.map(k=>k.ns)),fillS=ms<=2?'The first shell holds 2':ms===3?'The first shell holds 2 and the next holds 8':'The inner shells fill first';
+    if(sc===0){
+      const loose=K.filter(k=>k.below&&!k.vague).map(k=>` In ${lo(k)}, ${pl(k.below,'electron')} from the shells below the outer one ${k.below===1?'is':'are'} held almost as loosely, so ${k.nd} dots are drawn.`).join('');
+      const need=K.map(k=>k.vague?`${k.name} is a metal with loosely held outer electrons it can ${I.kind==='ionic'?'give away':'use for bonding'}${k.nd?'':'. They are not drawn here, because every bond in this drawing is made with electrons its neighbours bring'}`:k.part?`${k.name} has ${k.sh[k.ns-1]} outer electrons, but ${k.used} ${k.used===1?'is':'are'} already used in bonds that are not drawn (to hydrogen), so ${k.nd} ${k.nd===1?'is':'are'} free`:!k.octet?`${k.name} has ${pl(k.nd,'loosely held electron')} it can ${I.lite&&!k.don?'use for bonding':'give away'}`:k.nd===k.tot?`${k.name} already has ${k.tot}, a full outer shell`:I.lite&&!k.don&&k.metal&&k.nd<=3&&k.ns>1?`${k.name} has only ${k.nd}, outside a settled shell of ${k.sh[k.ns-2]}`:k.tot===2?`${k.name}'s only shell is settled at 2 and it has ${k.nd}, so it is ${2-k.nd} short`:k.don?`${k.name} has only ${k.nd}, outside a settled shell of ${k.sh[k.ns-2]}`:`${k.name} has ${k.nd}, so it is ${8-k.nd} short`);
+      const b=[
+        `<b>Every atom is a nucleus with electrons around it.</b> ${cap(lst(U.map((k,i)=>i?`${ln(k)}'s holds ${k.Z}`:`${k.e.n}'s nucleus holds ${pl(k.Z,'proton')} (red)`)))}. That number is what makes each element what it is.`,
+        `<b>Electrons fill shells from the inside out,</b> one electron for each proton. ${fillS}, and what is left goes in the outer shell: ${lst(U.map(k=>`${k.sh[k.ns-1]} for ${ln(k)}`))}.`,
+        `<b>Only the outermost electrons meet other atoms.</b> So from here each ball stands for the nucleus and the inner shells, and only the outer electrons are drawn as dots.${loose}`,
+        `<b>An outer shell is settled when it holds 8.</b> ${[...new Set(need)].join('. ')}.`];
+      if(I.net){const [P,Q]=K[0].cnt<=K[1].cnt?K:[K[1],K[0]];b.push(`<b>${fm} is a ratio, not a molecule.</b> For every ${P.cnt===1?lo(P)+' atom':pl(P.cnt,lo(P)+' atom')} there ${Q.cnt===1?'is':'are'} ${pl(Q.cnt,lo(Q)+' atom')}. The picture starts with one such group. Step 2 shows why it cannot stay that small.`);}
+      else if(I.five&&K.some(k=>k.part)){const m=/One unit of .*? is made of [^.]*\./.exec(F.M.cap[0]||'');b.push(`<b>${fm} is a count.</b> ${m?m[0]:''} Hydrogen atoms are not drawn on their own: each one sits on the atom it is bonded to.`);}
+      else if(I.five)b.push(`<b>${fm} is a count.</b> One unit holds ${lst(K.map(k=>pl(k.cnt,lo(k)+' atom')))}. Step 2 shows why it takes exactly that many.`);
+      return b;}
+    const only=`<b>Only electrons move.</b> Protons and neutrons stay locked in the nucleus, deep inside. They never pass from one atom to another in chemistry.`;
+    if(I.lite){
+      let kind=I.kind;const X=I.facts,wE=U.filter(k=>k.e.en>0),nE=U.filter(k=>!(k.e.en>0)),est=wE.length>2?'hardest':'harder';
+      const scores=`Chemists score how hard each element pulls on electrons.${wE.length?` ${cap(lst(wE.map(k=>`${ln(k)} scores ${sco(k)}`)))}.`:''}${nE.length?` No score has been measured for ${lst(nE.map(ln))}.`:''}`;
+      const hi=wE.length?wE.reduce((a,k)=>k.e.en>a.e.en?k:a):null,lw=wE.length?wE.reduce((a,k)=>k.e.en<a.e.en?k:a):null,d=hi?hi.e.en-lw.e.en:0;
+      const pos=K.filter(k=>!k.fq&&k.qs.some(q=>q>0)),fqp=U.filter(k=>K.some(x=>x.e===k.e&&x.fq&&x.qs.some(q=>q>0))),neg=K.filter(k=>k.qs.some(q=>q<0)),ctr=X.ctr>=0?K[X.ctr]:null,nel=v=>v.join(' or ')+(v.length===1&&v[0]===1?' electron':' electrons');
+      const chgS=pos.map(k=>`${k.name} has ${pl(k.Z,'proton')} and ${nel(k.qs.filter(q=>q>0).map(q=>k.Z-q))}, so its charge is ${k.qs.filter(q=>q>0).map(chg).join(' or ')}`).join('. ');
+      const lw0=n=>n.replace(/^[A-Z]/,x=>x.toLowerCase()),lentF=(n,tot,who)=>!n?'':tot===1?`it comes whole from one atom (${who}), which lends both electrons`:n===tot?`each pair comes whole from a single atom (${who}), which lends both of its electrons`:n===1?`1 of them comes whole from one atom (${who}), which lends both electrons`:`${n} of them each come whole from a single atom (${who}) that lends both of its electrons`,lentS=kind==='complex'?lentF(X.clent,X.cpairs,lst(X.clenders.map(lw0))):lentF(X.lent,X.pairs,lst(X.lenders.map(lw0))),real=I.mode!=='kind',gvM=U.filter(k=>k.metal&&k.don),gp=K.filter(k=>k.lab&&k.lab!==k.s&&k.qs.some(q=>q>0)),gpS=gp.map(k=>{const q=Math.max(...k.qs);return `The ${esc(k.lab)} group as a whole holds ${pl(q,'electron')} fewer than its protons, so the whole group is ${chg(q)}`;}).join('. ');
+      let who,more='',end;const ionC=kind==='complex'&&ctr&&!X.cpairs&&pos.includes(ctr);if(ionC)kind='ionic';
+      if(kind==='metal'){
+        who=`<b>Who gives? Every atom, a little.</b> ${scores}${hi&&hi.e.en<2.6?' None of these is a strong pull (oxygen scores 3.4), so no atom here can take electrons from another and keep them.':''}`;
+        more=` Here ${lst(K.map(k=>`${k.cnt>1?'each ':''}${lo(k)} lets go of ${k.sea}`))}.`;
+        end=`<b>How it ends.</b> Each atom is left as a positive core, and the roaming electrons pull on every core at once. That pull in all directions holds the solid together, and because those electrons are free to move, it carries electricity.`;}
+      else if(kind==='electride'){const gv=K.filter(k=>k.metal),ot=K.filter(k=>!k.metal);
+        who=`<b>Who gives? ${cap(lst(gv.map(lo)))}, but to no atom.</b> ${scores}${ot.length?` ${cap(lst(ot.map(k=>`${lo(k)}'s shell is already full`)))}, so ${ot.length>1?'they take':'it takes'} nothing.`:''}`;
+        end=`<b>How it ends.</b> ${chgS?chgS+'. ':''}The electrons that were let go sit in the empty spaces between the atoms. Those pockets of negative charge pull on the positive atoms around them, and that holds the solid together.${ot.length?` ${cap(lst(ot.map(lo)))} ${ot.length>1?'keep their':'keeps its'} own electrons throughout.`:''}`;}
+      else if(kind==='ionic'){const low=pos.length&&pos.every(k=>k.e.en>0)&&K.filter(k=>!pos.includes(k)).every(k=>k.e.en>Math.max(...pos.map(q=>q.e.en)));
+        who=`<b>Who gives? ${gp.length&&!pos.length?'Here, a whole group.':'The atoms with the weakest grip.'}</b> ${scores}${low?` ${cap(lst(pos.map(lo)))} ${pos.length>1?'hold':'holds'} on most weakly, so ${pos.length>1?'they give':'it gives'}.`:pos.length?` Here ${lst(pos.map(lo))} ${pos.length>1?'end':'ends'} up giving.`:gvM.length&&!gp.length?` Here the ${gvM.length>1?'metals':'metal'} (${lst(gvM.map(ln))}) ${gvM.length>1?'end':'ends'} up giving.`:''}${gpS?` ${gpS}.`:''}`;
+        if(X.pairs&&real)more=` The atoms that stay bonded to each other share ${pl(X.pairs,'pair')}.${fqp.length?` The + drawn on ${lst(fqp.map(ln))} is bookkeeping for those shared electrons: ${fqp.length>1?'they share':'it shares'}, and ${fqp.length>1?'do':'does'} not give any away.`:''}`;
+        end=`<b>How it ends.</b> ${chgS?`Count again. ${chgS}. The atoms that took those electrons carry the matching negative charge, and`:gp.length?`The ${esc(gp[0].lab)} group is ${chg(Math.max(...gp[0].qs))}, the other group carries the matching negative charge, and`:'The atoms end up with opposite charges, and'} opposite charges pull everything together.${X.gen&&!chgS?' This drawing shows which way the electrons go, not an exact count for each atom.':''}`;}
+      else if(kind==='complex'){
+        who=`<b>Who gives? Here, electrons are lent and shared.</b> ${scores}${ctr?` The atoms around ${lo(ctr)} keep hold of their electrons, but they have some to spare and ${lo(ctr)} has room for them.`:''}`;
+        if(ctr&&X.cpairs&&!X.ring&&real)more=ctr.cnt>1?` In this drawing ${pl(X.cpairs,'pair')} of electrons ${X.cpairs===1?'holds':'hold'} the ${lo(ctr)} atoms to their neighbours${lentS?`; ${lentS}`:''}.`:` Here ${pl(X.cpairs,'pair')} of electrons ${X.cpairs===1?'holds':'hold'} ${lo(ctr)} to its neighbours${lentS?`; ${lentS}`:''}.`;
+        end=`<b>How it ends.</b> ${ctr&&ctr.cnt>1?`The ${lo(ctr)} atoms sit at the centre, held to their neighbours`:`${ctr?ctr.name:'The metal'} sits in the middle, held to each neighbour`} by electrons that are lent or shared. The whole cluster stays together and moves as one piece.${chgS?` ${chgS}.`:''}`;}
+      else{
+        who=`<b>Who gives? Here, nobody.</b> ${scores} ${wE.length<2?'No atom here takes electrons outright.':d<.5?'The pulls are almost equal, so no atom can take an electron from another.':d<1.7?`${hi.e.n} pulls ${est}, but not by enough to tear an electron away.`:`${hi.e.n} pulls ${est==='hardest'?'by far the hardest':'much harder'}, so the shared electrons sit closer to it, but they are still shared.`}`;
+        if(X.pairs&&real)more=` Here ${pl(X.pairs,'pair')} ${X.pairs===1?'is':'are'} shared${lentS?`; ${lentS}`:''}.`;
+        end=`<b>How it ends.</b> ${X.pairs&&real?`${pl(X.pairs,'shared pair')} ${X.pairs===1?'holds':'hold'} these atoms together`:'The shared electrons hold these atoms together'}${X.full&&real?', and every atom now counts a full outer shell':''}. ${X.split?'The atoms form separate groups that carry opposite charges, and that attraction holds the groups to each other. ':chgS?chgS+'. ':pos.length||neg.length?'':/stripped away/.test(F.M.cap[1]||'')?'No atom took an electron from another: the positive charge belongs to the whole thing. ':'Nothing was handed over, so no atom carries a charge. '}${I.mode==='graph'?'Step 3 shows the shape these bonds give it.':'In the real solid each atom goes on bonding to more neighbours, which step 3 shows.'}`;}
+      if(ionC){const q=Math.max(...ctr.qs);
+        return [only,who,`<b>Electrons change hands.</b> ${ctr.cnt>1?'Each '+lo(ctr)+' atom':ctr.name} gives up ${pl(q,'electron')} to the other atoms, which hold on to each other by sharing electrons. That leaves a positive ${lo(ctr)} ion, and the atoms that took the electrons carry the matching negative charge. Opposite charges pull together.`,end];}
+      if(kind==='ionic'&&gp.length&&!pos.length){const k=gp[0],q=Math.max(...k.qs);
+        return [only,who,`<b>Electrons change hands.</b> ${cap(pl(q,'electron'))} ${q===1?'leaves':'leave'} each ${esc(k.lab)} group and ${q===1?'ends':'end'} up on the other atoms, which hold on to each other by sharing electrons. The result is a positively charged ${esc(k.lab)} group and a negatively charged group, and opposite charges pull together.`,end];}
+      return [only,who,(F.M.cap[1]+more).replace(/gives up 1 electrons/g,'gives up 1 electron').replace(ctr&&ctr.cnt>1?ctr.e.n+' sits in the middle. The atoms holding on to it':'\u0000',ctr?`The ${ln(ctr)} atoms sit at the centre. The atoms holding on to them`:''),end];}
+    if(I.mix){
+      const G=I.grp,GK=G.kin.map(x=>K[x]),hiG=GK[GK.length-1],far=Math.min(...D.map(k=>hiG.e.en-k.e.en))>=1.7,gq=Math.abs(G.q),the=G.n>1?'each':'the',AK=G.acc.map(x=>K[x]);
+      return [only,
+        `<b>Who gives? Compare the pulls.</b> Chemists score how hard each element pulls on electrons. ${cap(lst(K.map(k=>`${lo(k)} scores ${sco(k)}`)))}. ${GK.length>1?`${cap(lst(GK.map(lo)))} are too close for either to take electrons from the other`:`The ${lo(GK[0])} atoms pull equally`}, so they share. ${cap(lst(D.map(lo)))} ${D.length>1?'hold':'holds'} on ${far?'far ':''}more weakly, so ${D.length>1?'they give':'it gives'}.`,
+        `<b>So two things happen.</b> ${cap(lst(GK.map(lo)))} ${GK.length>1?'share':'atoms share'}: ${pl(G.pairs,'pair')} of electrons ${G.pairs===1?'holds':'hold'} ${the} ${G.f} group together. ${cap(lst(D.map(k=>`${k.cnt>1?'each ':''}${lo(k)} gives ${k.qs.slice().sort().join(' or ')}`)))}, and those electrons land on the ${lst(AK.map(lo))} atoms${G.full?' that are still short of 8':''}.`,
+        `<b>How it ends.</b> ${D.map(k=>`${k.name} has ${k.Z} protons and ${k.qs.map(q=>k.Z-q).join(' or ')} electrons, so its charge is ${k.qs.map(chg).join(' or ')}`).join('. ')}. ${cap(the)} ${G.f} group holds ${pl(gq,'extra electron')}, so the whole group is ${gq}−. It stays together as one piece${G.full?', every atom in it with a full outer shell':''}, and opposite charges pull it and the ${lst(D.map(lo))} together.`];}
+    if(I.net){
+      const hi=K.reduce((a,k)=>k.e.en>a.e.en?k:a),lw=K.reduce((a,k)=>k.e.en<a.e.en?k:a),d=hi.e.en-lw.e.en,nd=k=>k.tot-k.nd,[X,Y]=nd(K[0])>=nd(K[1])?K:[K[1],K[0]],a=nd(X),bb=nd(Y);
+      // why the formula has the numbers it has: every atom of X holds a atoms of Y, and each of those is shared between bb atoms of X
+      const why=bb>1&&Number.isInteger(a/bb)&&X.cnt*a===Y.cnt*bb?` Every ${lo(X)} holds ${pl(a,lo(Y)+' atom')} but shares each with ${bb-1} other ${lo(X)}: ${a} ÷ ${bb} = ${a/bb} for each ${lo(X)}. That is ${fm}.`
+        :` In the end every ${lo(X)} holds ${pl(a,lo(Y)+' atom')} and every ${lo(Y)} holds ${pl(bb,lo(X)+' atom')}.`;
+      return [only,
+        `<b>Who gives? Here, nobody.</b> Chemists score how hard each element pulls on electrons. ${cap(lst(K.map(k=>`${lo(k)} scores ${sco(k)}`)))}. ${d<.05?'The pulls are equal, so neither atom can take an electron from the other.':d<.5?'The pulls are almost equal, so neither atom can take an electron from the other.':`${hi.name} pulls harder, but not by enough to tear an electron away.`}`,
+        `<b>So they share.</b> Each bond is a pair of electrons held between two atoms, one from each. ${cap(lst(K.map(k=>`${lo(k)} is ${nd(k)} short, so it needs ${pl(nd(k),'bond')}`)))}.`,
+        `<b>But it cannot stop here.</b> ${cap(lst(K.map((k,i)=>`${k.cnt>1?'each ':''}${lo(k)} ${i?'':'has made only '}${k.nb} of its ${nd(k)}${i?'':' bonds'}`)))}. Each single electron left over bonds to one more atom, and that atom needs partners too, so the bonding runs on through the whole crystal.${why}`];}
+    if(I.fam==='share'){
+      const hi=K.reduce((a,k)=>k.e.en>a.e.en?k:a),lw=K.reduce((a,k)=>k.e.en<a.e.en?k:a),d=hi.e.en-lw.e.en,same=K.length<2||d<.05;
+      const bonds=K.map(k=>`${lo(k)} is ${k.tot-k.nd} short, so it makes ${pl(k.tot-k.nd,'bond')}`);
+      return [only,
+        `<b>Who gives? Here, nobody.</b> Chemists score how hard each element pulls on electrons. ${cap(lst(K.map(k=>`${lo(k)} scores ${sco(k)}`)))}. ${same?'The pulls are equal, so neither atom can take an electron from the other.':d<.5?`The pulls are almost equal, so neither atom can take an electron from the other.`:`${hi.name} pulls ${K.length>2?'hardest':'harder'}, but not by enough to tear an electron away.`}`,
+        `<b>So they share.</b> Each bond is a pair of electrons held between two atoms, one from each. ${cap(bonds.join('; '))}.`,
+        `<b>How it ends.</b> A shared pair counts for both atoms. ${cap(lst(K.map(k=>`${k.cnt>1?'each ':''}${lo(k)} now has ${k.tot} in its outer shell`)))}, so every shell is full and nothing more moves. No atom gained or lost an electron, so there are no charges.${d>=.5?` Because ${lo(hi)} pulls ${K.length>2?'hardest':'harder'}, the shared electrons sit a little closer to it.`:''}`];}
+    const dmin=I.qual?9:Math.min(...D.map(d=>Math.min(...A.map(a=>a.e.en-d.e.en)))),part=dmin<1.7?' In truth the hand-over is not complete here: the electrons stay partly shared. Chemists still count them as handed over.':'';
+    const who=I.core?(()=>{const d=D[0],a=A[0];return `${d.name}'s outer electron${d.val===1?' feels':'s feel'} ${d.Z} protons, but ${d.Z-d.val} inner electrons shield ${d.val===1?'it':'them'}: a pull of about +${d.val}. ${a.name}'s outer shell feels ${a.Z} − ${a.Z-a.val}: about +${a.val}.`;})()
+      :I.qual?`${cap(lst(D.map(lo)))} ${D.length>1?'are metals that hold their':'is a metal that holds its'} outermost electrons loosely. ${cap(lst(A.map(lo)))} ${A.length>1?'are':'is'} short of a full outer shell and ${A.length>1?'pull':'pulls'} hard on electrons, so ${A.length>1?'they win':'it wins'} the tug.`
+      :`Chemists score how hard each element pulls on electrons. ${cap(lst(K.map(k=>`${lo(k)} scores ${sco(k)}`)))}. ${cap(lst(A.map(lo)))} ${A.length>1?'pull':'pulls'} ${dmin>=1.7?'far ':''}harder, so ${A.length>1?'they win':'it wins'} the tug.`;
+    return [only,
+      `<b>Who gives? The atom with the weaker grip.</b> ${who}`,
+      `<b>So the electrons cross to ${lst(A.map(lo))},</b> into the empty seats. ${cap(lst(D.map(k=>`each ${lo(k)} gives ${k.qs.map(q=>q).sort().join(' or ')}`)))}, and ${lst(A.map(k=>`each ${lo(k)} takes ${k.qs.map(q=>-q).sort().join(' or ')}`))}. That is why the formula is ${fm}.${part}`,
+      `<b>How it ends.</b> Count again. ${K.map(k=>`${k.name} has ${k.Z} protons and ${k.qs.map(q=>k.Z-q).join(' or ')} electrons, so its charge is ${k.qs.map(chg).join(' or ')}`).join('. ')}. Each ${lst(A.map(lo))} has a full outer shell now, so nothing more moves, and the opposite charges pull them all together.`];
+  }
+  function ecPaintN(F,sc,bi,t){
+    const I=F.intro,ec=$('#ecards'),K=I.K,c=CMP[st.cid];
+    if(ec.hidden||ec.childElementCount!==K.length){ec.hidden=false;$('#stage').classList.add('story');st.ecK='';ec.classList.add('gen');ec.classList.toggle('tight',K.length>=3);ec.classList.toggle('k4',K.length===4);ec.classList.toggle('k5',K.length>4);ec.classList.toggle('k6',K.length>5);ec.classList.toggle('k7',K.length>6);
+      ec.innerHTML=K.map(k=>`<div class="ec" style="--c:${hex(MV.elHex(k.s))}"><div class="ec-h"><i></i>${esc(K.length>4?k.hl||(k.lab||k.s)+(k.part&&k.lab===k.s?'(H)':''):k.name)}</div><div class="ec-b"></div></div>`).join('');MV.ST.onPlace=ecPlace;}
+    const v=sc===0&&I.five?Math.min(1,t/.84):t;
+    const body=K.map(k=>{const ns=k.ns,chips=(cnt,hi)=>K.length>4?`<b>${hi?k.nd:cnt.reduce((a,b)=>a+b,0)}</b>`:`<b class="sh${ns>3?' long':''}">${cnt.map((n,q)=>`<i class="${hi?(k.took[q]?'o':'d'):''}">${n}</i>`).join('<u>·</u>')}</b>`;
+      if(sc===0){
+        if(bi===0)return `<b>${k.Z}</b><span>${k.Z===1?'proton':'protons'} in the nucleus${k.N?`, with ${pl(k.N,'neutron')}`:''}</span>`;
+        if(bi===1){const cnt=k.sh.map(()=>0);let n=0;k.fill.forEach(f=>{if(f.t<=v){cnt[f.k]++;n++;}});while(cnt.length>1&&!cnt[cnt.length-1])cnt.pop();
+          return `${n?chips(cnt,false):'<b>0</b>'}<span>${n} of ${pl(k.Z,'electron')} placed</span>`;}
+        if(bi>=2&&bi<4&&k.vague)return `${K.length>4?'<b>–</b>':chips(k.sh,false)}<span>loosely held outer electrons${k.nd?'':', not drawn here'}</span>`;
+        if(bi>=2&&bi<4&&k.part)return `${chips(k.sh,true)}<span>${k.nd} free, ${k.used} already in bonds to hydrogen</span>`;
+        if(bi===2)return `${chips(k.sh,true)}<span>${k.octet?pl(k.nd,'outer electron'):pl(k.nd,'loosely held electron')}</span>`;
+        if(bi===3)return `${chips(k.sh,true)}<span>${k.octet?`${k.nd} of ${k.tot} outer seats filled`:I.lite&&!k.don?`${k.nd} it can use for bonding`:`${k.nd} it can give away`}</span>`;
+        return `<b>× ${k.cnt}</b><span>${k.lab&&k.lab!==k.s?esc(k.lab)+(k.cnt===1?' group':' groups'):k.e.n.toLowerCase()+(k.cnt===1?' atom':' atoms')} in one ${fml(c.f)}</span>`;}
+      if(bi===0)return `<b>${k.Z}</b><span>${k.Z===1?'proton':'protons'}, locked in the nucleus</span>`;
+      if(I.lite){const qs=k.qs.filter(q=>q),bn=k.bn[0]===k.bn[1]?''+k.bn[0]:k.bn[0]+' to '+k.bn[1];
+        if(bi===3&&qs.length&&!(k.fq&&qs.some(q=>q>0)))return `<b>${qs.map(q=>Math.abs(q)+(q>0?'+':'−')).join(' / ')}</b><span>${pl(k.Z,'proton')}, ${qs.map(q=>k.Z-q).join(' or ')} ${qs.length===1&&k.Z-qs[0]===1?'electron':'electrons'}</span>`;
+        if(bi===3&&k.fq&&k.lab&&k.lab!==k.s&&qs.some(q=>q>0))return `<b>${Math.max(...qs)}+</b><span>charge of the whole ${esc(k.lab)} group</span>`;
+        if(bi===3&&I.kind==='metal')return `<b>${k.sea}</b><span>${k.sea===1?'electron':'electrons'} let go by each atom</span>`;
+        if(bi===3&&k.bn[1]>0)return `<b>${bn}</b><span>shared ${k.bn[1]===1?'pair':'pairs'} on each atom in this drawing</span>`;
+        if(bi>0)return k.e.en>0?`<b>${k.e.en.toFixed(1)}</b><span>pull score: how hard it holds on to electrons</span><div class="ec-bar"><i style="width:${(k.e.en/4*100).toFixed(0)}%"></i></div>`:`<b>–</b><span>no pull score has been measured for this element</span>`;}
+      if(bi<3)return I.core?`<b>+${k.val}</b><span>pull on its outer electron${k.val===1?'':'s'}: ${k.Z} protons − ${k.Z-k.val} inner electrons</span><div class="ec-bar"><i style="width:${(k.val/8*100).toFixed(0)}%"></i></div>`
+        :I.qual?`<b>${k.don?'Loose':'Strong'}</b><span>grip on its outer electrons</span><div class="ec-bar"><i style="width:${k.don?25:85}%"></i></div>`
+        :`<b>${k.e.en.toFixed(1)}</b><span>pull score: how hard it holds on to electrons</span><div class="ec-bar"><i style="width:${(k.e.en/4*100).toFixed(0)}%"></i></div>`;
+      if(I.mix&&bi===3&&!k.don){const G=I.grp,gq=Math.abs(G.q);return `<b>${gq}−</b><span>charge of the whole ${G.f} group: ${pl(gq,'extra electron')}</span>`;}
+      if(I.net&&bi>=2){const need=k.tot-k.nd,made=k.nb+I.gh.filter(q=>q.i===k.rep&&t>q.t+.04).length;
+        return bi===2?`<b>${need}</b><span>${need===1?'bond':'bonds'} needed to fill its outer shell</span>`
+          :made<need?`<b>${made} of ${need}</b><span>bonds made so far. ${need-made===1?'1 electron still reaches':(need-made)+' electrons still reach'} outward</span>`
+          :`<b>${made} of ${need}</b><span>bonds, now that new neighbours have joined. Outer shell full</span>`;}
+      if(I.fam==='share')return `<b>${k.tot}</b><span>in its outer shell, counting shared ones. Full.</span>`;
+      return `<b>${k.qs.map(q=>Math.abs(q)+(q>0?'+':'−')).join(' / ')}</b><span>${k.Z} protons, ${k.qs.map(q=>k.Z-q).join(' or ')} electrons</span>`;});
+    const key=sc+'|'+bi+'|'+body.join('|');if(st.ecK!==key){st.ecK=key;[...ec.children].forEach((x,i)=>{x.querySelector('.ec-b').innerHTML=body[i];});ecPlace();}
+  }
+  if(window.__LITE)MV.lite(id=>window.__LITE===true||window.__LITE.indexOf(id)>=0);
+  if(window.__MIX)MV.mix(id=>window.__MIX===true||window.__MIX.indexOf(id)>=0);
+  if(window.__NET)MV.net(id=>window.__NET===true||window.__NET.indexOf(id)>=0);
+  if(window.__SHARE)MV.share(id=>window.__SHARE===true||window.__SHARE.indexOf(id)>=0);
+  // why the structure looks the way it does, in the order the model shows it
+  const SHAPE={'sodium-chloride':'It is also why grains of salt are little cubes.'},GRAIN={'sodium-chloride':['a billion billion','ions in one grain of salt']};
+  // compounds whose sketch packs the same number of neighbours as the real crystal (rock salt, wurtzite and zinc blende, perovskite, fluorite, silica-like).
+  // For every other compound the count is described as belonging to the model.
+  const REAL=new Set('sodium-chloride potassium-chloride calcium-oxide nickel-ii-oxide silver-bromide rubidium-chloride silver-chloride potassium-iodide europium-monoxide lead-sulfide hafnium-carbide tantalum-carbide tantalum-hafnium-carbide tungsten-carbide beryllium-oxide zinc-oxide silver-iodide silicon-carbide gallium-arsenide gallium-nitride cadmium-selenide cadmium-sulfide cadmium-telluride indium-phosphide indium-antimonide calcium-titanate barium-titanate strontium-titanate lithium-niobate caesium-tin-iodide caesium-lead-iodide lithium-tantalate bismuth-ferrite silicon-dioxide beryllium-fluoride strontium-aluminate tellurium-dioxide cerium-dioxide thorium-dioxide uranium-dioxide neptunium-dioxide plutonium-dioxide americium-dioxide curium-dioxide'.split(' '));
+  function beats(F){
+    const T=F.tale,c=CMP[st.cid],ion=c.ty==='ionic',w=ion?'ion':'atom',nm=s=>byZ(symZ[s]).n.toLowerCase(),sg=s=>ion&&c.ch&&c.ch[s]?(/-/.test(c.ch[s])?' (−)':' (+)'):'';
+    const an=(w,c)=>(/^(?!eu)[aeio]|^yt/.test(w)?(c?'An ':'an '):(c?'A ':'a '))+w;
+    const A=nm(T.hs),B=nm(T.nb),one=Object.keys(T.nbs).length===1,n=T.n1,ex=REAL.has(st.cid),fit=ex?`Only ${n} fit`:`In this simplified model ${n} fit`,real=ex?'':' The real crystal packs a little differently, for the same reason.';
+    return [
+      ion?`<b>Opposite charges attract.</b> ${an(A,1)} ion${sg(T.hs)} and ${an(B)} ion${sg(T.nb)} snap together.`:`<b>The first atoms join.</b> ${an(A,1)} atom and ${an(B)} atom bond.`,
+      ion&&one?`<b>More ${B} ions crowd in</b> around the ${A}. ${fit}. One more is pushed away, because ${B} ions repel each other.${real}`:`<b>More ${w}s crowd in</b> around the ${A}. ${fit}, and one more is pushed away.${real}`,
+      `<b>The same rule spreads.</b> Each of those ${w}s pulls in neighbours of its own.`,
+      `<b>Repeat it in every direction</b> and this pattern appears. Nobody designs it: it is simply the closest the ${w}s can sit to ${ion?'their opposites':'each other'}.${SHAPE[st.cid]?' '+SHAPE[st.cid]:''}`,
+      `<b>It only stops because this is a sample</b> of ${T.total} ${w}s. ${GRAIN[st.cid]?'One grain of table salt carries the same pattern on for about a billion billion ions.':'A real crystal carries the same pattern on for billions upon billions of them.'}`];
   }
   function fxStart(sc){
     if(st.mode!=='cmp'||!CMP[st.cid])return;
     if(!st.form){st.form=MV.form(st.cid);if(!st.form)return;MV.ST.onForm=fxPaint;$('#fxX').hidden=false;st.capSc=-1;}
     MV.formGo(sc,!RM);fxPaint(MV.ST.form);
   }
-  function fxClose(quiet){if(!st.form)return;st.form=null;MV.ST.onForm=null;MV.formEnd();$('#useo').hidden=true;if(!quiet)fxIdle();}
+  function fxClose(quiet){if(!st.form)return;st.form=null;MV.ST.onForm=null;MV.formEnd();$('#useo').hidden=true;$('#cnt').hidden=true;st.cntK='';ecOff();if(!quiet)fxIdle();}
+  // tap one of the reasons to jump the model to that moment
+  const BEAT0=[0,.08,.385,.6,.79];
+  function beatGo(i){const F=MV.ST.form;if(!F)return;const sc=F.sc;if(sc===2&&F.tale){MV.formGo(2,true);F.el=(BEAT0[i]*.94+.03)*F.dur[2]+30;}else if(sc<2&&F.intro){MV.formGo(sc,true);F.el=(F.intro.B||MV.IB)[sc][i]*F.dur[sc]+30;}else return;F.t0=performance.now()-F.el;if(RM)F.play=false;MV.kick();fxPaint(F);}
+  $('#fxp').addEventListener('keydown',ev=>{const b=ev.target.closest('.bt');if(b&&ev.target===b&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();beatGo(+b.dataset.b);}});
   $('#fxp').addEventListener('click',ev=>{
+    const bt=ev.target.closest('.bt');if(bt){if(!ev.target.closest('.term'))beatGo(+bt.dataset.b);return;}
     const s=ev.target.closest('.fxp-st');if(s){fxStart(+s.dataset.s);return;}
     if(ev.target.closest('#fxX')){fxClose();$('#fxPlay').focus({preventScroll:true});return;}
     if(!ev.target.closest('#fxPlay'))return;const F=MV.ST.form;
     if(!st.form||!F){fxStart(0);return;}
-    if(F.sc===3&&F.el>=FXX.DUR[3]){fxStart(0);return;}
+    if(F.sc===3&&F.el>=F.dur[3]){fxStart(0);return;}
     if(F.play)F.play=false;else{F.t0=performance.now()-F.el;F.play=true;MV.kick();}
     fxPaint(F);
   });
@@ -6216,7 +6886,7 @@ const V9=(()=>{
   }
   function mode(t){if(st.mode==='cmp'&&t!=='cmp')fxClose(true);st.mode=t;wrap.dataset.mode=t;if(st.z)show();}
   function build(){
-    const e=el();if(st.z===e.z)return;st.z=e.z;st.iso=0;st.hl='';st.view='atom';st.form=null;MV.ST.onForm=null;
+    const e=el();if(st.z===e.z)return;st.z=e.z;st.iso=0;st.hl='';st.view='atom';st.form=null;MV.ST.onForm=null;ecOff();
     const L=cids();st.cid=L[0]||null;
     tint();hdr();buildAtomPanel();buildWords();buildCmpPanel();cmpDetail();show();
   }
